@@ -2,11 +2,106 @@
 
 Append an entry whenever a methodology choice is made. Newest at the bottom. Every rule is applied mechanically by the code and cites its evidence; if none has been found yet, write `Evidence: pending` and add it to the brief's Open questions.
 
+Entry template:
+
+```
+### YYYY-MM-DD — Decision title
+**Context:** What prompted the choice
+**Options considered:** Each option, and why it was rejected or kept
+**Rule:** The exact rule the code applies, with thresholds
+**Evidence:** Sources with links that support the rule, or "pending"
+**What would change my mind:** The result or evidence that would reverse it
+**Effect on results:** If known
+```
+
 ---
 
-### YYYY-MM-DD — {{Decision title}}
-**Context:** {{What prompted the choice}}
-**Rule:** {{The exact rule the code applies, with thresholds, e.g. "Exclude ETFs with AUM below USD 100m at the screen date"}}
-**Evidence:** {{Sources with links that support the rule, or "pending"}}
-**Alternatives considered:** {{What you rejected and why}}
-**Effect on results:** {{If known}}
+### 2026-10-26 — Project scope
+**Context:** Project intake.
+**Options considered:** A single backtest of one allocation, or a staged project that tests common claims before designing anything. The staged project was chosen because the allocation's inputs should follow from tested evidence, not habit.
+**Rule:** Six phases (0 setup, 1 evidence review of 13 claims, 2 strategy design, 3 backtest, 4 ETF implementation, 5 self-critique). Each phase ends with a checkpoint and owner approval before the next starts. Scope is set by `docs/brief.md`.
+**Evidence:** Not applicable (scope choice).
+**What would change my mind:** A data gap in Phase 1 that makes a phase untestable; the scope would then be cut and recorded here.
+**Effect on results:** None yet.
+
+### 2026-10-26 — Raw data is never committed
+**Context:** Some sources may allow redistribution, while others (index providers, Yahoo Finance) do not.
+**Options considered:** Commit raw files where the licence allows (rejected: per-source licence tracking adds risk for little benefit), or commit none.
+**Rule:** Everything under `data/` except `data/MANIFEST.yaml` is gitignored. The manifest records each file's URL, series ID, retrieval date, licence, SHA-256, row count, date range and units. `verify_data` fails if a file is missing or its hash differs.
+**Evidence:** Not applicable (governance choice).
+**What would change my mind:** A source disappearing or changing past values in place, which would make results unreproducible from a fresh fetch.
+**Effect on results:** None. Reproducibility depends on sources staying online; hash mismatches are reported, never silently accepted.
+
+### 2026-10-26 — Risk-free rate
+**Context:** Sharpe and Sortino need a stated risk-free rate.
+**Options considered:** 3M SORA (SGD); 3M US T-bill (USD).
+**Rule:** All SGD rates come from MAS Domestic Interest Rates (fetched by `analysis.sources`).
+- Each month's SGD risk-free return is the change in the SORA Index over that month: the cash return actually earned by rolling overnight SGD deposits. This applies from the first full month of SORA Index data (July 2005 value dates).
+- Before then, the monthly return is the MAS 3-month interbank rate at the previous month-end divided by 12. That rate is known at the start of the month, so there is no look-ahead.
+- No SGD rate exists before July 1987, so SGD Sharpe and Sortino ratios start from August 1987.
+- USD results in Phase 1 use the 3-month US T-bill (FRED TB3MS).
+- The 3-month interbank rate and SORA overlap from July 2005 to December 2013 (interbank was discontinued from 1 January 2014). Phase 1 measures the gap between them over that overlap and reports it.
+**Evidence:** MAS data file notes (interbank rates discontinued from 1 Jan 2014; SORA defined as the volume-weighted overnight unsecured interbank SGD rate). Industry practice of using SORA for SGD cash: pending a cited source.
+**What would change my mind:** A large gap between the two rates over 2005–2013 that would distort pre-2005 excess returns; or a longer free SGD 3-month series (e.g. SIBOR from the Association of Banks in Singapore, not yet checked).
+**Effect on results:** TBD
+
+### 2026-10-26 — Transaction cost fallback
+**Context:** Backtests must include trading costs.
+**Options considered:** Measured bid-ask spreads per ETF (preferred where data exists); a flat fallback.
+**Rule:** 10 bps per side, used only when a measured cost is missing.
+**Evidence:** pending
+**What would change my mind:** Measured spreads for the chosen ETFs that differ materially from 10 bps.
+**Effect on results:** TBD
+
+### 2026-10-26 — Shiller data from shillerdata.com, not Yale
+**Context:** Source check before the first fetch. The long-standing Yale URL (econ.yale.edu/~shiller/data/ie_data.xls) still serves a file, but its data ends 2023-09. The copy linked from shillerdata.com runs to 2026-10.
+**Options considered:** The Yale URL (rejected: stale); a hard-coded shillerdata.com file link (rejected: the link carries a changing version tag).
+**Rule:** `analysis.sources` reads shillerdata.com and follows the link to `ie_data.xls`, failing if no such link exists. JST's download link is resolved the same way from macrohistory.net/database/.
+**Evidence:** Both files fetched on 2026-10-26: the Yale copy's last row is 2023.09, the shillerdata.com copy's is 2026.10.
+**What would change my mind:** Shiller stops maintaining shillerdata.com, or names a different official location.
+**Effect on results:** Adds three years of data, including 2023–2026.
+
+### 2026-10-27 — ETF prices from yfinance behind a PriceSource interface
+**Context:** REIT ETF history is needed for the REIT sleeve and the ETF-era backtest.
+**Options considered:** Direct calls to Yahoo's chart endpoint (rejected: same unofficial endpoint and terms, but every breakage would be ours to fix); `yfinance` (kept: it already handles dividends, splits and adjustments and is maintained by others).
+**Rule:**
+- `yfinance` is pinned to exactly 1.7.0. Only `analysis.prices.YFinanceSource` imports it, so swapping providers means writing another `PriceSource`.
+- History is pulled with `auto_adjust=False` and cached raw in `data/raw/yahoo/`, with SHA-256 in the manifest.
+- Total return is rebuilt from the split-adjusted close plus cash distributions, reinvested at the ex-date close (`metrics.total_returns_from_distributions`). Yahoo's adjusted close is kept for cross-checks only.
+- Each ETF's calendar-year total returns are cross-checked against issuer-published returns for at least 3 years (`prices.cross_check`). Any gap above 0.5 percentage points a year is logged.
+- Issuer figures are often NAV-based while ours use market prices, so the basis is recorded with each reference row.
+**Evidence:** Tolerance: owner's rule. Evidence: pending.
+**What would change my mind:** Repeated mismatches traced to Yahoo data, which would justify switching the PriceSource.
+**Effect on results:** TBD
+
+### 2026-10-27 — Data verification runs locally, not in CI
+**Context:** FRED, MAS and Yahoo update daily, so a fresh download in CI almost never matches the locally recorded hashes.
+**Options considered:** Fetch and verify in CI (rejected: it would fail on nearly every run for reasons unrelated to the code); verify only from a CI cache (rejected: the cache could only be filled by CI's own download, so it would never check against the committed manifest).
+**Rule:** CI runs lint and tests. `make verify` checks raw files against `data/MANIFEST.yaml` locally and runs before every results update. Source updates are accepted only through `make refresh`.
+**Evidence:** Not applicable (tooling choice).
+**What would change my mind:** Freezing raw data snapshots somewhere CI can read them while respecting each source's licence.
+**Effect on results:** None.
+
+### 2026-10-27 — Question-led design, no prior hypothesis
+**Context:** The brief template asks for a hypothesis before results are seen.
+**Options considered:** State a prior hypothesis (rejected by the owner: it would be anecdotal); derive the allocation from the evidence and the investor's constraints (kept).
+**Rule:** The project answers the question in brief §3 by gathering and analysing the data, then setting the allocation from the evidence and the investor's constraints. To limit data snooping without a hypothesis, the selection rules (objective, constraints, comparison metrics) are written down in Phase 2 before any backtest results are seen. Anything chosen after seeing results is labelled in-sample.
+**Evidence:** Not applicable (research design choice by the owner).
+**What would change my mind:** Not applicable.
+**Effect on results:** None directly. It moves the guard against data snooping from a falsifiable hypothesis to rules fixed before the backtest.
+
+### 2026-10-27 — Licensing of JST-derived outputs
+**Context:** JST data is CC BY-NC-SA 4.0, which is share-alike; the repo code is MIT.
+**Options considered:** One licence for everything (rejected: MIT can't relicense share-alike material); a split between code and data-derived outputs (kept: the usual practice).
+**Rule:** Code is MIT. Every figure or table derived from JST carries `config.JST_CREDIT` in its caption, stating the source, release, consultation date, citation and CC BY-NC-SA 4.0. The README Licences section gives the full citations JST requires (Jordà, Schularick and Taylor 2017; Jordà et al. 2019 for rate-of-return data).
+**Evidence:** macrohistory.net/database/ "How to cite" section and licence-terms page, checked 2026-10-27.
+**What would change my mind:** A change in JST's licence terms.
+**Effect on results:** None.
+
+### 2026-10-27 — Nareit data is a manual, non-redistributable input
+**Context:** reit.com blocks scripted downloads, and its Terms of Use (dated 2023-07-28, s.4) forbid distributing, publicly displaying or creating derivative works of site material without written approval.
+**Options considered:** Getting around the bot check (rejected); manual download recorded by hash (kept).
+**Rule:** The owner saves `MonthlyHistoricalReturns.xls` to `data/raw/nareit/`. The fetch step records its SHA-256 and fails with the download URL if the file is missing. The file is gitignored. Only the "All Equity REITs" total return column is used. Total return = price return + income return was checked on the first row.
+**Evidence:** Nareit Terms of Use s.4 (text supplied by the owner); file header "Returns and dividend yield in percent".
+**What would change my mind:** Written approval from Nareit, which would allow publishing results derived from it.
+**Effect on results:** Pending the publication decision in the brief's Open questions.

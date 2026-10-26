@@ -1,0 +1,369 @@
+# Provenance of every file in data/raw. Written by analysis.sources; don't edit by hand.
+# Raw files are not committed; verify with: uv run python -m analysis.pipeline verify
+files:
+  damodaran/histretSP.xls:
+    source: Aswath Damodaran, historical returns on stocks, bonds and bills
+    url: https://pages.stern.nyu.edu/~adamodar/pc/datasets/histretSP.xls
+    landing_page: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/data.html
+    series: histretSP.xls, sheet Returns by year
+    retrieved: '2026-10-26'
+    licence: No licence stated by the source; free download. Treated as not redistributable.
+    redistributable: false
+    rows: 98
+    start: '1928'
+    end: '2025'
+    units: Annual, USD nominal, decimal. S&P 500 incl. dividends, small cap, 3-month
+      T-bill, 10-year T-bond, Baa corporate, real estate, gold total returns; CPI
+      inflation.
+    sha256: 28b8110916a15a4dcc11c87c6422510704608ddedcdfa67a1298abdc22e49c69
+  fred/AAA.csv:
+    source: 'FRED: Moody''s seasoned Aaa corporate bond yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=AAA
+    landing_page: https://fred.stlouisfed.org/series/AAA
+    series: AAA
+    retrieved: '2026-10-26'
+    licence: Copyrighted (Moody's), citation required (FRED series page). Not redistributable.
+    redistributable: false
+    rows: 1293
+    start: 1919-01
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: 15248259177710745867656c413bb2bae549c6485ca3acb7eed348a812f497ac
+  fred/BAA.csv:
+    source: 'FRED: Moody''s seasoned Baa corporate bond yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAA
+    landing_page: https://fred.stlouisfed.org/series/BAA
+    series: BAA
+    retrieved: '2026-10-26'
+    licence: Copyrighted (Moody's), citation required (FRED series page). Not redistributable.
+    redistributable: false
+    rows: 1293
+    start: 1919-01
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: 3396297d0b2f8f4e8bb467207286c33c04d97bfe37b25bc5a97da6bafc615e93
+  fred/CPIAUCSL.csv:
+    source: 'FRED: US CPI, all urban consumers'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL
+    landing_page: https://fred.stlouisfed.org/series/CPIAUCSL
+    series: CPIAUCSL
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 957
+    start: 1947-01
+    end: 2026-09
+    units: Monthly index, 1982-84=100, SA
+    sha256: 8556b710094027fa4724641d48be620cc37c04abfa15a0c496378cf1146c1549
+  fred/EXSIUS.csv:
+    source: 'FRED: Singapore dollars to one US dollar'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=EXSIUS
+    landing_page: https://fred.stlouisfed.org/series/EXSIUS
+    series: EXSIUS
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 549
+    start: 1981-01
+    end: 2026-09
+    units: Monthly average, SGD per USD
+    sha256: 44b4fdc90203de43b6911b3ba4119ece7ff1ce0f098f555d07c129cf77680a58
+  fred/FII10.csv:
+    source: 'FRED: 10-year TIPS constant maturity real yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=FII10
+    landing_page: https://fred.stlouisfed.org/series/FII10
+    series: FII10
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 285
+    start: 2003-01
+    end: 2026-09
+    units: Monthly average, % p.a., real
+    sha256: 6cfd5f05cc27564c169f5e5e08b4f6029748c48e1922663eeb67facacd2fc9c5
+  fred/GS1.csv:
+    source: 'FRED: 1-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS1
+    landing_page: https://fred.stlouisfed.org/series/GS1
+    series: GS1
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 882
+    start: 1953-04
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: c462ef0a7d8fbfaeef71405eaacbe59a1ea175ded09a149cf4e8e0760d9c62cd
+  fred/GS10.csv:
+    source: 'FRED: 10-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10
+    landing_page: https://fred.stlouisfed.org/series/GS10
+    series: GS10
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 882
+    start: 1953-04
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: 40323f225e613a19a4eec7eef20523dec10764de21c70cd1416a7379fb7f13b6
+  fred/GS30.csv:
+    source: 'FRED: 30-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS30
+    landing_page: https://fred.stlouisfed.org/series/GS30
+    series: GS30
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 596
+    start: 1977-02
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: 3fe4a03fa322ca3167bf9aa338db83210c06ef7324dff9f013c761121a85181a
+  fred/GS5.csv:
+    source: 'FRED: 5-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS5
+    landing_page: https://fred.stlouisfed.org/series/GS5
+    series: GS5
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 882
+    start: 1953-04
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: f768d61bbd7e297d5c11c52e2a50e5338bf6fe704e3f2c5f135dbbca160ae5d9
+  fred/TB3MS.csv:
+    source: 'FRED: 3-month Treasury bill, secondary market rate'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=TB3MS
+    landing_page: https://fred.stlouisfed.org/series/TB3MS
+    series: TB3MS
+    retrieved: '2026-10-26'
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 1113
+    start: 1934-01
+    end: 2026-09
+    units: Monthly average, % p.a.
+    sha256: 631bc444a8c5370c3a2df12f484a67ae7b9a68c00fe8a33215895fb49c8cc08c
+  french/F-F_Research_Data_Factors_CSV.zip:
+    source: Kenneth French Data Library
+    url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_CSV.zip
+    landing_page: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html
+    series: Fama/French 3 Factors (monthly)
+    retrieved: '2026-10-26'
+    licence: No licence stated by the source; free download. Treated as not redistributable.
+    redistributable: false
+    rows: 1202
+    start: 1926-07
+    end: 2026-08
+    units: Monthly, % per month, USD nominal. Mkt-RF (value-weighted US market total
+      return minus RF), SMB, HML, RF (1-month T-bill).
+    sha256: 593f4fbef03181bc0b22ff6292f217689dd1fb79355049ca905d95b262040a66
+  french/F-F_Research_Data_Factors_daily_CSV.zip:
+    source: Kenneth French Data Library
+    url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip
+    landing_page: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html
+    series: Fama/French 3 Factors (daily)
+    retrieved: '2026-10-26'
+    licence: No licence stated by the source; free download. Treated as not redistributable.
+    redistributable: false
+    rows: 26317
+    start: '1926-07-01'
+    end: '2026-08-31'
+    units: Daily, % per day, USD nominal. Mkt-RF (value-weighted US market total return
+      minus RF), SMB, HML, RF (1-month T-bill).
+    sha256: 2f29e22546069914890a712680a6f81f3680ebc3543b52864484d209ca13a7db
+  jst/JSTdataset.xlsx:
+    source: Jordà-Schularick-Taylor Macrohistory Database
+    url: https://www.macrohistory.net/app/download/9834512569/JSTdatasetR6.xlsx?t=1763503850
+    landing_page: https://www.macrohistory.net/database/
+    series: JST dataset (country-year panel); release named in url
+    retrieved: '2026-10-26'
+    licence: CC BY-NC-SA 4.0 (macrohistory.net/database/licence-terms/). Non-commercial
+      use, citation required, share-alike.
+    redistributable: true
+    rows: 2718
+    start: '1870'
+    end: '2020'
+    units: Annual, local currency nominal. eq_tr, bond_tr, housing_tr total returns
+      (decimal), bill_rate (decimal), cpi (index), xrusd (local currency per USD).
+    sha256: c1bb91fe56ea50d4f27af5c0fc897d481e89ae38ce41eaecab62134c9354981d
+  mas/domestic_interest_rates.csv:
+    source: Monetary Authority of Singapore, Domestic Interest Rates
+    url: https://eservices.mas.gov.sg/statistics/dir/DomesticInterestRates.aspx
+    landing_page: https://eservices.mas.gov.sg/statistics/dir/DomesticInterestRates.aspx
+    series: Interbank Overnight, Interbank 3-month, SORA, SORA Index, 3-month Compounded
+      SORA (daily)
+    retrieved: '2026-10-27'
+    licence: 'MAS Terms of Use of Datasets (mas.gov.sg/terms-of-use): royalty-free
+      licence to use and distribute, commercially or not, with a notice acknowledging
+      MAS as the source.'
+    redistributable: true
+    rows: 10826
+    start: '1987-07-01'
+    end: '2026-10-23'
+    units: Daily, % p.a., SGD. Interbank rates Jul 1987 to Dec 2013 (discontinued
+      by MAS from 1 Jan 2014). SORA and 3-month compounded SORA (backward-looking)
+      from 2005; SORA Index is a compounded overnight index level.
+    sha256: f596a8d284a187a6c1710bb5486b569bb68c37c28a646479ae18460cc1cf7c7e
+  nareit/MonthlyHistoricalReturns.xls:
+    source: Nareit, FTSE Nareit U.S. Real Estate Index Series monthly history
+    url: https://www.reit.com/sites/default/files/returns/MonthlyHistoricalReturns.xls
+    landing_page: https://www.reit.com/data-research/reit-indexes/monthly-index-values-returns
+    series: Index Data sheet; All Equity REITs total return
+    retrieved: '2026-10-27'
+    manual_download: true
+    licence: 'Nareit Terms of Use (reit.com, dated 2023-07-28) s.4: no distribution,
+      public display or derivative works of site material without Nareit''s prior
+      written approval; index series also subject to FTSE terms. Not redistributable.'
+    redistributable: false
+    rows: 658
+    start: 1971-12
+    end: 2026-09
+    units: Monthly, USD, % per month. Total, price and income returns and index levels
+      for each REIT index; total return = price return + income return.
+    sha256: c0719444c5a27b28d3bd099ddaf7a1530ac9a4bc07ef6e52b12bab71e26ca67d
+  shiller/ie_data.xls:
+    source: Robert Shiller online data
+    url: https://img1.wsimg.com/blobby/go/e5e77e0b-59d1-44d9-ab25-4763ac982e53/downloads/1449043e-a1ed-4e2e-8e9c-7b9a2a064493/ie_data.xls?ver=1791297298731
+    landing_page: https://shillerdata.com/
+    series: ie_data.xls, sheet Data
+    retrieved: '2026-10-26'
+    licence: No licence stated by the source; free download. Treated as not redistributable.
+    redistributable: false
+    rows: 1870
+    start: 1871-01
+    end: 2026-10
+    units: Monthly. S&P Composite price, dividends, earnings (USD nominal), CPI, 10-year
+      Treasury yield (% p.a.), plus Shiller's real total-return and bond-return columns.
+    sha256: 98a54927942e842ec07ffe73000998e793953708c345b6b27bb363e9ada8366a
+  yahoo/CFA.SI.csv:
+    source: 'yahoo: CFA.SI (Asia ex-Japan REITs, from 2017)'
+    url: 'yfinance: Ticker(''CFA.SI'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/CFA.SI/history
+    series: CFA.SI
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 2407
+    start: '2017-03-28'
+    end: '2026-10-26'
+    units: 'Daily, SGD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 2c6cb5540934452122238c0b18430783490ae30e1adbd5ac5404c7fb7e8bcc6f
+  yahoo/CLR.SI.csv:
+    source: 'yahoo: CLR.SI (Singapore REITs, from 2017)'
+    url: 'yfinance: Ticker(''CLR.SI'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/CLR.SI/history
+    series: CLR.SI
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 2260
+    start: '2017-10-30'
+    end: '2026-10-26'
+    units: 'Daily, SGD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 5bee717eda305779678e14d38289678db988b9c454f223d6442347c15f3620e5
+  yahoo/IDWP.L.csv:
+    source: 'yahoo: IDWP.L (UCITS developed-markets property yield, USD line, from
+      2008)'
+    url: 'yfinance: Ticker(''IDWP.L'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/IDWP.L/history
+    series: IDWP.L
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 4745
+    start: '2008-01-02'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: a974aefa49f1f7d5e999f25ed7aa2b2624544a2f913fa63bd3cafca88e393cde
+  yahoo/REET.csv:
+    source: 'yahoo: REET (global REITs, from 2014)'
+    url: 'yfinance: Ticker(''REET'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/REET/history
+    series: REET
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 3093
+    start: '2014-07-10'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: f0597cce22a19994bc1de16544eac945d39ebe3406163a102a3aabbc2baff0ea
+  yahoo/RWO.csv:
+    source: 'yahoo: RWO (global REITs, from 2008)'
+    url: 'yfinance: Ticker(''RWO'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/RWO/history
+    series: RWO
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 4636
+    start: '2008-05-22'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: fd43c3c2309d2bd1a597d7419ab2347f69892f39137db5a0cab7652f67595bcb
+  yahoo/SRT.SI.csv:
+    source: 'yahoo: SRT.SI (Singapore REITs, from 2021)'
+    url: 'yfinance: Ticker(''SRT.SI'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/SRT.SI/history
+    series: SRT.SI
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 1239
+    start: '2021-11-18'
+    end: '2026-10-26'
+    units: 'Daily, SGD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: b9f1fac6cba1fb9992a409f3676414e405109e3a5f336c33d2ff0f23c7e8f454
+  yahoo/VNQ.csv:
+    source: 'yahoo: VNQ (US REITs, from 2004)'
+    url: 'yfinance: Ticker(''VNQ'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/VNQ/history
+    series: VNQ
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 5554
+    start: '2004-09-29'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: b106538eaf1f7d43141506b129cc9a950a6acfc21073d736e4b6b784d3ea41c6
+  yahoo/VNQI.csv:
+    source: 'yahoo: VNQI (developed and emerging ex-US real estate, from 2010)'
+    url: 'yfinance: Ticker(''VNQI'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/VNQI/history
+    series: VNQI
+    retrieved: '2026-10-27'
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 4020
+    start: '2010-11-01'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: ba0382c623db07a55a6fac3d86eda5bc98a6d9fc26b842062009cab6edc95698

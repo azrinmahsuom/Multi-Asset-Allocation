@@ -11,8 +11,16 @@ DATA_EXTERNAL = ROOT / "data" / "external"
 DATA_PROCESSED = ROOT / "data" / "processed"
 REFERENCE = ROOT / "reference"  # committed, hand-researched inputs
 FIGURES = ROOT / "reports" / "figures"
+MANIFEST = ROOT / "data" / "MANIFEST.yaml"  # committed: provenance and hashes of data/raw
 
 load_dotenv(ROOT / ".env")
+
+# Source line for every figure or table derived from JST data. Share-alike: such outputs carry
+# the source licence, so the caption states it, not only the README.
+JST_CREDIT = (
+    "Source: Jordà-Schularick-Taylor Macrohistory Database (R6, consulted 2026-10-26); "
+    "Jordà et al. (2019), QJE. Licensed CC BY-NC-SA 4.0."
+)
 
 TRADING_DAYS = 252
 # Per side. Fallback only when measured costs are missing; record the source in docs/decisions.md.

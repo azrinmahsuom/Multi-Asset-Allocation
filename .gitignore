@@ -29,9 +29,6 @@ build/
 # Notebooks
 .ipynb_checkpoints/
 
-# Local tool settings
-.claude/settings.local.json
-
 # macOS / editors
 .DS_Store
 .vscode/*
