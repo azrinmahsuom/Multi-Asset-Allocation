@@ -22,6 +22,10 @@ JST_CREDIT = (
     "Jordà et al. (2019), QJE. Licensed CC BY-NC-SA 4.0."
 )
 
+# Bootstrap settings: fixed seed so every run reproduces the same numbers.
+RANDOM_SEED = 20261027
+BOOTSTRAP_REPS = 2000
+
 TRADING_DAYS = 252
 # Per side. Fallback only when measured costs are missing; record the source in docs/decisions.md.
 TRANSACTION_COST_BPS = 10

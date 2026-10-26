@@ -114,5 +114,6 @@ Not applicable: no hypothesis (see §5).
 - SingStat series (SG CPI) and SGS yields: not yet fetched.
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
 - The 0.5 pp per year cross-check tolerance was set by the owner. Evidence: pending.
+- Claim 5's 36-month correlation window and claim 4's horizon set (1/5/10/20/30 years) have no cited source yet. Evidence: pending; sensitivity checks planned.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.

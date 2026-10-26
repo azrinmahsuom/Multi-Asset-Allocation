@@ -75,13 +75,40 @@ def recovery_periods(returns: pd.Series) -> int | None:
     return int(recovered.index[0] - trough) if len(recovered) else None
 
 
+def rolling_annualised(returns: pd.Series, years: int, periods_per_year: int) -> pd.Series:
+    """Annualised return over each rolling window of `years`, labelled by the window's end.
+
+    A window containing any missing period is missing, so gaps are never bridged.
+    """
+    window = years * periods_per_year
+    log_growth = np.log1p(returns).rolling(window, min_periods=window).sum()
+    return np.expm1(log_growth / years).dropna()
+
+
 def worst_rolling_return(returns: pd.Series, years: int, periods_per_year: int) -> float:
     """Worst annualised return over any rolling window of `years` (overlapping windows)."""
     window = years * periods_per_year
     if len(returns) < window:
         raise ValueError(f"Need at least {window} periods for a {years}-year window.")
-    growth = (1 + returns).rolling(window).apply(np.prod, raw=True).dropna()
-    return float(growth.min() ** (1 / years) - 1)
+    return float(rolling_annualised(returns, years, periods_per_year).min())
+
+
+def par_bond_return(
+    yield_start: pd.Series, yield_end: pd.Series, maturity_years: float, months: int = 1
+) -> pd.Series:
+    """Total return of a constant-maturity government bond built from yields (decimals).
+
+    Buy a par bond at the start yield (coupon = that yield, paid semi-annually), hold it for
+    `months`, then price it at the end yield with maturity shortened by the holding period.
+    Return = end price + coupon accrued - 1. With unchanged yields this is exactly the coupon
+    accrued (yield * months / 12).
+    """
+    coupon = yield_start
+    periods = 2 * (maturity_years - months / 12)
+    half = yield_end / 2
+    discount = (1 + half) ** (-periods)
+    price = coupon / yield_end * (1 - discount) + discount
+    return price + coupon * months / 12 - 1
 
 
 def real_returns(nominal: pd.Series, inflation: pd.Series) -> pd.Series:

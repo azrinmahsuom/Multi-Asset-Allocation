@@ -55,6 +55,90 @@ files:
     end: 2026-09
     units: Monthly index, 1982-84=100, SA
     sha256: 8556b710094027fa4724641d48be620cc37c04abfa15a0c496378cf1146c1549
+  fred/DFII10.csv:
+    source: 'FRED: 10-year TIPS constant maturity real yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10
+    landing_page: https://fred.stlouisfed.org/series/DFII10
+    series: DFII10
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 6211
+    start: 2003-01
+    end: 2026-10
+    units: Daily, % p.a., real
+    sha256: a34887562b5a6b92c282ac686e582f065bc7387c02dac9723309be69c94a25f9
+  fred/DGS1.csv:
+    source: 'FRED: 1-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS1
+    landing_page: https://fred.stlouisfed.org/series/DGS1
+    series: DGS1
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 16908
+    start: 1962-01
+    end: 2026-10
+    units: Daily, % p.a.
+    sha256: 11d3ad5f16fe70d84dd14420611f1480042d274b823f00e5e3f2a68521f12107
+  fred/DGS10.csv:
+    source: 'FRED: 10-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10
+    landing_page: https://fred.stlouisfed.org/series/DGS10
+    series: DGS10
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 16908
+    start: 1962-01
+    end: 2026-10
+    units: Daily, % p.a.
+    sha256: 19f98e90edb98a9e861f534980d7f6189fe69c771159197585a057589b65327d
+  fred/DGS30.csv:
+    source: 'FRED: 30-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS30
+    landing_page: https://fred.stlouisfed.org/series/DGS30
+    series: DGS30
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 12963
+    start: 1977-02
+    end: 2026-10
+    units: Daily, % p.a.
+    sha256: 6c80c71218791e0d2575307bc6ffa796413b7e435472b60b65a8626ccafa3270
+  fred/DGS5.csv:
+    source: 'FRED: 5-year Treasury constant maturity yield'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS5
+    landing_page: https://fred.stlouisfed.org/series/DGS5
+    series: DGS5
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 16908
+    start: 1962-01
+    end: 2026-10
+    units: Daily, % p.a.
+    sha256: d59de4ee64f576440b6b1f02ad580c906d3dc97c7f1cc6bfcb1010d4be47548a
+  fred/DTB3.csv:
+    source: 'FRED: 3-month Treasury bill, secondary market rate'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3
+    landing_page: https://fred.stlouisfed.org/series/DTB3
+    series: DTB3
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 18994
+    start: 1954-01
+    end: 2026-10
+    units: Daily, % p.a., discount basis
+    sha256: 3437358abeac96f2417ec10d173e985b8aa831d09dee78debdafa52f016f21c8
   fred/EXSIUS.csv:
     source: 'FRED: Singapore dollars to one US dollar'
     url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=EXSIUS

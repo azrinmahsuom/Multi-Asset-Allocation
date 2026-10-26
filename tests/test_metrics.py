@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -69,6 +70,29 @@ def test_worst_rolling_return():
     assert metrics.worst_rolling_return(rets, years=2, periods_per_year=1) == pytest.approx(
         0.88**0.5 - 1
     )
+
+
+def test_rolling_annualised_skips_windows_with_gaps():
+    # 2-year windows on annual data: (1.1*0.8)^(1/2)-1 ends 2001; 2002 is missing, so the
+    # windows ending 2002 and 2003 are missing; 2003-2004: (1.25*1.0)^(1/2)-1.
+    rets = pd.Series([0.10, -0.20, np.nan, 0.25, 0.0], index=[2000, 2001, 2002, 2003, 2004])
+    out = metrics.rolling_annualised(rets, years=2, periods_per_year=1)
+    assert list(out.index) == [2001, 2004]
+    assert out.tolist() == pytest.approx([0.88**0.5 - 1, 1.25**0.5 - 1])
+
+
+def test_par_bond_return_unchanged_yield_earns_the_coupon():
+    out = metrics.par_bond_return(pd.Series([0.05]), pd.Series([0.05]), maturity_years=10)
+    assert out.iloc[0] == pytest.approx(0.05 / 12)
+
+
+def test_par_bond_return_matches_hand_price():
+    # 2-year bond, coupon 4% (semi-annual 2%), held 6 months, yield rises to 6%:
+    # 3 coupons of 2 left, discounted at 3% per half-year, plus principal.
+    # Price = 2/1.03 + 2/1.03^2 + 102/1.03^3; return = price/100 + 0.02 - 1.
+    price = (2 / 1.03 + 2 / 1.03**2 + 102 / 1.03**3) / 100
+    out = metrics.par_bond_return(pd.Series([0.04]), pd.Series([0.06]), 2, months=6)
+    assert out.iloc[0] == pytest.approx(price + 0.02 - 1)
 
 
 def test_real_returns():

@@ -134,7 +134,7 @@ def jst_annual(path: Path = DATA_RAW / "jst" / "JSTdataset.xlsx") -> pd.DataFram
 
 def fred_monthly(series: list[str] | None = None) -> pd.DataFrame:
     """FRED monthly series side by side, in FRED's units (% p.a. for yields)."""
-    series = series or list(sources.FRED_SERIES)
+    series = series or [k for k, v in sources.FRED_SERIES.items() if v[1].startswith("Monthly")]
     frames = []
     for series_id in series:
         df = pd.read_csv(DATA_RAW / "fred" / f"{series_id}.csv", index_col=0, parse_dates=True)
@@ -143,6 +143,40 @@ def fred_monthly(series: list[str] | None = None) -> pd.DataFrame:
     out = pd.concat(frames, axis=1).sort_index()
     out.index.name = "month"
     return out
+
+
+TREASURY_MATURITIES = {"DGS1": 1, "DGS5": 5, "DGS10": 10, "DGS30": 30}
+
+
+def fred_month_end(series: list[str]) -> pd.DataFrame:
+    """Last daily observation of each complete month, as decimals (yields / 100)."""
+    frames = []
+    for series_id in series:
+        df = pd.read_csv(DATA_RAW / "fred" / f"{series_id}.csv", index_col=0, parse_dates=True)
+        daily = pd.to_numeric(df.iloc[:, 0], errors="coerce").dropna() / 100
+        month_end = daily.groupby(daily.index.to_period("M")).last()
+        if not _month_complete(daily.index[-1]):
+            month_end = month_end.iloc[:-1]
+        frames.append(month_end.rename(series_id))
+    out = pd.concat(frames, axis=1).sort_index()
+    out.index.name = "month"
+    return out
+
+
+def us_treasury_monthly() -> pd.DataFrame:
+    """Monthly total returns of constant-maturity US Treasuries built from month-end yields.
+
+    Each month: a par bond bought at last month-end's yield, priced at this month-end's
+    yield (metrics.par_bond_return). Also returns the month-end yields themselves.
+    """
+    yields = fred_month_end([*TREASURY_MATURITIES, "DFII10"])
+    out = pd.DataFrame(index=yields.index)
+    for series_id, maturity in TREASURY_MATURITIES.items():
+        y = yields[series_id]
+        out[f"us_gov{maturity}_tr_nominal_usd"] = metrics.par_bond_return(y.shift(1), y, maturity)
+    for column in yields.columns:
+        out[f"{column.lower()}_yield"] = yields[column]
+    return out.iloc[1:]
 
 
 def mas_tables(path: Path = DATA_RAW / "mas" / "domestic_interest_rates.csv") -> list[pd.DataFrame]:
@@ -278,6 +312,7 @@ def run() -> dict[str, pd.DataFrame]:
         "us_annual_damodaran": _save(damodaran_annual(), "us_annual_damodaran"),
         "jst_annual": _save(jst_annual(), "jst_annual"),
         "fred_monthly": _save(fred_monthly(), "fred_monthly"),
+        "us_treasury_monthly": _save(us_treasury_monthly(), "us_treasury_monthly"),
         "sgd_rf_monthly": _save(sgd_risk_free_monthly(), "sgd_rf_monthly"),
         "reit_etf_monthly": _save(etf_monthly(), "reit_etf_monthly"),
         "us_reit_nareit": _save(nareit_monthly(), PRIVATE_PREFIX + "us_reit_nareit_monthly"),

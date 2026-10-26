@@ -116,3 +116,23 @@ Entry template:
 **Evidence:** Cross-check above, run 2026-10-27. Shiller vs Damodaran annual equity returns, 1928–2025: correlation 0.989. The averaging effect on autocorrelation is a known statistical result (Working, 1960, Econometrica 28(4)). The citation needs checking before publication.
 **What would change my mind:** A month-end price series for 1871–1926.
 **Effect on results:** Claims 3 and 5 rely mainly on French data.
+
+### 2026-10-27 — Evidence review verdicts
+**Context:** Phase 1 gives each of the 13 claims a verdict, and that verdict must not be a judgement call.
+**Options considered:** Free-text verdicts (rejected: they invite case-by-case judgement); a fixed rule on the share of cases where the claim is true (kept).
+**Rule:** `evidence.verdict_from_share`: *Holds* if the claim is true in every case tested (e.g. every country), *Partially holds* if true in more than half, *Fails* otherwise, *Not testable* if there is no data. A claim about a single case (e.g. "US equities never…") is true or false for that case. Each verdict's headline shows the computed number and margin, so a narrow call is visible.
+**Evidence:** Not applicable (reporting rule).
+**What would change my mind:** A claim whose wording implies a different test; that claim's module states its test explicitly.
+**Effect on results:** Claim 2 fails on one US window at -0.2% a year (Shiller monthly data); the headline and a sensitivity finding report that the JST annual data shows none.
+
+### 2026-10-27 — Phase 1 claim tests: windows, horizons and thresholds (claims 1–5)
+**Context:** Each claim needs a test written down before its result is read. The exact rules are in each module's docstring under `src/analysis/evidence/`.
+**Rule:**
+- Claim 1: geometric annualised real return per asset on each country's common sample. Equities "highest" if their CAGR beats bonds and bills; housing is compared separately.
+- Claim 2: 20-year rolling windows, as the claim states. US monthly windows (Shiller), JST annual windows that must be 20 consecutive years.
+- Claim 3: the variance ratio at 20 years is compared with 2,000 i.i.d. resamples. Mean reversion is supported below the 5th percentile (one-sided 5%).
+- Claim 4: equity weights in 1-point steps, rebalanced annually. Lowest-risk and best risk-adjusted (Sharpe) mixes at 1, 5, 10, 20 and 30 years. The claim is tested on the direction of the 1→20-year shift in the lowest-risk weight, and the shift is compared with i.i.d. resamples (95th percentile).
+- Claim 5: rolling 36-month correlation. "Diversify" is tested in the hedge sense (negative correlation), with the weak sense (correlation below 1) reported alongside. Inflation regimes are terciles of trailing 12-month CPI over the sample, and so are descriptive.
+**Evidence:** The 20-year window comes from the claim's own wording. The 5% one-sided level is the conventional significance level. The variance-ratio method follows Lo and MacKinlay (1988, Review of Financial Studies); cited, not independently verified. The 36-month correlation window: Evidence: pending (a common practitioner choice; no source cited yet). The 1/5/10/20/30-year horizons: Evidence: pending.
+**What would change my mind:** Results that reverse under a reasonable alternative window. A sensitivity check on the 36-month window (24 and 60 months) is planned.
+**Effect on results:** See docs/evidence_review.md.

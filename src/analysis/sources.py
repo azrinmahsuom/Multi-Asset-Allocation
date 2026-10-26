@@ -228,6 +228,13 @@ FRED_SERIES = {
     "EXSIUS": ("Singapore dollars to one US dollar", "Monthly average, SGD per USD", True),
     "BAA": ("Moody's seasoned Baa corporate bond yield", "Monthly average, % p.a.", False),
     "AAA": ("Moody's seasoned Aaa corporate bond yield", "Monthly average, % p.a.", False),
+    # Daily series give true month-end yields; monthly FRED yields are monthly averages.
+    "DTB3": ("3-month Treasury bill, secondary market rate", "Daily, % p.a., discount basis", True),
+    "DGS1": ("1-year Treasury constant maturity yield", "Daily, % p.a.", True),
+    "DGS5": ("5-year Treasury constant maturity yield", "Daily, % p.a.", True),
+    "DGS10": ("10-year Treasury constant maturity yield", "Daily, % p.a.", True),
+    "DGS30": ("30-year Treasury constant maturity yield", "Daily, % p.a.", True),
+    "DFII10": ("10-year TIPS constant maturity real yield", "Daily, % p.a., real", True),
 }
 
 # REIT ETFs (identifiers only, not recommendations), as of 2026-10. History start dates
