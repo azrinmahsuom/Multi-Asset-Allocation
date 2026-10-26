@@ -74,7 +74,7 @@ Each source's terms were checked on its own website (October 2026). No raw data 
 | Jordà-Schularick-Taylor Macrohistory Database, release R6 (consulted 2026-10-26) | Multi-country equity, bond, bill and housing total returns, 1870–2020 | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), citation required (see Licences) |
 | FRED | Treasury and TIPS yields, CPI, USD/SGD, corporate yields | Public domain, except Moody's corporate yields (copyrighted) |
 | Monetary Authority of Singapore | SGD interbank rates (1987–2013), SORA and SORA Index (2005 onwards) | MAS dataset terms: free to use and share with attribution. Source: MAS |
-| Nareit | FTSE Nareit US Real Estate Index Series, monthly from 1971 | All rights reserved; no redistribution or derivative works without Nareit's written approval |
+| Nareit | FTSE Nareit US Real Estate Index Series, monthly from 1971 | All rights reserved; no public display or derivative works without written approval. Used privately to check the ETF data only; no published result is derived from it |
 | Yahoo Finance (via `yfinance`) | REIT ETF prices and distributions | Personal use; derived results only |
 
 ## Licences

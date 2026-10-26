@@ -51,7 +51,7 @@ One source per line, with whether results derived from it can be published. Upda
 | Moody's Baa and Aaa corporate yields (BAA, AAA) | FRED | `analysis.sources` | 2026-10-26 | Derived results only; copyrighted |
 | SGD interbank overnight and 3-month (daily, Jul 1987 to Dec 2013); SORA, SORA Index, 3-month compounded SORA (daily, 2005 onwards) | MAS Domestic Interest Rates (eservices.mas.gov.sg) | `analysis.sources` | 2026-10-27 | Yes, MAS dataset terms with attribution |
 | SG CPI, SGS yields | SingStat / MAS | Phase 1 | TBD | TBD (verify terms) |
-| US equity REIT total return: All Equity REITs (monthly, 1971-12 to 2026-09) | Nareit, MonthlyHistoricalReturns.xls | Manual download, recorded by `analysis.sources` | 2026-10-27 | **No, unless Nareit gives written approval.** Its terms (s.4) prohibit public display and derivative works |
+| US equity REIT total return: All Equity REITs (monthly, 1971-12 to 2026-09) | Nareit, MonthlyHistoricalReturns.xls | Manual download, recorded by `analysis.sources` | 2026-10-27 | **No.** Private validation only (owner's decision, 2026-10-27); its terms (s.4) prohibit public display and derivative works |
 | REIT ETF daily prices and distributions: VNQ, VNQI, RWO, REET, IDWP.L, CLR.SI, CFA.SI, SRT.SI | Yahoo Finance via `yfinance` 1.7.0 (pinned) | `analysis.prices` / `analysis.sources` | 2026-10-27 | Derived results only; Yahoo terms |
 | Issuer-published ETF annual returns (cross-check) | Issuer websites | Hand-entered in `reference/etf_annual_returns.csv` | TBD | Cited, not redistributed |
 | ETF documents (TER, domicile, replication, AUM) and ETF prices | ETF issuer sites; free price data (Phase 3–4) | TBD | TBD | TBD |
@@ -80,7 +80,7 @@ Not applicable (Research). The model portfolio tables in Phase 4 are dated and c
 ## 12. Limits, assumptions and things to avoid
 Each threshold or default cites its evidence, or says `Evidence: pending` (and is listed under Open questions).
 - Transaction costs: measured from ETF bid-ask spreads in Phase 3 where available; fallback 10 bps per side, Evidence: pending.
-- Risk-free rate: SGD, from MAS. Monthly change in the SORA Index from July 2005; the 3-month interbank rate before that, from July 1987 (see decisions.md). Phase 1 results in USD use the 3M US T-bill. Evidence for the splice: pending.
+- Risk-free rate: SGD, from MAS. Monthly change in the SORA Index from August 2005; the compounded interbank overnight rate from July 1987 to July 2005 (see decisions.md). USD results use US T-bills.
 - Dividend withholding tax by ETF domicile for a Singapore resident, from cited primary sources (`reference/`).
 - No look-ahead: weights, rules and parameters are either chosen with data available at the time, or fixed ex ante on economic grounds. Anything tuned in-sample is reported as in-sample.
 - Survivorship: multi-country data excludes markets that were wiped out; this is disclosed wherever it matters.
@@ -90,6 +90,7 @@ Each threshold or default cites its evidence, or says `Evidence: pending` (and i
 - Figures that can't be reproduced (e.g. commercial yearbooks) are labelled "cited but not independently verified".
 
 ### REIT sleeve requirements (added 2026-10-27)
+0. Published US REIT results use REIT ETF total returns (VNQ, from 2004). Nareit's All Equity REITs series is used only privately: to sanity-check the ETF series over the overlap and to inform the analysis. No figure, table or statistic derived from Nareit appears in the README, `docs/` or `reports/`. As a result, the published REIT history starts in 2004 and covers one full cycle (2008–09) plus 2020 and 2022, which goes into `docs/limitations.md`.
 1. REITs are measured with a listed-REIT total-return series. Never use house price indices or housing returns (including JST housing) as a REIT proxy. Housing results, if shown, are reported separately and labelled as housing.
 2. Sources: Nareit FTSE Nareit All Equity REITs (US, monthly, from 1972); total-return history of liquid REIT ETFs (US, developed ex-US, global, a UCITS global REIT ETF); an S-REIT ETF for an optional SGD comparison. Each ETF series states whether it uses adjusted close or price plus distributions.
 3. If no free, long, verifiable non-US REIT total-return series exists, say so. Don't splice in housing data or extrapolate. Limit the non-US REIT backtest to the period actually covered and record the limit in `docs/limitations.md`.
@@ -107,12 +108,10 @@ Each threshold or default cites its evidence, or says `Evidence: pending` (and i
 Not applicable: no hypothesis (see §5).
 
 ## 15. Open questions
-- SGD risk-free splice: measure the 3-month interbank vs SORA gap over 2005–2013 before relying on pre-2005 SGD excess returns. Evidence: pending.
 - Transaction cost fallback of 10 bps per side. Evidence: pending.
 - JST's CC BY-NC-SA 4.0 share-alike term may apply to published charts derived from JST, while the repo code is MIT. Decide how JST-derived figures are licensed and credited.
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
 - SingStat series (SG CPI) and SGS yields: not yet fetched.
-- Nareit's terms of use (s.4) prohibit publicly displaying or creating derivative works from its data without written approval. Decide whether to request approval, or to use Nareit only privately (validation) and publish US REIT results from ETF data (2004 onwards).
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
 - The 0.5 pp per year cross-check tolerance was set by the owner. Evidence: pending.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.

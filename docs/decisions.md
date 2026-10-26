@@ -32,18 +32,21 @@ Entry template:
 **What would change my mind:** A source disappearing or changing past values in place, which would make results unreproducible from a fresh fetch.
 **Effect on results:** None. Reproducibility depends on sources staying online; hash mismatches are reported, never silently accepted.
 
-### 2026-10-26 — Risk-free rate
+### 2026-10-26 — Risk-free rate (revised 2026-10-27)
 **Context:** Sharpe and Sortino need a stated risk-free rate.
-**Options considered:** 3M SORA (SGD); 3M US T-bill (USD).
-**Rule:** All SGD rates come from MAS Domestic Interest Rates (fetched by `analysis.sources`).
-- Each month's SGD risk-free return is the change in the SORA Index over that month: the cash return actually earned by rolling overnight SGD deposits. This applies from the first full month of SORA Index data (July 2005 value dates).
-- Before then, the monthly return is the MAS 3-month interbank rate at the previous month-end divided by 12. That rate is known at the start of the month, so there is no look-ahead.
-- No SGD rate exists before July 1987, so SGD Sharpe and Sortino ratios start from August 1987.
-- USD results in Phase 1 use the 3-month US T-bill (FRED TB3MS).
-- The 3-month interbank rate and SORA overlap from July 2005 to December 2013 (interbank was discontinued from 1 January 2014). Phase 1 measures the gap between them over that overlap and reports it.
-**Evidence:** MAS data file notes (interbank rates discontinued from 1 Jan 2014; SORA defined as the volume-weighted overnight unsecured interbank SGD rate). Industry practice of using SORA for SGD cash: pending a cited source.
-**What would change my mind:** A large gap between the two rates over 2005–2013 that would distort pre-2005 excess returns; or a longer free SGD 3-month series (e.g. SIBOR from the Association of Banks in Singapore, not yet checked).
-**Effect on results:** TBD
+**Options considered:**
+- 3-month SGD interbank rate before SORA (the first draft of this rule). Rejected: over the 101 months when both exist (Aug 2005 to Dec 2013), it averaged 1.33% a year against 0.90% for SORA. That gap would understate excess returns before 2005.
+- Compounded SGD interbank overnight rate before SORA. Kept: over the same overlap it averaged 0.84% a year against SORA's 0.90%, with a 0.997 correlation. It is also the same kind of rate, a realised overnight cash return.
+- 3-month US T-bill for USD results.
+**Rule:**
+- All SGD rates come from MAS Domestic Interest Rates (`analysis.sources`), built by `clean.sgd_risk_free_monthly`.
+- From the first full month of SORA Index data (August 2005), the monthly SGD risk-free return is the change in the SORA Index over the month.
+- From July 1987 to July 2005, it is the MAS interbank overnight rate compounded daily over the month (ACT/365, each quote applying until the next).
+- No SGD rate exists before July 1987, so SGD Sharpe and Sortino ratios start then.
+- USD results use the 3-month US T-bill (FRED TB3MS), or the 1-month T-bill where French data is used.
+**Evidence:** Overlap statistics produced by `clean.sgd_risk_free_monthly` (columns `overnight_leg` and `sora_index_leg`), run 2026-10-27. MAS file notes: interbank rates were discontinued from 1 January 2014, and SORA is the volume-weighted overnight unsecured interbank SGD rate. Industry practice of using SORA for SGD cash: pending a cited source.
+**What would change my mind:** A longer or more representative free SGD cash series.
+**Effect on results:** Pre-2005 SGD excess returns are on the same overnight basis as later ones; the remaining gap averaged 0.06 points a year over the overlap.
 
 ### 2026-10-26 — Transaction cost fallback
 **Context:** Backtests must include trading costs.
@@ -104,4 +107,12 @@ Entry template:
 **Rule:** The owner saves `MonthlyHistoricalReturns.xls` to `data/raw/nareit/`. The fetch step records its SHA-256 and fails with the download URL if the file is missing. The file is gitignored. Only the "All Equity REITs" total return column is used. Total return = price return + income return was checked on the first row.
 **Evidence:** Nareit Terms of Use s.4 (text supplied by the owner); file header "Returns and dividend yield in percent".
 **What would change my mind:** Written approval from Nareit, which would allow publishing results derived from it.
-**Effect on results:** Pending the publication decision in the brief's Open questions.
+**Effect on results:** Owner's decision, 2026-10-27: Nareit is used privately only. Outputs derived from it are written to `data/processed/` (gitignored), never to `reports/` or `docs/`. Published US REIT history starts in 2004 (VNQ), not 1972.
+
+### 2026-10-27 — Shiller monthly prices are averages; use French for monthly statistics
+**Context:** Cross-check of US equity total returns, July 1926 to June 2026. Shiller's monthly return correlates only 0.674 with French's value-weighted market return, while long-run growth rates are close (10.55% vs 10.37% a year). Shiller's monthly price is an average of daily closes, not a month-end price. Averaging smooths monthly returns and adds artificial positive autocorrelation, which biases volatility, correlation and mean-reversion tests.
+**Options considered:** Shiller for everything (rejected for the reason above); French where it exists, Shiller only where nothing else exists (kept).
+**Rule:** Monthly volatility, correlation and variance-ratio work on US equities uses French data (from July 1926). Shiller is used for annual figures, and for 1871–1926 only with the averaging caveat stated next to the result. Shiller series stop at the last month with a reported dividend (June 2026 in the current file), because later months use estimated inputs.
+**Evidence:** Cross-check above, run 2026-10-27. Shiller vs Damodaran annual equity returns, 1928–2025: correlation 0.989. The averaging effect on autocorrelation is a known statistical result (Working, 1960, Econometrica 28(4)). The citation needs checking before publication.
+**What would change my mind:** A month-end price series for 1871–1926.
+**Effect on results:** Claims 3 and 5 rely mainly on French data.
