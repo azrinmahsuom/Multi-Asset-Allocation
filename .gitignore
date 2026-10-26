@@ -1,0 +1,40 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Data: regenerate from code (raw, processed) or personal inputs (external); never commit
+data/raw/*
+data/processed/*
+data/external/*
+*.parquet
+*.feather
+*.h5
+
+# Python
+__pycache__/
+*.py[cod]
+.venv
+.venv/
+.venv.nosync/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Local tool settings
+.claude/settings.local.json
+
+# macOS / editors
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
