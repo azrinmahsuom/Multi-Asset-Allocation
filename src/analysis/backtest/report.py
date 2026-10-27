@@ -163,7 +163,10 @@ def run() -> dict:
             "trading costs at the USD 25,000 minimum; rebalancing every December and when a "
             "weight drifts more than 10 points.",
             "",
-            "**Status (v2 limits, holdout-based selection):** "
+            "**Status: allocation work paused (2026-10-27).** The v2 selection rule shown "
+            "here is superseded by the loss-budget frontier in `docs/strategy_design.md`; "
+            "these backtests are kept for reference until an allocation is adopted. "
+            "**v2 limits, holdout-based selection:** "
             + (
                 "infeasible profiles: " + ", ".join(infeasible) + " (no candidate met the "
                 "limits both in-sample and on the holdout; see `docs/strategy_design.md`). "

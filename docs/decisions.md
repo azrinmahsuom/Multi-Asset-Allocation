@@ -374,7 +374,7 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 ### 2026-10-27 — How the risk limits were set (stated honestly)
 **Context:** The owner asked for the limits to be derived from investor need (spending, liquidity, capacity), with history used only as a check, and for new numbers to be proposed if the need-based derivation gave different ones.
 **Rule:** No new numbers are proposed. The profiles are generic, with no actual investor's spending amount, timing flexibility or reserve size, so a need-based derivation cannot produce numbers of its own. The record:
-- The limits began as draft starting points proposed during the project, which the owner adjusted on 2026-10-27.
+- The limits began as Claude's draft starting points, which the owner adjusted on 2026-10-27.
 - The short profile was then loosened from −10% to −15% because history showed −10% couldn't be met. That number was set with reference to history.
 - Need is used to describe and check each limit afterwards, not to justify it:
   - Short: a known spend in about 5 years; daily liquidity; capacity to absorb a shortfall of about 15% by trimming or delaying the spend.
@@ -394,7 +394,7 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
   - H3: 1 minus the breach rate over 2,000 block-bootstrapped paths of the global JST portfolio.
 - **Bootstrap settings:** blocks of round(150^(1/5)) = 3 years; seed `config.RANDOM_SEED` (20261027); global weights = the previous year's GDP in USD.
 - **Drawdown bias:** annual drawdowns in H1 and H3 are scaled by the monthly/annual drawdown ratio measured for the same mix on US data from 1962 to 2020. The ratio is reported per candidate (about 1.03–1.19).
-- **Score and selection:** the score is the mean of H1, H2 and H3. Candidates within 0.05 of the best score tie, and the lowest H3 breach rate wins (the owner's judgement call). Exact ties go to the higher score, then the lower equity share (added during the analysis, needed because mean-variance and risk parity tie exactly).
+- **Score and selection:** the score is the mean of H1, H2 and H3. Candidates within 0.05 of the best score tie, and the lowest H3 breach rate wins (the owner's judgement call). Exact ties go to the higher score, then the lower equity share (Claude's addition, needed because mean-variance and risk parity tie exactly).
 **Evidence:** The block-length rate follows Hall, Horowitz and Jing (1995). The 0.05 tie band and the tie-break are judgement: Evidence: pending.
 **What would change my mind:** A different tie-break. Under highest expected return, the picks would be Short 34%, Medium 87% and Long 37% equities (reported in the document).
 **Effect on results:** The holdout selects mean-variance (shrunk), about 25% equities and 75% SGS, for all three profiles. The profiles coincide.
@@ -433,3 +433,20 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 - **Long is 100% global equity:** the highest expected return among passing candidates. With no drawdown cap, all-equity passes every test.
 - The v1 infeasibility is written up as a finding in `docs/strategy_design.md`.
 - The backtest reports the v2 selections, with the in-sample picks for reference.
+
+### 2026-10-27 — Decision rule changed after the v2 holdout: loss budgets; short outside the strategy
+**Context:** The v2 rule (highest expected return among mixes meeting all limits) always selects the riskiest feasible mix. The owner paused allocation work, with no v3 threshold changes, and asked for the frontier to become the core result per horizon.
+**Options considered:** Keep the v2 selection rule (rejected for the reason above); a loss-budget rule reported at several budgets (chosen by the owner).
+**Rule (changed after the holdout results, disclosed as such):**
+- For each horizon, maximise expected real return subject to P(real loss over the horizon) ≤ X, reported for X = 5%, 10%, 15% and 20%.
+- P = the highest of the three holdout loss shares: H1 non-US JST windows pooled across countries (aggregation unchanged); H2 US before 1981; H3 global JST block bootstrap.
+- Mixes are equities/SGS in 1-point steps. The frontier table per horizon is the core result.
+- **Short profile:** presented as outside the strategy on evidence. No mix keeps P(real loss over 5 years) within 20%; the lowest holdout P is 21.5%, at 48% equities. This is consistent with the brief's separation of spending money from long-horizon capital.
+- **Cash in the candidates:** cash entered the earlier candidate search only by scaling the method mixes down with SGD cash, to 100% cash. Cash/SGS mixes without equities were not searched separately.
+**Evidence:** `holdout.probability_frontier` and `holdout.loss_budget_table`; results in `docs/strategy_design.md`.
+**What would change my mind:** A loss-size limit, if the owner adds one.
+**Effect on results:**
+- Medium is feasible only at X = 20% (100% equities).
+- Long is feasible at X = 15% and 20% (100% equities).
+- **Finding:** at 10 and 20 years, P(real loss) is lowest at high equity shares, so this rule also selects 100% equities wherever a budget can be met. A loss-probability limit alone doesn't restrain the equity share at these horizons.
+- Allocation work is paused.

@@ -1,5 +1,6 @@
 """Write docs/strategy_design.md from the design modules. Every number comes from code."""
 
+import numpy as np
 import pandas as pd
 
 from analysis.config import ROOT
@@ -271,6 +272,75 @@ def _v1_finding_section() -> list[str]:
     ]
 
 
+def _budget_display(budget: pd.DataFrame) -> pd.DataFrame:
+    """One row per horizon, one column per loss budget: the selected equity share."""
+    out = {}
+    for (profile, x), r in budget.iterrows():
+        out.setdefault(profile, {})[f"P(real loss) <= {x}"] = (
+            f"{r['equity_share']:.0%} equity (P {r['p_loss_holdout']:.1%}, "
+            f"real {r['expected_real_return']:.1%})"
+            if r["result"] == "feasible"
+            else "no mix"
+        )
+    return pd.DataFrame(out).T
+
+
+def _core_result_section() -> list[str]:
+    f = holdout.probability_frontier()
+    budget = holdout.loss_budget_table(f)
+    lines = [
+        "## Core result: risk and return by horizon",
+        "",
+        "Decision rule (changed after the v2 holdout, 2026-10-27): for each horizon, maximise "
+        "expected real return subject to P(real loss over the horizon) <= X, reported for X = "
+        + ", ".join(f"{x:.0%}" for x in holdout.LOSS_BUDGETS)
+        + ". P is the highest of the three holdout loss shares (H1 non-US JST windows pooled "
+        "across countries, H2 US before 1981, H3 global JST block bootstrap); the in-sample SGD "
+        "loss share is shown alongside. Mixes are global equities (unhedged) and SGS in 1-point "
+        "steps; expected real return is the global JST portfolio's long-run real return. The "
+        "previous rule (highest return among mixes meeting all limits) always selected the "
+        "riskiest feasible mix.",
+        "",
+        "Highest-return mix for each loss budget:",
+        "",
+        _table_markdown(_budget_display(budget)),
+        "",
+    ]
+    for p in profiles.PROFILES:
+        g = f[f["profile"] == p.name]
+        i = g["p_loss_holdout"].idxmin()
+        floor_p, floor_e = g.loc[i, "p_loss_holdout"], g.loc[i, "equity_share"]
+        shown = g[np.isclose(g["equity_share"] * 10, np.round(g["equity_share"] * 10))]
+        shown = shown.assign(mix=[f"{e:.0%} equity" for e in shown["equity_share"]])
+        shown = shown.set_index("mix").drop(columns=["profile", "equity_share"])
+        lines += [
+            f"### {p.name} ({p.horizon})",
+            "",
+            f"Lowest holdout P(real loss over {p.window_years} years) across all mixes: "
+            f"{floor_p:.1%}, at {floor_e:.0%} equities.",
+            "",
+        ]
+        if floor_p > max(holdout.LOSS_BUDGETS):
+            lines += [
+                f"No mix keeps the chance of a real loss over {p.window_years} years within "
+                f"{max(holdout.LOSS_BUDGETS):.0%}. On this evidence the {p.name.lower()} "
+                "horizon sits outside the strategy, consistent with the brief's separation of "
+                "near-term spending money from long-horizon capital.",
+                "",
+            ]
+        lines += [_table_markdown(shown), ""]
+    lines += [
+        "Reading: over 10 and 20 years, P(real loss) does not rise with the equity share (its "
+        "lowest point is at a high equity share), so wherever a loss budget can be met at all, "
+        "it is also met at 100% equities, and maximising expected return selects 100% "
+        "equities. A loss-probability limit alone does not restrain the equity share at these "
+        "horizons; that would need a limit on the size of losses. No threshold has been "
+        "changed (owner instruction).",
+        "",
+    ]
+    return lines
+
+
 def _frontier_reading(fr: pd.DataFrame) -> list[str]:
     """One computed sentence per profile: where it meets the limits in-sample and on holdout."""
     lines = []
@@ -342,6 +412,7 @@ def run() -> dict:
             "Decisions and their reasons are logged in `docs/decisions.md`.",
             "",
             *_profiles_section(),
+            *_core_result_section(),
             *_bond_section(r),
             *_universe_section(u),
             *_allocation_section(al),

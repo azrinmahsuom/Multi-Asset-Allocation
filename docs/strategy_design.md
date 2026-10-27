@@ -24,6 +24,76 @@ Superseded v1 limits, kept for the record of the v1 finding below:
 
 How the limits were set, stated plainly: the profiles are generic (no actual investor's spending amount, flexibility or reserve), so investor need could not produce numbers of its own. The v1 limits began as draft starting points adjusted by the owner, with the short limit loosened after history showed the first number could not be met; the v2 limits were set after the v1 holdout. Need is used to describe and check the limits, not to derive them.
 
+## Core result: risk and return by horizon
+
+Decision rule (changed after the v2 holdout, 2026-10-27): for each horizon, maximise expected real return subject to P(real loss over the horizon) <= X, reported for X = 5%, 10%, 15%, 20%. P is the highest of the three holdout loss shares (H1 non-US JST windows pooled across countries, H2 US before 1981, H3 global JST block bootstrap); the in-sample SGD loss share is shown alongside. Mixes are global equities (unhedged) and SGS in 1-point steps; expected real return is the global JST portfolio's long-run real return. The previous rule (highest return among mixes meeting all limits) always selected the riskiest feasible mix.
+
+Highest-return mix for each loss budget:
+
+|  | P(real loss) <= 5% | P(real loss) <= 10% | P(real loss) <= 15% | P(real loss) <= 20% |
+|---|---|---|---|---|
+| Short | no mix | no mix | no mix | no mix |
+| Medium | no mix | no mix | no mix | 100% equity (P 18.8%, real 6.3%) |
+| Long | no mix | no mix | 100% equity (P 14.8%, real 6.3%) | 100% equity (P 14.8%, real 6.3%) |
+
+### Short (about 5 years)
+
+Lowest holdout P(real loss over 5 years) across all mixes: 21.5%, at 48% equities.
+
+No mix keeps the chance of a real loss over 5 years within 20%. On this evidence the short horizon sits outside the strategy, consistent with the brief's separation of near-term spending money from long-horizon capital.
+
+| mix | expected_real_return | p_loss_holdout | h1_non_us_loss_share | h2_us_pre1981_loss_share | h3_bootstrap_loss_share | p_loss_sgd_in_sample | sgd_worst_window | sgd_max_drawdown |
+|---|---|---|---|---|---|---|---|---|
+| 0% equity | 3.4% | 34.8% | 28.6% | 34.8% | 17.0% | 41.2% | -14.6% | -22.5% |
+| 10% equity | 3.8% | 28.6% | 26.1% | 28.6% | 14.2% | 34.9% | -9.5% | -20.8% |
+| 20% equity | 4.2% | 24.7% | 23.9% | 24.7% | 13.1% | 26.4% | -8.7% | -20.4% |
+| 30% equity | 4.5% | 23.0% | 23.0% | 21.4% | 13.2% | 14.8% | -13.2% | -20.8% |
+| 40% equity | 4.9% | 21.9% | 21.9% | 19.8% | 13.2% | 15.5% | -17.6% | -24.5% |
+| 50% equity | 5.2% | 21.5% | 21.5% | 17.5% | 13.4% | 18.3% | -22.0% | -30.4% |
+| 60% equity | 5.5% | 22.5% | 22.5% | 16.3% | 13.9% | 19.0% | -26.2% | -35.9% |
+| 70% equity | 5.7% | 23.5% | 23.5% | 16.4% | 15.0% | 20.1% | -30.4% | -41.1% |
+| 80% equity | 5.9% | 24.2% | 24.2% | 17.5% | 16.1% | 22.5% | -34.5% | -45.9% |
+| 90% equity | 6.1% | 26.0% | 26.0% | 17.8% | 17.0% | 25.7% | -38.5% | -50.5% |
+| 100% equity | 6.3% | 27.3% | 27.3% | 18.5% | 18.2% | 28.2% | -42.3% | -54.6% |
+
+### Medium (about 10 years)
+
+Lowest holdout P(real loss over 10 years) across all mixes: 16.3%, at 62% equities.
+
+| mix | expected_real_return | p_loss_holdout | h1_non_us_loss_share | h2_us_pre1981_loss_share | h3_bootstrap_loss_share | p_loss_sgd_in_sample | sgd_worst_window | sgd_max_drawdown |
+|---|---|---|---|---|---|---|---|---|
+| 0% equity | 3.4% | 33.2% | 29.4% | 33.2% | 10.9% | 36.6% | -12.2% | -22.5% |
+| 10% equity | 3.8% | 27.0% | 27.0% | 26.3% | 9.8% | 5.8% | -2.9% | -20.8% |
+| 20% equity | 4.2% | 23.1% | 23.1% | 19.4% | 9.1% | 0.0% | 0.6% | -20.4% |
+| 30% equity | 4.5% | 19.8% | 19.8% | 18.1% | 8.2% | 0.0% | 3.8% | -20.8% |
+| 40% equity | 4.9% | 18.2% | 18.2% | 15.1% | 8.5% | 0.0% | 5.6% | -24.5% |
+| 50% equity | 5.2% | 16.9% | 16.9% | 13.6% | 8.3% | 0.0% | 3.0% | -30.4% |
+| 60% equity | 5.5% | 16.6% | 16.6% | 11.8% | 8.6% | 2.7% | -3.2% | -35.9% |
+| 70% equity | 5.7% | 16.4% | 16.4% | 11.2% | 9.3% | 7.1% | -9.4% | -41.1% |
+| 80% equity | 5.9% | 17.2% | 17.2% | 10.8% | 10.2% | 11.2% | -15.7% | -45.9% |
+| 90% equity | 6.1% | 17.5% | 17.5% | 10.7% | 11.2% | 14.7% | -21.8% | -50.5% |
+| 100% equity | 6.3% | 18.8% | 18.8% | 11.2% | 12.4% | 17.4% | -27.6% | -54.6% |
+
+### Long (20+ years)
+
+Lowest holdout P(real loss over 20 years) across all mixes: 14.6%, at 86% equities.
+
+| mix | expected_real_return | p_loss_holdout | h1_non_us_loss_share | h2_us_pre1981_loss_share | h3_bootstrap_loss_share | p_loss_sgd_in_sample | sgd_worst_window | sgd_max_drawdown |
+|---|---|---|---|---|---|---|---|---|
+| 0% equity | 3.4% | 32.8% | 32.8% | 30.6% | 5.3% | 31.7% | -9.8% | -22.5% |
+| 10% equity | 3.8% | 28.6% | 28.6% | 14.3% | 3.9% | 0.0% | 3.0% | -20.8% |
+| 20% equity | 4.2% | 24.3% | 24.3% | 5.3% | 3.1% | 0.0% | 17.1% | -20.4% |
+| 30% equity | 4.5% | 20.8% | 20.8% | 3.5% | 2.9% | 0.0% | 32.6% | -20.8% |
+| 40% equity | 4.9% | 18.2% | 18.2% | 1.5% | 3.1% | 0.0% | 45.6% | -24.5% |
+| 50% equity | 5.2% | 16.9% | 16.9% | 0.7% | 3.4% | 0.0% | 45.7% | -30.4% |
+| 60% equity | 5.5% | 15.7% | 15.7% | 0.6% | 4.0% | 0.0% | 45.2% | -35.9% |
+| 70% equity | 5.7% | 15.3% | 15.3% | 0.3% | 4.5% | 0.0% | 43.9% | -41.1% |
+| 80% equity | 5.9% | 15.2% | 15.2% | 0.2% | 5.3% | 0.0% | 41.9% | -45.9% |
+| 90% equity | 6.1% | 14.6% | 14.6% | 0.1% | 6.1% | 0.0% | 39.3% | -50.5% |
+| 100% equity | 6.3% | 14.8% | 14.8% | 0.1% | 7.0% | 0.0% | 36.0% | -54.6% |
+
+Reading: over 10 and 20 years, P(real loss) does not rise with the equity share (its lowest point is at a high equity share), so wherever a loss budget can be met at all, it is also met at 100% equities, and maximising expected return selects 100% equities. A loss-probability limit alone does not restrain the equity share at these horizons; that would need a limit on the size of losses. No threshold has been changed (owner instruction).
+
 ## Bond sleeve: SGS vs global hedged vs global unhedged
 
 Rules fixed before computing (`analysis.design.bond_options`): three options at matched duration; 60% global equities unhedged in SGD plus 40% bond option, monthly, before costs; ranked on portfolio volatility, maximum drawdown and mean return in the worst 10% of equity months, all in SGD; lowest average rank in the main layer wins.

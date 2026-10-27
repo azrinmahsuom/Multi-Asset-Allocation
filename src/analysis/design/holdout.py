@@ -201,3 +201,65 @@ def frontier(step: float = 0.10) -> pd.DataFrame:
                 "h3_bootstrap_loss_share": h3_bootstrap(w, p, glob),
             }
     return pd.DataFrame(rows).T
+
+
+LOSS_BUDGETS = [0.05, 0.10, 0.15, 0.20]
+
+
+def probability_frontier(step: float = 0.01) -> pd.DataFrame:
+    """Per horizon and equity/SGS mix: P(real loss) on each holdout test and in-sample, the
+    holdout P used by the decision rule (the highest of H1, H2, H3) and expected real return.
+
+    Rule (post-holdout, 2026-10-27): for each loss budget X, choose the mix with the highest
+    expected real return whose holdout P(real loss over the horizon) <= X.
+    """
+    sgd = allocation.sgd_history()
+    glob = allocation.global_portfolio_real()
+    real = _jst_real()
+    rows = []
+    for p in profiles.PROFILES:
+        for e in np.round(np.arange(0, 1 + 1e-9, step), 2):
+            w = np.array([e, 1 - e, 0.0])
+            t = _sgd_test(w, sgd, p)
+            h1, h2, h3 = h1_non_us(w, p, real), h2_us_pre1981(w, p), h3_bootstrap(w, p, glob)
+            g = pd.Series(glob[allocation.ASSETS].to_numpy() @ w)
+            rows.append(
+                {
+                    "profile": p.name,
+                    "equity_share": float(e),
+                    "expected_real_return": float(np.expm1(np.log1p(g).mean())),
+                    "p_loss_holdout": max(h1, h2, h3),
+                    "h1_non_us_loss_share": h1,
+                    "h2_us_pre1981_loss_share": h2,
+                    "h3_bootstrap_loss_share": h3,
+                    "p_loss_sgd_in_sample": t["loss_share"],
+                    "sgd_worst_window": t["worst_window"],
+                    "sgd_max_drawdown": t["max_drawdown"],
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def loss_budget_table(frontier: pd.DataFrame) -> pd.DataFrame:
+    """For each horizon and loss budget X: the highest-expected-return mix with holdout P <= X."""
+    rows = {}
+    for p in profiles.PROFILES:
+        f = frontier[frontier["profile"] == p.name]
+        for x in LOSS_BUDGETS:
+            ok = f[f["p_loss_holdout"] <= x]
+            if ok.empty:
+                rows[(p.name, f"{x:.0%}")] = {
+                    "equity_share": np.nan,
+                    "expected_real_return": np.nan,
+                    "p_loss_holdout": np.nan,
+                    "result": "no mix",
+                }
+                continue
+            best = ok.sort_values("expected_real_return", ascending=False).iloc[0]
+            rows[(p.name, f"{x:.0%}")] = {
+                "equity_share": best["equity_share"],
+                "expected_real_return": best["expected_real_return"],
+                "p_loss_holdout": best["p_loss_holdout"],
+                "result": "feasible",
+            }
+    return pd.DataFrame(rows).T
