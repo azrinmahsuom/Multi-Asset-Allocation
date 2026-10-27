@@ -42,6 +42,20 @@ files:
     end: 2026-09
     units: Monthly average, % p.a.
     sha256: 3396297d0b2f8f4e8bb467207286c33c04d97bfe37b25bc5a97da6bafc615e93
+  fred/CPIAUCNS.csv:
+    source: 'FRED: US CPI, all urban consumers (TIPS index basis)'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCNS
+    landing_page: https://fred.stlouisfed.org/series/CPIAUCNS
+    series: CPIAUCNS
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 1365
+    start: 1913-01
+    end: 2026-09
+    units: Monthly index, 1982-84=100, NSA
+    sha256: cfab9b9be4a5d4f06253c4dcc3f7e0b28b1d58837e710dd7cb1fd54a49e7ad7c
   fred/CPIAUCSL.csv:
     source: 'FRED: US CPI, all urban consumers'
     url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL
@@ -55,6 +69,20 @@ files:
     end: 2026-09
     units: Monthly index, 1982-84=100, SA
     sha256: 8556b710094027fa4724641d48be620cc37c04abfa15a0c496378cf1146c1549
+  fred/DEXSIUS.csv:
+    source: 'FRED: Singapore dollars to one US dollar, noon buying rate'
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXSIUS
+    landing_page: https://fred.stlouisfed.org/series/DEXSIUS
+    series: DEXSIUS
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Public domain, citation requested (FRED series page).
+    redistributable: true
+    rows: 11946
+    start: 1981-01
+    end: 2026-10
+    units: Daily, SGD per USD
+    sha256: f42a5468e2b1921737228654018584705ab841e8753710e652a54bea9c916e8c
   fred/DFII10.csv:
     source: 'FRED: 10-year TIPS constant maturity real yield'
     url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10
@@ -230,6 +258,21 @@ files:
     end: 2026-09
     units: Monthly average, % p.a.
     sha256: 631bc444a8c5370c3a2df12f484a67ae7b9a68c00fe8a33215895fb49c8cc08c
+  french/Developed_3_Factors_CSV.zip:
+    source: Kenneth French Data Library
+    url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip
+    landing_page: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html
+    series: Fama/French Developed 3 Factors (monthly)
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: No licence stated by the source; free download. Treated as not redistributable.
+    redistributable: false
+    rows: 434
+    start: 1990-07
+    end: 2026-08
+    units: Monthly, % per month, USD nominal. Mkt-RF (developed-markets value-weighted
+      total return minus RF), SMB, HML, RF (1-month US T-bill).
+    sha256: b6bdca31293c96af8117690707a9346d1174c5cd3f8ab662db6b616c46b73dfc
   french/F-F_Research_Data_Factors_CSV.zip:
     source: Kenneth French Data Library
     url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_CSV.zip
@@ -322,6 +365,59 @@ files:
     units: Monthly. S&P Composite price, dividends, earnings (USD nominal), CPI, 10-year
       Treasury yield (% p.a.), plus Shiller's real total-return and bond-return columns.
     sha256: 98a54927942e842ec07ffe73000998e793953708c345b6b27bb363e9ada8366a
+  yahoo/ACWI.csv:
+    source: 'yahoo: ACWI (global equities (developed and emerging), from 2008)'
+    url: 'yfinance: Ticker(''ACWI'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/ACWI/history
+    series: ACWI
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 4675
+    start: '2008-03-28'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 7f6fd36ce7c08816cc85f23e37726ad9977370fa109cadc11c1d952bcf06da46
+  yahoo/AGGG.L.csv:
+    source: 'yahoo: AGGG.L (UCITS global aggregate bonds, unhedged, distributing,
+      from 2017)'
+    url: 'yfinance: Ticker(''AGGG.L'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/AGGG.L/history
+    series: AGGG.L
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 2255
+    start: '2017-11-21'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: d9ac2edbad6fc311f6a5b5d4303b458cf156b92c41fef5f69be80d2a12d59fa3
+  yahoo/AGGU.L.csv:
+    source: 'yahoo: AGGU.L (UCITS global aggregate bonds, USD-hedged, accumulating,
+      from 2017)'
+    url: 'yfinance: Ticker(''AGGU.L'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/AGGU.L/history
+    series: AGGU.L
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 2255
+    start: '2017-11-21'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 25d7a3281b75c255730f622edc27e6fc547efa42b3d915ea24e5996c86327f87
   yahoo/CFA.SI.csv:
     source: 'yahoo: CFA.SI (Asia ex-Japan REITs, from 2017)'
     url: 'yfinance: Ticker(''CFA.SI'').history(period=''max'')'
@@ -371,6 +467,40 @@ files:
       cash per share on the ex-date. Total return is rebuilt from close + dividend,
       reinvested at the ex-date close.'
     sha256: a974aefa49f1f7d5e999f25ed7aa2b2624544a2f913fa63bd3cafca88e393cde
+  yahoo/IEF.csv:
+    source: 'yahoo: IEF (US Treasuries 7-10 years, from 2002)'
+    url: 'yfinance: Ticker(''IEF'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/IEF/history
+    series: IEF
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 6100
+    start: '2002-07-30'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 20c05454649a65c4caae2c5fbb02c90bf40e1fc7088d989d43244c99baaf4ea1
+  yahoo/LQD.csv:
+    source: 'yahoo: LQD (US investment-grade corporate bonds, from 2002)'
+    url: 'yfinance: Ticker(''LQD'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/LQD/history
+    series: LQD
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 6100
+    start: '2002-07-30'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 471b0333d70663f8103b5ec328b4fef566d6ce7237b1875a2564ad6b92396f0b
   yahoo/REET.csv:
     source: 'yahoo: REET (global REITs, from 2014)'
     url: 'yfinance: Ticker(''REET'').history(period=''max'')'
@@ -419,6 +549,23 @@ files:
       cash per share on the ex-date. Total return is rebuilt from close + dividend,
       reinvested at the ex-date close.'
     sha256: b9f1fac6cba1fb9992a409f3676414e405109e3a5f336c33d2ff0f23c7e8f454
+  yahoo/TIP.csv:
+    source: 'yahoo: TIP (US Treasury inflation-protected securities, from 2003)'
+    url: 'yfinance: Ticker(''TIP'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/TIP/history
+    series: TIP
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 5758
+    start: '2003-12-05'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 00aa0e485b2242c22f777e8b1395a4ae4df46dc0a88ebab8888c0463cfcc6f83
   yahoo/VNQ.csv:
     source: 'yahoo: VNQ (US REITs, from 2004)'
     url: 'yfinance: Ticker(''VNQ'').history(period=''max'')'

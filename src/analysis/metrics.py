@@ -107,7 +107,10 @@ def par_bond_return(
     periods = 2 * (maturity_years - months / 12)
     half = yield_end / 2
     discount = (1 + half) ** (-periods)
-    price = coupon / yield_end * (1 - discount) + discount
+    # Annuity factor per half-year coupon; at a zero yield its limit is the number of periods.
+    tiny = np.abs(half) < 1e-12
+    annuity = np.where(tiny, periods, (1 - discount) / np.where(tiny, 1.0, half))
+    price = coupon / 2 * annuity + discount
     return price + coupon * months / 12 - 1
 
 
@@ -123,6 +126,18 @@ def to_base_currency(local: pd.Series, fx_change: pd.Series) -> pd.Series:
     currency (positive when the foreign currency appreciates): (1 + r_local)(1 + fx) - 1.
     """
     return (1 + local) * (1 + fx_change) - 1
+
+
+def hedged_return(
+    hedged_in_foreign: pd.Series, rf_base: pd.Series, rf_foreign: pd.Series
+) -> pd.Series:
+    """Return to a base-currency investor of an asset fully hedged with 1-month forwards.
+
+    Covered interest parity: the hedge adds the base-minus-foreign short-rate difference.
+    hedged_in_foreign is the asset's return already hedged into the foreign currency (e.g. a
+    USD-hedged fund) or its local return. Ignores the cross-currency basis and hedging costs.
+    """
+    return hedged_in_foreign + rf_base - rf_foreign
 
 
 def turnover(weights_before: pd.Series, weights_after: pd.Series) -> float:

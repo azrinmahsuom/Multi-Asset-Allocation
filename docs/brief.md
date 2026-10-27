@@ -79,12 +79,13 @@ Not applicable (Research). The model portfolio tables in Phase 4 are dated and c
 
 ## 12. Limits, assumptions and things to avoid
 Each threshold or default cites its evidence, or says `Evidence: pending` (and is listed under Open questions).
-- Transaction costs: measured from ETF bid-ask spreads in Phase 3 where available; fallback 10 bps per side, Evidence: pending.
+- Transaction costs: half the issuer-published 30-day median bid-ask spread plus broker and regulatory fees at the trade size (`analysis.costs`, `reference/trading_costs.csv`); spreads stress-tested at 2× and 3×.
 - Risk-free rate: SGD, from MAS. Monthly change in the SORA Index from August 2005; the compounded interbank overnight rate from July 1987 to July 2005 (see decisions.md). USD results use US T-bills.
 - Dividend withholding tax by ETF domicile for a Singapore resident, from cited primary sources (`reference/`).
 - No look-ahead: weights, rules and parameters are either chosen with data available at the time, or fixed ex ante on economic grounds. Anything tuned in-sample is reported as in-sample.
 - Survivorship: multi-country data excludes markets that were wiped out; this is disclosed wherever it matters.
 - Every claim, including textbook ones and the owner's own, is a hypothesis to test.
+- Minimum allocation to the strategy: USD 25,000 (owner's constraint, 2026-10-27). Trading costs, the number of ETFs per profile and rebalancing trade sizes are computed at this amount.
 - Naming rules: ETF issuer names and tickers are allowed as product identifiers only. Never name the owner's employer or its strategy names. Never reproduce the structure, specific weights, screening thresholds or ranking weights from any firm's internal or published materials. No custodian or broker recommendations. Language stays neutral, with no endorsement wording. Every ETF selection is dated ("as of YYYY-MM") and labelled illustrative, not investment advice.
 - Public academic and data sources only.
 - Figures that can't be reproduced (e.g. commercial yearbooks) are labelled "cited but not independently verified".
@@ -108,12 +109,13 @@ Each threshold or default cites its evidence, or says `Evidence: pending` (and i
 Not applicable: no hypothesis (see §5).
 
 ## 15. Open questions
-- Transaction cost fallback of 10 bps per side. Evidence: pending.
-- JST's CC BY-NC-SA 4.0 share-alike term may apply to published charts derived from JST, while the repo code is MIT. Decide how JST-derived figures are licensed and credited.
+- Trading costs: the SGD→USD conversion markup is undisclosed (Evidence: pending); more primary broker fee schedules are needed for a median.
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
 - SingStat series (SG CPI) and SGS yields: not yet fetched.
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
-- The 0.5 pp per year cross-check tolerance was set by the owner. Evidence: pending.
 - Claim 5's 36-month correlation window and claim 4's horizon set (1/5/10/20/30 years) have no cited source yet. Evidence: pending; sensitivity checks planned.
+- Claim 5's 120-month burn-in and two-month CPI publication lag have no cited source yet. Evidence: pending.
+- Claim 6's 10-year comparison blocks and the TIPS reference-CPI lag in claim 8 need cited sources. Evidence: pending.
+- No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.

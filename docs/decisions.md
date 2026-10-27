@@ -136,3 +136,81 @@ Entry template:
 **Evidence:** The 20-year window comes from the claim's own wording. The 5% one-sided level is the conventional significance level. The variance-ratio method follows Lo and MacKinlay (1988, Review of Financial Studies); cited, not independently verified. The 36-month correlation window: Evidence: pending (a common practitioner choice; no source cited yet). The 1/5/10/20/30-year horizons: Evidence: pending.
 **What would change my mind:** Results that reverse under a reasonable alternative window. A sensitivity check on the 36-month window (24 and 60 months) is planned.
 **Effect on results:** See docs/evidence_review.md.
+
+### 2026-10-27 — Claim 5 revised after owner review
+**Context:** The owner's review of the first claim 5 draft asked for: non-overlapping results and the effective sample size; an ex-ante inflation split as the lead result; bootstrap intervals for the post-2022 correlation, with and without 2022; portfolio-impact and safe-haven tests; frequency and nominal/real stated; and an SGD hedged vs unhedged view.
+**Options considered:** Verdict on overlapping rolling windows (rejected: 740 windows hold only about 21 independent observations); inflation regimes from full-sample terciles (rejected for the lead result: they use future data).
+**Rule:**
+- Verdict on non-overlapping 36-month blocks (`verdict_from_share`).
+- Ex-ante regimes: trailing 12-month CPI inflation, lagged two months for publication, against expanding-window tercile cut-offs (data from 1948, 120-month burn-in).
+- 95% intervals from a moving-block bootstrap with block length n^(1/3).
+- Portfolio impact: 60/40 rebalanced monthly vs 100% equity.
+- Safe haven: Baur and Lucey (2010) regression at the 10%, 5% and 1% equity quantiles, with Newey-West lags floor(4(n/100)^(2/9)).
+- SGD hedged return = USD (or USD-hedged) return + SGD rate − USD rate (covered interest parity).
+- The 2000 and 2022 splits are kept as secondary and labelled with when they were chosen.
+**Evidence:** Baur and Lucey (2010, Financial Review) for the safe-haven test; Hall, Horowitz and Jing (1995, Biometrika) for the block-length rule; Newey and West (1994, Review of Economic Studies) for the lag rule. All cited, not independently verified. The 120-month burn-in and the two-month CPI lag: Evidence: pending (the lag reflects the usual CPI release timing; no source cited yet).
+**What would change my mind:** The regime result reversing under a different burn-in or lag; to be tested in the sensitivity pass.
+**Effect on results:** The verdict is unchanged (Fails as a hedge). The lead result is now the ex-ante inflation split.
+
+### 2026-10-27 — Phase 1 claim tests (claims 6–8)
+**Context:** Each claim's test is written down before its result is read; details in each module's docstring.
+**Rule:**
+- Claim 6 (term premium):
+  - Constant-maturity Treasury returns built from FRED month-end yields (1, 5, 10 and 30 years).
+  - "Reliable" means the 10-year beat the 5-year in non-overlapping 10-year blocks (`verdict_from_share`), with a HAC t-test on the mean difference.
+  - Ex-ante split by the yield-curve slope (10-year minus 1-year) known at the start of each month.
+  - Rate eras (1981 peak, 2020 trough) were chosen after seeing the data and are labelled so.
+- Claim 7 (credit premium):
+  - Two measures: Damodaran Baa minus 10-year Treasury, which is yield-built with no defaults, so an upper bound; and LQD minus IEF, realised.
+  - Verdict = share of the two with a positive annualised excess return.
+  - Equity-like risk from the beta and correlation with equity excess returns, and credit returns in the worst 10% of equity periods.
+- Claim 8 (inflation-linked bonds):
+  - 10-year TIPS built from DFII10 real yields plus CPI-U NSA accrual, using the TIPS reference lag (CPI of month m−2 over m−3).
+  - Verdict = share of complete calendar years in which TIPS kept pace with Dec/Dec CPI-U inflation.
+  - Inflation beta from annual returns.
+  - Checked against the TIP ETF.
+**Evidence:** The TIPS indexation lag follows the US Treasury's reference-CPI method; source citation pending. Damodaran's notes confirm his Baa returns are built from yields. 10-year blocks: Evidence: pending.
+**What would change my mind:** A traded-index series for long-history credit returns after defaults (none found free).
+**Effect on results:** See docs/evidence_review.md.
+
+### 2026-10-27 — Missing CPI month and zero-yield pricing
+**Context:**
+- FRED's CPIAUCSL and CPIAUCNS have no value for October 2025. BLS did not publish one, which is consistent with that autumn's US government shutdown.
+- Separately, the 10-year TIPS real yield was exactly 0.00% at end-September 2016. The bond-pricing formula divided by the yield, so that month was dropped.
+**Rule:**
+- `clean.fill_single_month_gaps` fills an isolated one-month gap in a CPI series by geometric interpolation, and flags it (`<series>_interpolated`). Longer gaps stay missing.
+- `metrics.par_bond_return` now uses the zero-yield limit of the annuity factor; tested.
+**Evidence:** A missing value inside the FRED file (raw file unchanged; the fill is in `data/processed` only).
+**What would change my mind:** BLS publishing an official value for that month, or an official fallback rule. Either would replace the interpolation.
+**Effect on results:** Claim 8 now uses 22 complete calendar years instead of 20. Claim 5's inflation regimes cover the months around October 2025.
+
+### 2026-10-27 — ETF cross-check flags outliers by modified z-score (replaces the 0.5 pp tolerance)
+**Context:** The owner asked for a tolerance that can be backed up. The 0.5 percentage point figure had no source.
+**Options considered:** A fixed tolerance (rejected: no evidence for any particular number); a published, data-driven outlier rule (kept).
+**Rule:** `prices.cross_check` compares our calendar-year total returns with issuer-published *market-price* returns. NAV returns aren't compared, because our returns use closing prices. The gaps are pooled across all ETF-years, and a gap is flagged when its modified z-score, 0.6745 × (gap − median) / MAD, exceeds 3.5 in absolute value. The MAD is floored at 0.01 percentage points, the precision to which issuers publish returns.
+**Evidence:** Iglewicz and Hoaglin (1993), *How to Detect and Handle Outliers*, as given in the NIST/SEMATECH e-Handbook of Statistical Methods, section 1.3.5.17 (https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm, checked 2026-10-27): modified z-scores with absolute value above 3.5 are labelled potential outliers. The MAD floor follows NIST's note that the score is undefined when the MAD is zero.
+**What would change my mind:** Issuer data that publishes no market-price returns, so only NAV comparisons are possible; those need a separate rule.
+**Effect on results:** Flags come from the data's own spread rather than an arbitrary cut-off.
+
+### 2026-10-27 — Trading costs built from documented components (replaces the flat 10 bps)
+**Context:** The owner asked for a better-supported trading-cost figure than a flat 10 bps average.
+**Options considered:** A flat average (rejected: unsourced, and it hides how cost depends on trade size and fund); per-trade cost from published components (kept).
+**Rule:** `costs.cost_per_side` = half the ETF's issuer-published 30-day median bid-ask spread + broker and regulatory fees at the trade size, using only rows marked `verified` in `reference/trading_costs.csv`. Three refinements:
+- Published spreads are point-in-time (current) and understate spreads in earlier, more volatile periods. Backtests therefore also report the half-spread at 2× and 3×.
+- Converting SGD to USD is charged only when money crosses currencies (contributions, withdrawals, or rebalancing into SGD assets). Rebalancing between USD-listed ETFs happens in USD.
+- The trade size comes from the investor profile set in Phase 2.
+**Evidence:**
+- US ETFs relying on SEC Rule 6c-11 must publish a 30-day median bid-ask spread daily on their websites (law-firm summaries of the 2019 rule; the SEC's own text is still to be checked).
+- iShares ACWI page: 0.01% as of 2026-10-23.
+- Broker and regulatory fees: moomoo Singapore's published US fee schedule (primary, checked 2026-10-27).
+- Two further brokers' figures come from secondary sources and are marked `to_verify`.
+- The SGD→USD conversion markup: Evidence: pending (no broker found that discloses it).
+**What would change my mind:** Primary fee schedules from more brokers (to take a median), or measured historical spreads.
+**Effect on results:** TBD in Phase 3. The cost is likely to be well under 10 bps per side for large, liquid ETFs at typical trade sizes, but no figure is stated until the code computes it.
+
+### 2026-10-27 — Minimum allocation of USD 25,000
+**Context:** Fees with per-order minimums make trading costs depend on trade size.
+**Rule:** The strategy is designed and costed for a minimum allocation of USD 25,000. Trading costs (`analysis.costs`), the number of ETFs per profile and rebalancing trade sizes are evaluated at this amount, which is the least favourable case for fixed minimum fees.
+**Evidence:** Owner's investor constraint (not a market statistic).
+**What would change my mind:** A different minimum set by the owner.
+**Effect on results:** Phase 2–4 cost figures are computed at USD 25,000.

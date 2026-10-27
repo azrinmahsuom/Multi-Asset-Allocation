@@ -11,6 +11,7 @@ import re
 import zipfile
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from analysis import metrics, prices, sources
@@ -55,10 +56,11 @@ def shiller_monthly(path: Path = DATA_RAW / "shiller" / "ie_data.xls") -> pd.Dat
     return out.iloc[1:]
 
 
-def french_market(path: Path, date_digits: int) -> pd.DataFrame:
-    """US value-weighted market total return and the 1-month T-bill, from French's file.
+def french_market(path: Path, date_digits: int, market: str = "us") -> pd.DataFrame:
+    """Value-weighted market total return and the 1-month US T-bill, from a French file.
 
     Market total return = (Mkt-RF + RF) / 100. Only the first table (monthly or daily) is read.
+    French marks missing values as -99.99; those become missing.
     """
     rows = []
     for line in _french_csv_text(path).splitlines():
@@ -67,13 +69,13 @@ def french_market(path: Path, date_digits: int) -> pd.DataFrame:
             rows.append([match.group(1), *[float(x) for x in match.group(2).split(",")]])
         elif rows and line.strip() and not line.strip()[0].isdigit():
             break
-    df = pd.DataFrame(rows, columns=["date", "mkt_rf", "smb", "hml", "rf"])
+    df = pd.DataFrame(rows, columns=["date", "mkt_rf", "smb", "hml", "rf"]).replace(-99.99, np.nan)
     if date_digits == 6:
         df.index = pd.PeriodIndex(pd.to_datetime(df["date"], format="%Y%m"), freq="M", name="month")
     else:
         df.index = pd.DatetimeIndex(pd.to_datetime(df["date"], format="%Y%m%d"), name="date")
     out = pd.DataFrame(index=df.index)
-    out["us_eq_tr_nominal_usd"] = (df["mkt_rf"] + df["rf"]) / 100
+    out[f"{market}_eq_tr_nominal_usd"] = (df["mkt_rf"] + df["rf"]) / 100
     out["us_bill1m_tr_nominal_usd"] = df["rf"] / 100
     return out
 
@@ -142,18 +144,37 @@ def fred_monthly(series: list[str] | None = None) -> pd.DataFrame:
         frames.append(pd.to_numeric(df.iloc[:, 0], errors="coerce").rename(series_id))
     out = pd.concat(frames, axis=1).sort_index()
     out.index.name = "month"
+    for cpi in [c for c in CPI_SERIES if c in out.columns]:
+        out[cpi], out[f"{cpi}_interpolated"] = fill_single_month_gaps(out[cpi])
     return out
+
+
+CPI_SERIES = ["CPIAUCSL", "CPIAUCNS"]
+
+
+def fill_single_month_gaps(index_level: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """Fill isolated one-month gaps inside a price index by geometric interpolation.
+
+    Rule: only a single missing month between two published months is filled (e.g. October
+    2025 US CPI, not published by BLS); longer gaps stay missing. Returns the filled series
+    and a flag marking the filled months.
+    """
+    missing = index_level.isna()
+    isolated = missing & index_level.shift(1).notna() & index_level.shift(-1).notna()
+    filled = np.exp(np.log(index_level).interpolate(limit=1, limit_area="inside"))
+    filled = index_level.where(~isolated, filled)
+    return filled, isolated
 
 
 TREASURY_MATURITIES = {"DGS1": 1, "DGS5": 5, "DGS10": 10, "DGS30": 30}
 
 
-def fred_month_end(series: list[str]) -> pd.DataFrame:
-    """Last daily observation of each complete month, as decimals (yields / 100)."""
+def fred_month_end(series: list[str], scale: float = 100) -> pd.DataFrame:
+    """Last daily observation of each complete month, divided by scale (yields: % -> decimal)."""
     frames = []
     for series_id in series:
         df = pd.read_csv(DATA_RAW / "fred" / f"{series_id}.csv", index_col=0, parse_dates=True)
-        daily = pd.to_numeric(df.iloc[:, 0], errors="coerce").dropna() / 100
+        daily = pd.to_numeric(df.iloc[:, 0], errors="coerce").dropna() / scale
         month_end = daily.groupby(daily.index.to_period("M")).last()
         if not _month_complete(daily.index[-1]):
             month_end = month_end.iloc[:-1]
@@ -161,6 +182,12 @@ def fred_month_end(series: list[str]) -> pd.DataFrame:
     out = pd.concat(frames, axis=1).sort_index()
     out.index.name = "month"
     return out
+
+
+def usdsgd_month_end() -> pd.DataFrame:
+    """Month-end SGD per USD (FRED DEXSIUS) and its monthly change (USD vs SGD)."""
+    rate = fred_month_end(["DEXSIUS"], scale=1)["DEXSIUS"]
+    return pd.DataFrame({"sgd_per_usd": rate, "usd_vs_sgd_change": rate.pct_change()})
 
 
 def us_treasury_monthly() -> pd.DataFrame:
@@ -250,12 +277,14 @@ def _month_complete(last_day: pd.Timestamp) -> bool:
 
 
 def complete_months(daily: pd.Series) -> pd.Series:
-    """Compound daily returns to months, dropping a final month that is not yet complete.
+    """Monthly returns from month-end levels of the compounded daily returns.
 
-    Rule: the last month is kept only if its last observation is within 3 calendar days of
-    that month's last business day.
+    Rules: the first month is dropped (it has no prior month-end, so it would cover only part
+    of the month); the last month is kept only if its last observation is within 3 calendar
+    days of that month's last business day.
     """
-    monthly = (1 + daily).groupby(daily.index.to_period("M")).prod() - 1
+    level = (1 + daily).cumprod()
+    monthly = level.groupby(level.index.to_period("M")).last().pct_change().iloc[1:]
     if not _month_complete(daily.index[-1]):
         monthly = monthly.iloc[:-1]
     monthly.index.name = "month"
@@ -263,9 +292,9 @@ def complete_months(daily: pd.Series) -> pd.Series:
 
 
 def etf_monthly() -> pd.DataFrame:
-    """Monthly total returns (close + distributions) of each REIT ETF, trading currency."""
+    """Monthly total returns (close + distributions) of each ETF, trading currency."""
     columns = {}
-    for ticker, (_label, currency) in sources.REIT_ETFS.items():
+    for ticker, (_label, currency) in sources.ETFS.items():
         df = prices.PRICE_SOURCE.read(DATA_RAW / prices.PRICE_SOURCE.name / f"{ticker}.csv")
         df = df[df["close"].notna()]
         daily = metrics.total_returns_from_distributions(df["close"], df["dividend"])
@@ -306,6 +335,11 @@ def run() -> dict[str, pd.DataFrame]:
         "us_monthly_french": _save(
             french_market(raw / "F-F_Research_Data_Factors_CSV.zip", 6), "us_monthly_french"
         ),
+        "developed_monthly_french": _save(
+            french_market(raw / "Developed_3_Factors_CSV.zip", 6, market="developed"),
+            "developed_monthly_french",
+        ),
+        "usdsgd_month_end": _save(usdsgd_month_end(), "usdsgd_month_end"),
         "us_daily_french": _save(
             french_market(raw / "F-F_Research_Data_Factors_daily_CSV.zip", 8), "us_daily_french"
         ),
@@ -314,6 +348,6 @@ def run() -> dict[str, pd.DataFrame]:
         "fred_monthly": _save(fred_monthly(), "fred_monthly"),
         "us_treasury_monthly": _save(us_treasury_monthly(), "us_treasury_monthly"),
         "sgd_rf_monthly": _save(sgd_risk_free_monthly(), "sgd_rf_monthly"),
-        "reit_etf_monthly": _save(etf_monthly(), "reit_etf_monthly"),
+        "etf_monthly": _save(etf_monthly(), "etf_monthly"),
         "us_reit_nareit": _save(nareit_monthly(), PRIVATE_PREFIX + "us_reit_nareit_monthly"),
     }

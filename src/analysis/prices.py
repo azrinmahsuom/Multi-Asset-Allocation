@@ -8,6 +8,7 @@ data/raw/<source>/ and recorded in the manifest by analysis.sources, like every 
 from pathlib import Path
 from typing import Protocol
 
+import numpy as np
 import pandas as pd
 
 
@@ -67,17 +68,46 @@ def describe(path: Path) -> tuple[int, str, str]:
     return len(df), df["date"].iloc[0], df["date"].iloc[-1]
 
 
-def cross_check(
-    annual_total_return: pd.Series, reference: pd.DataFrame, tolerance: float = 0.005
-) -> pd.DataFrame:
-    """Compare our calendar-year total returns with issuer-published ones.
+# Iglewicz and Hoaglin (1993), as given in the NIST/SEMATECH e-Handbook of Statistical
+# Methods, section 1.3.5.17: flag modified z-scores with absolute value above 3.5.
+OUTLIER_THRESHOLD = 3.5
+# Issuers publish annual returns to 0.01%: gaps smaller than that cannot be told apart, so the
+# MAD is floored at this precision (otherwise identical gaps give MAD = 0, which NIST notes
+# leaves the score undefined).
+PUBLISHED_PRECISION = 0.0001
 
-    reference has columns year and total_return (decimals) for one ETF. Returns every
-    compared year with the gap and a flag where |gap| > tolerance (0.005 = 0.5 pp).
+
+def modified_z_scores(x: pd.Series, mad_floor: float = 0.0) -> pd.Series:
+    """0.6745 (x - median) / max(MAD, mad_floor). Missing if that denominator is zero."""
+    median = x.median()
+    mad = max((x - median).abs().median(), mad_floor)
+    if mad == 0:
+        return pd.Series(np.nan, index=x.index)
+    return 0.6745 * (x - median) / mad
+
+
+def cross_check(ours: dict[str, pd.Series], reference: pd.DataFrame) -> pd.DataFrame:
+    """Compare our calendar-year total returns with issuer-published market-price returns.
+
+    ours maps ticker -> calendar-year total returns (index: year). reference has columns
+    ticker, year, total_return and basis; only rows with basis 'market_price' are compared,
+    because our returns use closing prices, not NAV. Gaps are pooled across all ETF-years and
+    flagged as mismatches where |modified z-score| > OUTLIER_THRESHOLD.
     """
-    ours = annual_total_return.rename("ours")
-    ours.index = ours.index.astype(int)
-    joined = reference.set_index("year")[["total_return"]].join(ours, how="inner")
-    joined["gap"] = joined["ours"] - joined["total_return"]
-    joined["mismatch"] = joined["gap"].abs() > tolerance
-    return joined
+    ref = reference[reference["basis"] == "market_price"]
+    rows = []
+    for ticker, group in ref.groupby("ticker"):
+        if ticker not in ours:
+            continue
+        mine = ours[ticker].rename("ours")
+        mine.index = mine.index.astype(int)
+        joined = group.set_index("year")[["total_return"]].join(mine, how="inner")
+        joined["ticker"] = ticker
+        rows.append(joined)
+    out = pd.concat(rows).reset_index() if rows else pd.DataFrame()
+    if out.empty:
+        return out
+    out["gap"] = out["ours"] - out["total_return"]
+    out["modified_z"] = modified_z_scores(out["gap"], mad_floor=PUBLISHED_PRECISION)
+    out["mismatch"] = out["modified_z"].abs() > OUTLIER_THRESHOLD
+    return out

@@ -4,7 +4,7 @@ from importlib import import_module
 
 import pandas as pd
 
-from analysis.config import ROOT
+from analysis.config import JST_CREDIT, ROOT
 from analysis.evidence import ClaimResult
 
 CLAIM_MODULES = [
@@ -13,6 +13,9 @@ CLAIM_MODULES = [
     "analysis.evidence.claim03_mean_reversion",
     "analysis.evidence.claim04_horizon_mix",
     "analysis.evidence.claim05_stock_bond_correlation",
+    "analysis.evidence.claim06_term_premium",
+    "analysis.evidence.claim07_credit_premium",
+    "analysis.evidence.claim08_inflation_linked",
 ]
 
 OUTPUT = ROOT / "docs" / "evidence_review.md"
@@ -56,6 +59,8 @@ def _section(result: ClaimResult) -> str:
         rel = figure.relative_to(ROOT).as_posix()
         lines += [f"![Claim {result.number}](../{rel})", ""]
     lines += ["**Caveats**", "", *[f"- {caveat}" for caveat in result.caveats], ""]
+    if "JST" in result.data:
+        lines += [f"*{JST_CREDIT} Applies to the JST-derived figures and tables above.*", ""]
     for name, table in result.tables.items():
         lines += [
             "<details>",

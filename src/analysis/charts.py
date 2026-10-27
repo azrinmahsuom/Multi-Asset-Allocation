@@ -62,10 +62,13 @@ def figure(height_in: float = 5.0) -> tuple[plt.Figure, plt.Axes]:
 def titles(fig: plt.Figure, title: str, subtitle: str) -> None:
     """Title (the takeaway) and subtitle (what is plotted), aligned to the figure's left edge.
 
-    Titles longer than 80 characters don't fit the 1200 px width and are rejected.
+    Titles over 80 characters and subtitles over 108 don't fit the 1200 px width and are
+    rejected.
     """
     if len(title) > 80:
         raise ValueError(f"Title too long for the figure ({len(title)} > 80): {title!r}")
+    if len(subtitle) > 108:
+        raise ValueError(f"Subtitle too long ({len(subtitle)} > 108): {subtitle!r}")
     fig.text(0.01, 0.975, title, fontsize=12, fontweight="bold", color=TEXT, va="top")
     fig.text(0.01, 0.935, subtitle, fontsize=9, color=TEXT_SECONDARY, va="top")
 

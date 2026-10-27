@@ -112,3 +112,16 @@ def test_turnover():
     before = pd.Series({"eq": 0.7, "bd": 0.3})
     after = pd.Series({"eq": 0.6, "bd": 0.4})
     assert metrics.turnover(before, after) == pytest.approx(0.10)
+
+
+def test_hedged_return_adds_rate_differential():
+    # 1% foreign return, SGD rate 0.3%/month, USD rate 0.4%/month -> 0.9% hedged.
+    out = metrics.hedged_return(pd.Series([0.01]), pd.Series([0.003]), pd.Series([0.004]))
+    assert out.tolist() == pytest.approx([0.009])
+
+
+def test_par_bond_return_handles_zero_end_yield():
+    # Coupon 1%, 2 years, held 6 months, yield falls to 0: remaining 3 half-year coupons of
+    # 0.5 plus 100 principal, undiscounted -> price 101.5; return = 1.015 + 0.005 - 1.
+    out = metrics.par_bond_return(pd.Series([0.01]), pd.Series([0.0]), 2, months=6)
+    assert out.iloc[0] == pytest.approx(1.015 + 0.005 - 1)

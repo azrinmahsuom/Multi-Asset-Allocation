@@ -27,8 +27,7 @@ RANDOM_SEED = 20261027
 BOOTSTRAP_REPS = 2000
 
 TRADING_DAYS = 252
-# Per side. Fallback only when measured costs are missing; record the source in docs/decisions.md.
-TRANSACTION_COST_BPS = 10
+# Trading costs come from analysis.costs and reference/trading_costs.csv (no flat fallback).
 
 
 def get_secret(name: str) -> str:

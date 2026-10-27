@@ -225,6 +225,11 @@ FRED_SERIES = {
     "GS30": ("30-year Treasury constant maturity yield", "Monthly average, % p.a.", True),
     "FII10": ("10-year TIPS constant maturity real yield", "Monthly average, % p.a., real", True),
     "CPIAUCSL": ("US CPI, all urban consumers", "Monthly index, 1982-84=100, SA", True),
+    "CPIAUCNS": (
+        "US CPI, all urban consumers (TIPS index basis)",
+        "Monthly index, 1982-84=100, NSA",
+        True,
+    ),
     "EXSIUS": ("Singapore dollars to one US dollar", "Monthly average, SGD per USD", True),
     "BAA": ("Moody's seasoned Baa corporate bond yield", "Monthly average, % p.a.", False),
     "AAA": ("Moody's seasoned Aaa corporate bond yield", "Monthly average, % p.a.", False),
@@ -235,6 +240,7 @@ FRED_SERIES = {
     "DGS10": ("10-year Treasury constant maturity yield", "Daily, % p.a.", True),
     "DGS30": ("30-year Treasury constant maturity yield", "Daily, % p.a.", True),
     "DFII10": ("10-year TIPS constant maturity real yield", "Daily, % p.a., real", True),
+    "DEXSIUS": ("Singapore dollars to one US dollar, noon buying rate", "Daily, SGD per USD", True),
 }
 
 # REIT ETFs (identifiers only, not recommendations), as of 2026-10. History start dates
@@ -249,6 +255,25 @@ REIT_ETFS = {
     "CFA.SI": ("Asia ex-Japan REITs, from 2017", "SGD"),
     "SRT.SI": ("Singapore REITs, from 2021", "SGD"),
 }
+
+# Global equity and bond ETFs for SGD-perspective tests (identifiers only), as of 2026-10.
+# AGGG.L and AGGU.L are the unhedged and USD-hedged classes of the same global aggregate
+# bond fund, so hedging is compared on one index.
+GLOBAL_ETFS = {
+    "ACWI": ("global equities (developed and emerging), from 2008", "USD"),
+    "AGGG.L": ("UCITS global aggregate bonds, unhedged, distributing, from 2017", "USD"),
+    "AGGU.L": ("UCITS global aggregate bonds, USD-hedged, accumulating, from 2017", "USD"),
+}
+
+# US bond ETFs: realised returns after default losses and costs, used to check returns built
+# from yields (identifiers only), as of 2026-10.
+BOND_ETFS = {
+    "LQD": ("US investment-grade corporate bonds, from 2002", "USD"),
+    "IEF": ("US Treasuries 7-10 years, from 2002", "USD"),
+    "TIP": ("US Treasury inflation-protected securities, from 2003", "USD"),
+}
+
+ETFS = {**REIT_ETFS, **GLOBAL_ETFS, **BOND_ETFS}
 
 FRENCH_FTP = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
 FRENCH_UNITS = (
@@ -296,6 +321,21 @@ REGISTRY: list[RawFile] = (
             units=FRENCH_UNITS.format(freq="Daily", period="day"),
             resolve_url=_fixed(FRENCH_FTP + "F-F_Research_Data_Factors_daily_CSV.zip"),
             describe=_describe_french(8),
+        ),
+        RawFile(
+            source="french",
+            filename="Developed_3_Factors_CSV.zip",
+            name="Kenneth French Data Library",
+            landing_page="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html",
+            series="Fama/French Developed 3 Factors (monthly)",
+            licence=NO_LICENCE,
+            redistributable=False,
+            units=(
+                "Monthly, % per month, USD nominal. Mkt-RF (developed-markets value-weighted "
+                "total return minus RF), SMB, HML, RF (1-month US T-bill)."
+            ),
+            resolve_url=_fixed(FRENCH_FTP + "Developed_3_Factors_CSV.zip"),
+            describe=_describe_french(6),
         ),
         RawFile(
             source="damodaran",
@@ -402,7 +442,7 @@ REGISTRY: list[RawFile] = (
             describe=prices.describe,
             download=lambda _url, ticker=ticker: prices.PRICE_SOURCE.download(ticker),
         )
-        for ticker, (label, currency) in REIT_ETFS.items()
+        for ticker, (label, currency) in ETFS.items()
     ]
 )
 

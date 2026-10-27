@@ -39,3 +39,33 @@ def test_iid_variance_ratios_is_reproducible():
     a = bootstrap.iid_variance_ratios(x, [2, 5], reps=20, seed=1)
     b = bootstrap.iid_variance_ratios(x, [2, 5], reps=20, seed=1)
     assert a.shape == (20, 2) and np.array_equal(a, b)
+
+
+def test_moving_block_indices_are_consecutive_runs():
+    import numpy as np
+
+    from analysis import bootstrap
+
+    idx = bootstrap.moving_block_indices(10, 3, np.random.default_rng(0))
+    assert len(idx) == 10
+    # Within each block of 3, indices step by 1.
+    for start in range(0, 9, 3):
+        block = idx[start : start + 3]
+        assert all(np.diff(block) == 1)
+
+
+def test_correlation_ci_brackets_a_strong_correlation():
+    import numpy as np
+
+    from analysis import bootstrap
+
+    x = np.random.default_rng(1).normal(size=300)
+    y = x + 0.3 * np.random.default_rng(2).normal(size=300)
+    lo, hi = bootstrap.correlation_ci(x, y, reps=300)
+    assert lo < np.corrcoef(x, y)[0, 1] < hi and lo > 0.8
+
+
+def test_block_length_rule():
+    from analysis import bootstrap
+
+    assert bootstrap.block_length(64) == 4 and bootstrap.block_length(1) == 1

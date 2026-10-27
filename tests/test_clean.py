@@ -9,13 +9,14 @@ def test_shiller_month_reads_point_one_as_october():
     assert clean._shiller_month(1871.01) == pd.Period("1871-01", freq="M")
 
 
-def test_complete_months_drops_unfinished_final_month():
-    # Jan complete (ends on its last business day), Feb ends on the 10th: dropped.
-    days = pd.to_datetime(["2024-01-30", "2024-01-31", "2024-02-09", "2024-02-12"])
-    daily = pd.Series([0.01, 0.01, 0.02, 0.0], index=days)
+def test_complete_months_drops_partial_first_and_last_month():
+    # Jan starts mid-month (partial, dropped). Feb is complete: 1.02 * 1.01 - 1.
+    # Mar ends on the 10th (incomplete, dropped).
+    days = pd.to_datetime(["2024-01-17", "2024-01-31", "2024-02-15", "2024-02-29", "2024-03-08"])
+    daily = pd.Series([0.05, 0.01, 0.02, 0.01, 0.03], index=days)
     out = clean.complete_months(daily)
-    assert list(out.index.astype(str)) == ["2024-01"]
-    assert out.iloc[0] == pytest.approx(1.01**2 - 1)
+    assert list(out.index.astype(str)) == ["2024-02"]
+    assert out.iloc[0] == pytest.approx(1.02 * 1.01 - 1)
 
 
 def test_sgd_risk_free_splices_overnight_then_sora_index():
@@ -52,3 +53,13 @@ def test_mas_tables_splits_on_changed_header(tmp_path):
     assert list(first.columns) == ["Interbank 3-Month"]
     assert first["Interbank 3-Month"].isna().tolist() == [False, True]
     assert second.loc["2005-07-01", "SORA Index"] == pytest.approx(0.89)
+
+
+def test_fill_single_month_gaps_only_fills_isolated_months():
+    import numpy as np
+
+    s = pd.Series([100.0, np.nan, 121.0, np.nan, np.nan, 130.0])
+    filled, flag = clean.fill_single_month_gaps(s)
+    assert filled.iloc[1] == pytest.approx(110.0)  # geometric midpoint of 100 and 121
+    assert filled.iloc[3:5].isna().all()  # two-month gap left missing
+    assert flag.tolist() == [False, True, False, False, False, False]
