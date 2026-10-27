@@ -16,6 +16,62 @@ files:
       T-bill, 10-year T-bond, Baa corporate, real estate, gold total returns; CPI
       inflation.
     sha256: 28b8110916a15a4dcc11c87c6422510704608ddedcdfa67a1298abdc22e49c69
+  documents/A35_annual_report.pdf:
+    source: ABF Singapore Bond Index Fund, audited annual report
+    url: https://sg.amova-am.com/docs/default-source/sg-library/fund/annual-report/ABF2.pdf?sfvrsn=6baeda8b_5
+    landing_page: https://sg.amova-am.com/general/funds/detail/abf-singapore-bond-index-fund
+    series: 'Fund document (PDF): audited annual report (total expense ratio)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 95
+    start: 30 June 2026
+    end: 30 June 2026
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: 3e26023342982afbaaa832101d4f6dc45cfdf0be3083c69310ee4b13c61c4b16
+  documents/A35_factsheet.pdf:
+    source: ABF Singapore Bond Index Fund, factsheet
+    url: https://sg.amova-am.com/docs/default-source/sg-library/fund/factsheet/ABF-SINGAPORE-BOND-INDEX-FUND-FACTSHEET.pdf?sfvrsn=17010478_22
+    landing_page: https://sg.amova-am.com/general/funds/detail/abf-singapore-bond-index-fund
+    series: 'Fund document (PDF): monthly factsheet (fees, benchmark)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 3
+    start: 30 September 2026
+    end: 30 September 2026
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: d0719d7ee2578381a667a9df425012a0145e5460c66bd42dcecf685bdd42c67b
+  documents/IGLO_factsheet.pdf:
+    source: iShares Global Govt Bond UCITS ETF USD (Dist), factsheet
+    url: https://www.ishares.com/uk/individual/en/literature/fact-sheet/iglo-ishares-global-govt-bond-ucits-etf-fund-fact-sheet-en-gb.pdf
+    landing_page: https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf
+    series: 'Fund document (PDF): monthly factsheet (TER, effective duration, benchmark)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 4
+    start: 05-Oct-2026
+    end: 05-Oct-2026
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: b9a61730af4a574a41b0978b62ed7441926c83925096e06d6f0e399ab5d178fe
+  documents/ISAC_factsheet.pdf:
+    source: iShares MSCI ACWI UCITS ETF USD (Acc), factsheet
+    url: https://www.ishares.com/uk/individual/en/literature/fact-sheet/ssac-ishares-msci-acwi-ucits-etf-fund-fact-sheet-en-gb.pdf
+    landing_page: https://www.ishares.com/uk/individual/en/products/251850/ishares-msci-acwi-ucits-etf
+    series: 'Fund document (PDF): monthly factsheet (TER, domicile, benchmark)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 4
+    start: 07-Aug-2026
+    end: 07-Aug-2026
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: 10cd1cbcd79c8c28e559bb893ac0bc85e54d46f9c1d60ec669f3dfe161c0e55f
   fred/AAA.csv:
     source: 'FRED: Moody''s seasoned Aaa corporate bond yield'
     url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=AAA
@@ -396,6 +452,24 @@ files:
     end: 2026-09
     units: Monthly index, 2024 = 100, NSA, SGD.
     sha256: 10eff6ef02690313d6fdc6063732220fe5b2eae37b832badb478b0771a7199db
+  yahoo/A35.SI.csv:
+    source: 'yahoo: A35.SI (Singapore bond index fund (SGS and quasi-government),
+      SGD)'
+    url: 'yfinance: Ticker(''A35.SI'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/A35.SI/history
+    series: A35.SI
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 4721
+    start: '2008-01-02'
+    end: '2026-10-27'
+    units: 'Daily, SGD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 41688c2d3af6caae1489276e10478f7bb922284f27f8b97df6f0843a32f8d870
   yahoo/ACWI.csv:
     source: 'yahoo: ACWI (global equities (developed and emerging), from 2008)'
     url: 'yfinance: Ticker(''ACWI'').history(period=''max'')'
@@ -567,6 +641,24 @@ files:
       cash per share on the ex-date. Total return is rebuilt from close + dividend,
       reinvested at the ex-date close.'
     sha256: b6cb0f49af73017c97080143ed94090c323a06fbdf5ed68aec4453d7127c377f
+  yahoo/ISAC.L.csv:
+    source: 'yahoo: ISAC.L (UCITS global equities (MSCI ACWI), Irish-domiciled, USD,
+      accumulating)'
+    url: 'yfinance: Ticker(''ISAC.L'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/ISAC.L/history
+    series: ISAC.L
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 3793
+    start: '2011-10-21'
+    end: '2026-10-27'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 98b2b6bdd96faa11ced72f38b13d1d45024c3276263823151874b9ac68bc0dfe
   yahoo/LQD.csv:
     source: 'yahoo: LQD (US investment-grade corporate bonds, from 2002)'
     url: 'yfinance: Ticker(''LQD'').history(period=''max'')'

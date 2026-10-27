@@ -2,12 +2,13 @@
 
 Run with: uv run python -m analysis.pipeline [stage]
 Stages: fetch, refresh (re-download and accept source updates), verify, clean, evidence,
-design, all (default).
+design, backtest, all (default).
 """
 
 import argparse
 
-from analysis import clean, manifest, report, sources
+from analysis import clean, documents, manifest, report, sources
+from analysis.backtest import report as backtest_report
 from analysis.config import FIGURES
 from analysis.design import report as design_report
 
@@ -21,11 +22,13 @@ def fetch(refresh: bool = False) -> None:
 def verify() -> None:
     """Re-hash every raw file against the manifest; raises on any mismatch."""
     print(f"Verified {manifest.verify_data()} raw files against data/MANIFEST.yaml.")
+    documents.verify_reference()
+    print("Verified reference/ figures against the fund documents.")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    stages = ["fetch", "refresh", "verify", "clean", "evidence", "design", "all"]
+    stages = ["fetch", "refresh", "verify", "clean", "evidence", "design", "backtest", "all"]
     parser.add_argument("stage", nargs="?", default="all", choices=stages)
     stage = parser.parse_args().stage
 
@@ -43,6 +46,9 @@ def main() -> None:
     if stage in ("design", "all"):
         design_report.run()
         print("Wrote docs/strategy_design.md.")
+    if stage in ("backtest", "all"):
+        backtest_report.run()
+        print("Wrote docs/backtest_results.md.")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 
 from importlib import import_module
 
+import numpy as np
 import pandas as pd
 
 from analysis.config import JST_CREDIT, ROOT
@@ -26,20 +27,53 @@ CLAIM_MODULES = [
 OUTPUT = ROOT / "docs" / "evidence_review.md"
 
 
-def _table_markdown(df: pd.DataFrame) -> str:
-    """Render a table with percentages for float columns that look like returns."""
+# Columns holding ratios, statistics or other unitless numbers: shown as plain decimals.
+PLAIN_NUMBER_KEYS = (
+    "sharpe",
+    "sortino",
+    "corr",
+    "t_stat",
+    "beta",
+    "ratio",
+    "rank",
+    "slope",
+    "p_value",
+    "variance",
+    "vr_",
+    "iid_",
+    "modified_z",
+    "duration",
+    "maturity",
+    "ci_",
+)
 
-    def fmt(value):
+
+def _is_plain(column: str) -> bool:
+    c = column.lower()
+    return c.endswith("_t") or any(k in c for k in PLAIN_NUMBER_KEYS)
+
+
+def _table_markdown(df: pd.DataFrame) -> str:
+    """Render a table: returns and weights as percentages, ratios and statistics as decimals."""
+
+    def fmt(value, column: str):
         if isinstance(value, float):
+            if np.isnan(value):
+                return "n/a"
+            if _is_plain(column):
+                return f"{value:.2f}"
             if abs(value) < 1.5:
                 return f"{value:.1%}"
             return str(int(value)) if value.is_integer() else f"{value:,.1f}"
         return str(value)
 
-    header = "| " + " | ".join([df.index.name or "", *map(str, df.columns)]) + " |"
+    columns = [str(c) for c in df.columns]
+    header = "| " + " | ".join([df.index.name or "", *columns]) + " |"
     rule = "|" + "---|" * (len(df.columns) + 1)
     rows = [
-        "| " + " | ".join([str(idx), *(fmt(v) for v in row)]) + " |"
+        "| "
+        + " | ".join([str(idx), *(fmt(v, c) for v, c in zip(row, columns, strict=True))])
+        + " |"
         for idx, row in zip(df.index, df.itertuples(index=False), strict=True)
     ]
     return "\n".join([header, rule, *rows])

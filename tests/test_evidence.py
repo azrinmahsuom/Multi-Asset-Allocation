@@ -80,3 +80,13 @@ def test_dollar_weighted_return_equals_time_weighted_for_constant_returns():
 
     r = np.full(24, 0.01)
     assert c13.dollar_weighted_return(r) == pytest.approx(1.01**12 - 1)
+
+
+def test_table_markdown_formats_ratios_as_decimals():
+    import pandas as pd
+
+    from analysis.report import _table_markdown
+
+    df = pd.DataFrame({"annual_return": [0.051], "sharpe": [0.615], "difference_t": [1.2]})
+    text = _table_markdown(df)
+    assert "5.1%" in text and "0.61" in text and "1.20" in text and "61.5%" not in text

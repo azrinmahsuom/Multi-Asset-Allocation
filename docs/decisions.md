@@ -354,3 +354,57 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 - The 10-point band is one of the claim 11 rules. Its specific level: Evidence: pending (an economic choice to limit drift, not a measured optimum).
 **What would change my mind:** Phase 3 showing the rule breaks a profile's limits while an alternative doesn't.
 **Effect on results:** These are the implementation rules carried into Phase 3.
+
+### 2026-10-27 — Phase 3 backtest rules
+**Context:** The spec asks for two backtest layers with costs, withholding tax, currency effects, a stated risk-free rate, three benchmarks and robustness checks.
+**Rule:** As in `backtest/engine.py` and `backtest/robustness.py` (fixed before results were computed).
+- **Index layer (from February 1998):** developed-market equities in SGD, less the withholding-tax drag (trailing dividend yield × 15%) and ISAC's TER; SGS at matched duration, less A35's TER; SGD cash.
+- **ETF layer (from November 2011):** ISAC.L and A35.SI total returns, which already include TER and fund-level withholding tax.
+- **Benchmarks:** 100% global equity; global 60/40; global market cap. Their global bonds are hedged to SGD: US 10-year as the stand-in, then SGLU.AS from July 2019.
+- **Costs:** the design's rebalancing rule; costs at USD 25,000 from `analysis.costs`, using US ETF spreads and US fees as stand-ins; spreads stress-tested at 2× and 3×.
+- **Risk-free rate:** the SGD one-month rate (MAS).
+- **Robustness:** subperiods; 1950–1981 and 1871–2020 on the global JST portfolio; 10-year forward block bootstrap; a parameter grid.
+**Evidence:**
+- The 15% rate is the US–Ireland treaty rate (IRS treaty text; `reference/withholding_tax.csv`, verified). Applying it to the whole dividend yield is an approximation: treaty rates for non-US dividends vary.
+- TERs (ISAC 0.20%, A35 0.24%) come from secondary sources, status to_verify.
+- The stand-in trading costs are disclosed; they are immaterial at annual rebalancing.
+**What would change my mind:** Primary-source TERs, or LSE/SGX fee and spread data, that materially change net returns.
+**Effect on results:** `docs/backtest_results.md`.
+
+### 2026-10-27 — How the risk limits were set (stated honestly)
+**Context:** The owner asked for the limits to be derived from investor need (spending, liquidity, capacity), with history used only as a check, and for new numbers to be proposed if the need-based derivation gave different ones.
+**Rule:** No new numbers are proposed. The profiles are generic, with no actual investor's spending amount, timing flexibility or reserve size, so a need-based derivation cannot produce numbers of its own. The record:
+- The limits began as draft starting points proposed during the project, which the owner adjusted on 2026-10-27.
+- The short profile was then loosened from −10% to −15% because history showed −10% couldn't be met. That number was set with reference to history.
+- Need is used to describe and check each limit afterwards, not to justify it:
+  - Short: a known spend in about 5 years; daily liquidity; capacity to absorb a shortfall of about 15% by trimming or delaying the spend.
+  - Medium: a flexible goal that can wait a few years.
+  - Long: no planned withdrawals for 20+ years; a fall of more than 35% risks the investor abandoning the plan.
+**Evidence:** Owner decisions in chat on 2026-10-27; the historical feasibility diagnostics.
+**What would change my mind:** A real investor's needs, which would let the limits be derived properly.
+**Effect on results:** None on the numbers; the provenance is now stated plainly.
+
+### 2026-10-27 — Holdout evaluation after the backtest
+**Context:** The in-sample selection used SGD history that overlaps the backtest. The owner asked for a holdout evaluation, including a "maximum equity meeting the limits" candidate added after the backtest, with the decision made on the holdout.
+**Rule (`design/holdout.py`, fixed before its results were computed):**
+- **Candidates:** the methods' allocations that meet the limits in sample, plus the maximum-equity mix (1-point steps, rest SGS; the three-way bond comparison selected SGS).
+- **Holdout tests:**
+  - H1: the share of 15 non-US JST countries meeting the limits (annual, real, local currency, full history).
+  - H2: the share of rolling windows meeting the limits in US data before 1981 (Shiller monthly, 1871–1980).
+  - H3: 1 minus the breach rate over 2,000 block-bootstrapped paths of the global JST portfolio.
+- **Bootstrap settings:** blocks of round(150^(1/5)) = 3 years; seed `config.RANDOM_SEED` (20261027); global weights = the previous year's GDP in USD.
+- **Drawdown bias:** annual drawdowns in H1 and H3 are scaled by the monthly/annual drawdown ratio measured for the same mix on US data from 1962 to 2020. The ratio is reported per candidate (about 1.03–1.19).
+- **Score and selection:** the score is the mean of H1, H2 and H3. Candidates within 0.05 of the best score tie, and the lowest H3 breach rate wins (the owner's judgement call). Exact ties go to the higher score, then the lower equity share (added during the analysis, needed because mean-variance and risk parity tie exactly).
+**Evidence:** The block-length rate follows Hall, Horowitz and Jing (1995). The 0.05 tie band and the tie-break are judgement: Evidence: pending.
+**What would change my mind:** A different tie-break. Under highest expected return, the picks would be Short 34%, Medium 87% and Long 37% equities (reported in the document).
+**Effect on results:** The holdout selects mean-variance (shrunk), about 25% equities and 75% SGS, for all three profiles. The profiles coincide.
+
+### 2026-10-27 — Profiles merged; risk-parity weights adopted
+**Context:** On the holdout, all three profiles selected the same allocation: mean-variance (shrunk), about 25% equities. Mean-variance weights are unstable across bootstrap resamples (equities 11%–100%). Risk parity gives almost the same mix (25.4% vs 24.7% equities) with stable weights (23%–50%) and the same holdout breach rate.
+**Options considered:**
+- Profiles: merge into one (chosen by the owner); keep three with a return tie-break (Short 34%, Medium 87%, Long 37%, which is inconsistent because Medium holds more equity than Long); or re-set the limits and rerun.
+- Method: risk parity (chosen by the owner) or keep mean-variance.
+**Rule:** A single allocation: risk-parity weights over global equities (unhedged) and SGS, no cash. Currently 25.4% equities and 74.6% SGS (`design.allocation.final_allocation`). Weights are re-estimated at each annual review from the monthly SGD data, with the rebalancing rule as designed.
+**Evidence:** The holdout table in `docs/strategy_design.md`; the weight-stability bootstrap. **Both choices were made after the holdout results**, and are disclosed as such.
+**What would change my mind:** Real investor needs that justify different limits per horizon; or risk-parity weights becoming unstable.
+**Effect on results:** The backtest reports the adopted allocation, with the in-sample picks for reference. In the index layer: 2.3% real a year, worst fall −14.2%, and it meets all three original profiles' limits.

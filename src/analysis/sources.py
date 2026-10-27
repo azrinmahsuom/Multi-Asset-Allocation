@@ -264,6 +264,51 @@ def _describe_singstat(path: Path) -> tuple[int, str, str]:
     return len(months), min(months).strftime("%Y-%m"), max(months).strftime("%Y-%m")
 
 
+def _describe_pdf(path: Path) -> tuple[int, str, str]:
+    """Page count and the document's 'as at/as of' date or financial year end, if found."""
+    from pypdf import PdfReader
+
+    reader = PdfReader(path)
+    text = re.sub(r"\s+", " ", " ".join(p.extract_text() or "" for p in reader.pages[:3]))
+    m = re.search(r"(?:as (?:at|of)|year ended) (\d{1,2}[ -](?:[A-Z][a-z]{2,8})[ -]\d{4})", text)
+    date = m.group(1) if m else "unknown"
+    return len(reader.pages), date, date
+
+
+AMOVA_A35 = "https://sg.amova-am.com/general/funds/detail/abf-singapore-bond-index-fund"
+ISHARES_UK = "https://www.ishares.com/uk/individual/en/literature/fact-sheet/"
+FUND_DOCUMENTS = [
+    (
+        "ISAC_factsheet.pdf",
+        "iShares MSCI ACWI UCITS ETF USD (Acc), factsheet",
+        "https://www.ishares.com/uk/individual/en/products/251850/ishares-msci-acwi-ucits-etf",
+        "monthly factsheet (TER, domicile, benchmark)",
+        _fixed(ISHARES_UK + "ssac-ishares-msci-acwi-ucits-etf-fund-fact-sheet-en-gb.pdf"),
+    ),
+    (
+        "IGLO_factsheet.pdf",
+        "iShares Global Govt Bond UCITS ETF USD (Dist), factsheet",
+        "https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf",
+        "monthly factsheet (TER, effective duration, benchmark)",
+        _fixed(ISHARES_UK + "iglo-ishares-global-govt-bond-ucits-etf-fund-fact-sheet-en-gb.pdf"),
+    ),
+    (
+        "A35_factsheet.pdf",
+        "ABF Singapore Bond Index Fund, factsheet",
+        AMOVA_A35,
+        "monthly factsheet (fees, benchmark)",
+        _link_on_page(AMOVA_A35, r"ABF-SINGAPORE-BOND-INDEX-FUND-FACTSHEET\.pdf"),
+    ),
+    (
+        "A35_annual_report.pdf",
+        "ABF Singapore Bond Index Fund, audited annual report",
+        AMOVA_A35,
+        "audited annual report (total expense ratio)",
+        _link_on_page(AMOVA_A35, r"annual-report/ABF2\.pdf"),
+    ),
+]
+
+
 def _describe_fred(path: Path) -> tuple[int, str, str]:
     df = pd.read_csv(path)
     return len(df), str(df.iloc[0, 0])[:7], str(df.iloc[-1, 0])[:7]
@@ -336,7 +381,13 @@ REAL_ASSET_ETFS = {
     "DBC": ("diversified commodity futures, from 2006", "USD"),
 }
 
-ETFS = {**REIT_ETFS, **GLOBAL_ETFS, **BOND_ETFS, **REAL_ASSET_ETFS}
+# Representative funds for the ETF-level backtest (identifiers only; final choice in Phase 4).
+STRATEGY_ETFS = {
+    "ISAC.L": ("UCITS global equities (MSCI ACWI), Irish-domiciled, USD, accumulating", "USD"),
+    "A35.SI": ("Singapore bond index fund (SGS and quasi-government), SGD", "SGD"),
+}
+
+ETFS = {**REIT_ETFS, **GLOBAL_ETFS, **BOND_ETFS, **REAL_ASSET_ETFS, **STRATEGY_ETFS}
 
 FRENCH_FTP = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
 FRENCH_UNITS = (
@@ -509,6 +560,21 @@ REGISTRY: list[RawFile] = (
             describe=_describe_nareit,
             manual=True,
         ),
+    ]
+    + [
+        RawFile(
+            source="documents",
+            filename=filename,
+            name=name,
+            landing_page=landing,
+            series="Fund document (PDF): " + what,
+            licence="Issuer document; downloaded for citation only. Not redistributable.",
+            redistributable=False,
+            units="PDF; figures extracted by analysis.documents and checked against reference/.",
+            resolve_url=resolver,
+            describe=_describe_pdf,
+        )
+        for filename, name, landing, what, resolver in FUND_DOCUMENTS
     ]
     + [
         RawFile(

@@ -1,2 +1,2 @@
 fund,share_class,effective_duration_years,as_of,source,checked_on,status
-iShares Global Govt Bond UCITS ETF,IGLO (USD Dist; ISIN IE00B3F81K65),6.28,2026-10-20,https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf (figure seen via search-engine extract; the page's dynamic panel did not render for direct fetch),2026-10-27,to_verify
+iShares Global Govt Bond UCITS ETF,IGLO (USD Dist; ISIN IE00B3F81K65),6.27,2026-09-30,"Issuer factsheet, portfolio data as at 30-Sep-2026: 'Effective Duration : 6.27 yrs'; benchmark FTSE G7 Government Bond Index (data/raw/documents/IGLO_factsheet.pdf; URL and SHA-256 in data/MANIFEST.yaml)",2026-10-27,verified

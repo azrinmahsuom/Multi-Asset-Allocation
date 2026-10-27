@@ -118,5 +118,8 @@ Not applicable: no hypothesis (see §5).
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
 - Rebalancing band of 10 percentage points: an economic choice to limit drift; Evidence: pending.
+- TERs of the representative funds (ISAC.L 0.20%, A35.SI 0.24%) are from secondary sources; issuer documents to check (to_verify).
+- Withholding-tax drag applies the 15% US–Ireland treaty rate to the whole dividend yield; non-US treaty rates not yet sourced.
+- Trading costs on LSE and SGX use US-listed spreads and a US fee schedule as stand-ins.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.

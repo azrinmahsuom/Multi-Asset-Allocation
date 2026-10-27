@@ -273,7 +273,8 @@ def _figure(table: pd.DataFrame, selected: dict) -> "charts.Path":
 # --- run ------------------------------------------------------------------------------
 
 
-def run() -> dict:
+def compare() -> dict:
+    """Run the method comparison and selection (no bootstrap, no figure)."""
     mon = monthly()
     glob = global_portfolio_real()
     sgd = sgd_history()
@@ -309,15 +310,43 @@ def run() -> dict:
             ).iloc[0]
             selected[p.name] = best["method"]
         risky_rows[(p.name, "Glide path IQR")] = {"equity": f"{g_lo:.0%}–{g_hi:.0%}"}
-    table = pd.DataFrame(rows)
-    sens = bootstrap_weights(excess)
     return {
-        "table": table,
+        "table": pd.DataFrame(rows),
         "risky_weights": pd.DataFrame(risky_rows).T,
         "selected": selected,
-        "bootstrap_ranges": sens,
+        "excess": excess,
         "monthly_period": f"{mon.index[0]} to {mon.index[-1]}",
         "sgd_period": f"{sgd.index[0]} to {sgd.index[-1]}",
         "global_years": f"{int(glob.index.min())}–{int(glob.index.max())}",
-        "figure": _figure(table, selected),
     }
+
+
+def selected_weights() -> dict[str, pd.Series]:
+    """Selected allocation per profile: weights over equity, bonds and cash."""
+    c = compare()
+    t = c["table"].set_index(["profile", "method"])
+    return {
+        profile: t.loc[(profile, method), [f"w_{a}" for a in ASSETS]]
+        .astype(float)
+        .rename(lambda k: k[2:])
+        for profile, method in c["selected"].items()
+    }
+
+
+def run() -> dict:
+    c = compare()
+    c["bootstrap_ranges"] = bootstrap_weights(c.pop("excess"))
+    c["figure"] = _figure(c["table"], c["selected"])
+    return c
+
+
+FINAL_METHOD = "Risk parity"  # owner decision 2026-10-27 after the holdout (docs/decisions.md)
+
+
+def final_allocation() -> pd.Series:
+    """The single allocation adopted after the holdout: risk-parity weights over equities and
+    SGS, no cash (the three profiles coincided on the holdout and were merged)."""
+    excess = monthly()
+    x = excess[RISKY].sub(excess["cash"], axis=0).to_numpy()
+    w = estimated_weights(x)[FINAL_METHOD]
+    return pd.Series(dict(zip(RISKY, w, strict=True)))

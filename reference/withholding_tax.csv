@@ -1,0 +1,4 @@
+income,payer_country,recipient,rate,applies_to,source,checked_on,status
+Portfolio dividends,United States,Irish-domiciled fund,0.15,"US dividends received by an Irish UCITS (e.g. ISAC.L); reflected in the fund's returns","US-Ireland income tax convention, Article 10(2): 15% unless a company owns at least 10% of voting stock (IRS treaty text https://www.irs.gov/pub/irs-trty/ireland.pdf; IRS Table 1)",2026-10-27,verified
+Portfolio dividends,United States,Singapore-resident individual (US-domiciled fund),0.30,"Distributions of US-domiciled ETFs to a Singapore resident (no US-Singapore income tax treaty)","Broker guides (POEMS, StashAway, Syfe); IRS statutory rate source not yet checked",2026-10-27,to_verify
+Distributions,Ireland,Singapore-resident individual,0.0,"Irish UCITS distributions to non-Irish residents","Syfe guide (secondary); Irish Revenue source not yet checked",2026-10-27,to_verify

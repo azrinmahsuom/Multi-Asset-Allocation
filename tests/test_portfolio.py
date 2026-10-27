@@ -32,3 +32,15 @@ def test_threshold_rule_triggers_only_beyond_band():
     large = portfolio.simulate(RETURNS, TARGET, {"type": "threshold", "band": 0.01})
     # Drift is 0.0238: beyond a 1-point band, within a 5-point band.
     assert not small["rebalanced"].iloc[0] and large["rebalanced"].iloc[0]
+
+
+def test_calendar_or_threshold_triggers_on_either():
+    months = pd.period_range("2024-11", periods=2, freq="M")  # November, December
+    returns = pd.DataFrame({"eq": [0.0, 0.0], "bd": [0.0, 0.0]}, index=months)
+    rule = {"type": "calendar_or_threshold", "months": 12, "band": 0.10}
+    out = portfolio.simulate(returns, TARGET, rule)
+    # No drift: November does not trigger, December does (calendar).
+    assert out["rebalanced"].tolist() == [False, True]
+    big = pd.DataFrame({"eq": [0.6, 0.0], "bd": [0.0, 0.0]}, index=months)
+    # Equity +60% in November: weight 0.8/1.3 = 0.615, more than 10 points over 0.5 -> trigger.
+    assert portfolio.simulate(big, TARGET, rule)["rebalanced"].iloc[0]

@@ -6,6 +6,7 @@ Rebalancing rules (dicts):
   (k = 1 monthly, 3 quarterly at Mar/Jun/Sep/Dec, 12 annually in December).
 - {"type": "threshold", "band": b}: rebalance at a month-end when any weight is more than b
   (absolute, e.g. 0.05 = 5 percentage points) away from its target.
+- {"type": "calendar_or_threshold", "months": k, "band": b}: either condition triggers.
 Costs: each leg of a rebalance pays cost_fraction(asset, trade_value, side) on the traded value,
 with trade values evaluated at a fixed portfolio value (the minimum allocation).
 """
@@ -27,6 +28,9 @@ def _should_rebalance(
         return month.month % rule["months"] == 0
     if rule["type"] == "threshold":
         return bool(np.max(np.abs(weights - target)) > rule["band"])
+    if rule["type"] == "calendar_or_threshold":
+        calendar = month.month % rule["months"] == 0
+        return calendar or bool(np.max(np.abs(weights - target)) > rule["band"])
     raise ValueError(f"Unknown rule {rule}")
 
 

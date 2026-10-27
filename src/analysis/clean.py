@@ -317,8 +317,11 @@ def sgd_risk_free_monthly(tables: list[pd.DataFrame] | None = None) -> pd.DataFr
 
 
 def _month_complete(last_day: pd.Timestamp) -> bool:
-    """True if last_day is within 3 calendar days of its month's last business day."""
+    """True if last_day is within 3 calendar days of its month's last business day, and that
+    business day is not still in the future (a month in progress is never complete)."""
     month_end = (last_day + pd.offsets.BMonthEnd(0)).normalize()
+    if month_end > pd.Timestamp.today().normalize():
+        return False
     return (month_end - last_day.normalize()).days <= 3
 
 

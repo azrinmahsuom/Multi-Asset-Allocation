@@ -3,7 +3,7 @@
 import pandas as pd
 
 from analysis.config import ROOT
-from analysis.design import allocation, bond_options, profiles, universe
+from analysis.design import allocation, bond_options, holdout, profiles, universe
 from analysis.evidence import claim11_rebalancing, claim12_hedging
 from analysis.report import _table_markdown
 
@@ -33,6 +33,15 @@ def _profiles_section() -> list[str]:
         "",
         "Selection rule: for each profile, the allocation with the highest expected real return "
         "that meets all of its limits.",
+        "",
+        "How the limits were set, stated plainly: the profiles are generic (no actual investor's "
+        "spending amount, flexibility or reserve), so investor need could not produce numbers "
+        "of its own. The limits began as draft starting points adjusted by the owner; the short "
+        "limit was loosened from -10% to -15% after history showed -10% could not be met. Need "
+        "is used to describe and check each limit (short: a known spend in about 5 years that "
+        "can absorb a shortfall of about 15%; medium: a goal that can wait a few years; long: "
+        "no withdrawals for 20+ years, and a fall beyond 35% risks abandoning the plan), not to "
+        "derive it.",
         "",
     ]
 
@@ -236,6 +245,57 @@ def _implementation_section() -> list[str]:
     ]
 
 
+def _holdout_section(h: dict) -> list[str]:
+    final = allocation.final_allocation()
+    t = h["table"].set_index("profile")
+    sel = h["selected"]
+    tbl = h["table"].set_index(["profile", "candidate"])
+    chosen_equity = {round(float(tbl.loc[(p, c), "w_equity"]), 3) for p, c in sel.items()}
+    same = len(chosen_equity) == 1
+    return [
+        "## Holdout evaluation (added after the Phase 3 backtest)",
+        "",
+        "The in-sample selection above used SGD history that overlaps the backtest. As an "
+        "out-of-sample check, each candidate, plus 'Maximum equity meeting limits' (largest "
+        "equity share meeting the profile's limits on SGD history, rest SGS, labelled "
+        "post-backtest), is scored on data not used to choose it: H1 the share of 15 non-US "
+        "JST countries meeting the limits (annual, real, local currency, full history); H2 the "
+        "share of rolling windows meeting them in US data before 1981 (Shiller monthly); H3 one "
+        f"minus the breach rate over 2,000 block-bootstrapped paths ({h['block_years']}-year "
+        "blocks) of the global JST portfolio. Annual drawdowns are scaled up by the measured "
+        "monthly/annual drawdown ratio (`drawdown_bias_ratio`). Holdout score = mean of the "
+        "three. Rule (owner): candidates within 0.05 of the best score tie; the lowest H3 "
+        "breach rate wins; exact ties go to the higher score, then the lower equity share.",
+        "",
+        _table_markdown(t),
+        "",
+        "**Holdout selection:** "
+        + "; ".join(f"{k}: {v}" for k, v in sel.items())
+        + ". In-sample selection was: "
+        + "; ".join(f"{k}: {v}" for k, v in h["in_sample_selected"].items())
+        + ". If ties were broken by highest expected return instead: "
+        + "; ".join(f"{k}: {v}" for k, v in h["if_tie_break_were_return"].items())
+        + ".",
+        "",
+        (
+            "The three profiles select the same allocation on the holdout: under the current "
+            "limits and tie-break, the profiles do not produce different portfolios."
+            if same
+            else "The profiles select different allocations on the holdout."
+        ),
+        "",
+        f"**Adopted (owner, 2026-10-27):** the profiles are merged into one allocation using "
+        f"risk-parity weights, {final['equity']:.1%} global equities and {final['bonds']:.1%} SGS. "
+        "Risk parity was chosen over the tie-break winner (mean-variance) because it gives "
+        "nearly the same mix with stable weights. Both choices were made after the holdout.",
+        "",
+        "H1 hardly discriminates between candidates: in war and high-inflation countries, "
+        "home-currency bonds and cash fail the limits whatever the mix. Shiller's monthly "
+        "prices are averages, which smooths H2 drawdowns slightly.",
+        "",
+    ]
+
+
 def run() -> dict:
     r = bond_options.run()
     u = universe.run()
@@ -252,6 +312,7 @@ def run() -> dict:
             *_universe_section(u),
             *_allocation_section(al),
             *_implementation_section(),
+            *_holdout_section(holdout.run()),
         ]
     )
     OUTPUT.write_text(text)

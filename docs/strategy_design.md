@@ -14,25 +14,27 @@ Spending money for near-term needs sits outside the strategy; its size is left t
 
 Selection rule: for each profile, the allocation with the highest expected real return that meets all of its limits.
 
+How the limits were set, stated plainly: the profiles are generic (no actual investor's spending amount, flexibility or reserve), so investor need could not produce numbers of its own. The limits began as draft starting points adjusted by the owner; the short limit was loosened from -10% to -15% after history showed -10% could not be met. Need is used to describe and check each limit (short: a known spend in about 5 years that can absorb a shortfall of about 15%; medium: a goal that can wait a few years; long: no withdrawals for 20+ years, and a fall beyond 35% risks abandoning the plan), not to derive it.
+
 ## Bond sleeve: SGS vs global hedged vs global unhedged
 
 Rules fixed before computing (`analysis.design.bond_options`): three options at matched duration; 60% global equities unhedged in SGD plus 40% bond option, monthly, before costs; ranked on portfolio volatility, maximum drawdown and mean return in the worst 10% of equity months, all in SGD; lowest average rank in the main layer wins.
 
-**Main layer, same fund (2019-07 to 2026-08).** Global government bonds: iShares Global Govt Bond UCITS ETF, unhedged (IGLO.L) and USD-hedged (SGLU.AS) classes. SGS matched to the fund's published effective duration of 6.28 years (SGS maturity 6.4–7.2 years).
+**Main layer, same fund (2019-07 to 2026-08).** Global government bonds: iShares Global Govt Bond UCITS ETF, unhedged (IGLO.L) and USD-hedged (SGLU.AS) classes. SGS matched to the fund's published effective duration of 6.27 years (SGS maturity 6.4–7.1 years).
 
 |  | portfolio_volatility | portfolio_max_drawdown | worst10_equity_months_return | portfolio_return | portfolio_real_return | bond_volatility | bond_equity_correlation | average_rank |
 |---|---|---|---|---|---|---|---|---|
-| SGS | 8.5% | -16.9% | -4.0% | 8.3% | 5.5% | 4.5% | 26.3% | 133.3% |
-| Global hedged to SGD | 8.7% | -17.6% | -4.3% | 7.1% | 4.4% | 4.6% | 37.9% | 2.7 |
-| Global unhedged | 8.3% | -18.8% | -4.0% | 6.4% | 3.7% | 5.3% | 10.0% | 2 |
+| SGS | 8.5% | -16.9% | -4.0% | 8.3% | 5.5% | 4.5% | 0.26 | 1.33 |
+| Global hedged to SGD | 8.7% | -17.6% | -4.3% | 7.1% | 4.4% | 4.6% | 0.38 | 2.67 |
+| Global unhedged | 8.3% | -18.8% | -4.0% | 6.4% | 3.7% | 5.3% | 0.10 | 2.00 |
 
 **Long layer (1998-02 to 2026-08).** US 10-year Treasury as the global stand-in; SGS matched to its duration each month.
 
 |  | portfolio_volatility | portfolio_max_drawdown | worst10_equity_months_return | portfolio_return | portfolio_real_return | bond_volatility | bond_equity_correlation | average_rank |
 |---|---|---|---|---|---|---|---|---|
-| SGS | 8.2% | -30.5% | -4.0% | 6.0% | 4.2% | 6.4% | -10.1% | 3 |
-| Global hedged to SGD | 7.9% | -29.4% | -3.7% | 5.7% | 4.0% | 7.4% | -23.7% | 2 |
-| Global unhedged | 7.7% | -27.2% | -3.3% | 5.8% | 4.0% | 8.7% | -33.1% | 100.0% |
+| SGS | 8.2% | -30.5% | -4.0% | 6.0% | 4.2% | 6.4% | -0.10 | 3.00 |
+| Global hedged to SGD | 7.9% | -29.4% | -3.7% | 5.7% | 4.0% | 7.4% | -0.24 | 2.00 |
+| Global unhedged | 7.7% | -27.2% | -3.3% | 5.8% | 4.0% | 8.7% | -0.33 | 1.00 |
 
 ![Bond options](../reports/figures/design_bond_options_sgd.png)
 
@@ -48,11 +50,11 @@ Rules fixed before computing (`analysis.design.universe`): core = global equitie
 
 |  | annual_return | volatility | correlation_with_equity | spanning_alpha | spanning_t | high_inflation_months | high_inflation_excess_vs_core | high_inflation_t | return_source | passes_spanning | passes_inflation_role | included |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Investment-grade credit | 3.6% | 8.4% | 42.4% | -0.3% | -26.7% | 85 | 0.3% | 7.5% | coupons; credit spread over government bonds | False | False | False |
-| Inflation-linked bonds | 2.4% | 5.8% | 33.1% | -0.3% | -23.6% | 85 | 0.1% | 3.8% | real coupons plus inflation-indexed accrual | False | False | False |
-| Global REITs | 3.5% | 17.2% | 78.6% | -4.0% | -145.3% | 85 | -3.9% | -74.7% | rents passed through as dividends | False | False | False |
-| Gold | 8.4% | 16.0% | -9.9% | 8.4% | 2.7 | 85 | 6.0% | 86.0% | none | True | False | False |
-| Commodities | -0.8% | 17.3% | 38.9% | -2.1% | -50.2% | 85 | -3.3% | -42.3% | none | False | False | False |
+| Investment-grade credit | 3.6% | 8.4% | 0.42 | -0.3% | -0.27 | 85 | 0.3% | 0.08 | coupons; credit spread over government bonds | False | False | False |
+| Inflation-linked bonds | 2.4% | 5.8% | 0.33 | -0.3% | -0.24 | 85 | 0.1% | 0.04 | real coupons plus inflation-indexed accrual | False | False | False |
+| Global REITs | 3.5% | 17.2% | 0.79 | -4.0% | -1.45 | 85 | -3.9% | -0.75 | rents passed through as dividends | False | False | False |
+| Gold | 8.4% | 16.0% | -0.10 | 8.4% | 2.67 | 85 | 6.0% | 0.86 | none | True | False | False |
+| Commodities | -0.8% | 17.3% | 0.39 | -2.1% | -0.50 | 85 | -3.3% | -0.42 | none | False | False | False |
 
 ![Asset universe tests](../reports/figures/design_asset_universe_tests.png)
 
@@ -77,14 +79,14 @@ Rules fixed before computing (`analysis.design.allocation`): five methods give r
 | profile | method | share_in_risky_mix | w_equity | w_bonds | w_cash | expected_real_return | worst_window_sgd | max_drawdown_sgd | sgd_real_return | sgd_volatility | meets_limits | worst_window_global | max_drawdown_global | global_stress_passes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Short | Glide path | 100.0% | 19.0% | 81.0% | 0.0% | 4.1% | -8.2% | -20.4% | 2.1% | 4.8% | True | -45.3% | -46.1% | False |
-| Short | Market cap | nan | 0.0% | 0.0% | 100.0% | 2.1% | -16.6% | -24.9% | -0.6% | 1.7% | False | -38.9% | -39.8% | False |
+| Short | Market cap | n/a | 0.0% | 0.0% | 100.0% | 2.1% | -16.6% | -24.9% | -0.6% | 1.7% | False | -38.9% | -39.8% | False |
 | Short | Minimum variance | 100.0% | 10.9% | 89.1% | 0.0% | 3.8% | -9.0% | -20.7% | 1.7% | 4.7% | True | -44.4% | -45.5% | False |
 | Short | Mean-variance (shrunk) | 100.0% | 24.7% | 75.3% | 0.0% | 4.4% | -10.8% | -20.6% | 2.4% | 5.1% | True | -46.0% | -46.6% | False |
 | Short | Risk parity | 100.0% | 25.4% | 74.6% | 0.0% | 4.4% | -11.1% | -20.6% | 2.4% | 5.1% | True | -46.1% | -46.7% | False |
 | Medium | Glide path | 100.0% | 29.5% | 70.5% | 0.0% | 4.5% | 3.7% | -20.8% | 2.6% | 5.4% | True | -45.4% | -47.0% | False |
 | Medium | Market cap | 100.0% | 49.5% | 50.5% | 0.0% | 5.2% | 3.3% | -30.1% | 3.5% | 7.2% | True | -46.9% | -49.1% | False |
 | Medium | Minimum variance | 100.0% | 10.9% | 89.1% | 0.0% | 3.8% | -2.6% | -20.7% | 1.7% | 4.7% | True | -44.2% | -45.5% | False |
-| Medium | Mean-variance (shrunk) | 100.0% | 24.7% | 75.3% | 0.0% | 4.4% | 2.2% | -20.6% | 2.4% | 5.1% | True | -45.0% | -46.6% | False |
+| Medium | Mean-variance (shrunk) | 100.0% | 24.7% | 75.3% | 0.0% | 4.4% | 2.1% | -20.6% | 2.4% | 5.1% | True | -45.0% | -46.6% | False |
 | Medium | Risk parity | 100.0% | 25.4% | 74.6% | 0.0% | 4.4% | 2.4% | -20.6% | 2.4% | 5.1% | True | -45.1% | -46.7% | False |
 | Long | Glide path | 100.0% | 37.0% | 63.0% | 0.0% | 4.8% | 1.8% | -22.6% | 3.0% | 6.0% | True | -1.0% | -47.7% | False |
 | Long | Market cap | 100.0% | 49.5% | 50.5% | 0.0% | 5.2% | 1.9% | -30.1% | 3.5% | 7.2% | True | -0.9% | -49.1% | False |
@@ -99,8 +101,8 @@ Weight sensitivity (5th–95th percentile over 2,000 moving-block bootstrap resa
 | method | equity_p5 | bonds_p5 | equity_p95 | bonds_p95 |
 |---|---|---|---|---|
 | Mean-variance (shrunk) | 10.9% | 0.0% | 100.0% | 89.1% |
-| Minimum variance | 7.3% | 85.6% | 14.4% | 92.7% |
-| Risk parity | 23.4% | 50.0% | 50.0% | 76.6% |
+| Minimum variance | 7.2% | 85.7% | 14.3% | 92.8% |
+| Risk parity | 23.3% | 50.0% | 50.0% | 76.7% |
 
 Glide-path equity weight, interquartile range across JST countries: Short: 10%–26%; Medium: 21%–53%; Long: 18%–82%.
 
@@ -115,3 +117,35 @@ Caveats: SGD cash lost purchasing power in parts of the sample, so mixing a risk
 **Currency policy.** Equities unhedged; SGS needs no hedge (SGD). Evidence (claim 12): US equities: volatility in SGD 14.7% unhedged vs 15.5% hedged, real return difference +0.2% a year (t = 0.2); Developed-market equities: volatility in SGD 13.2% unhedged vs 15.0% hedged, real return difference +0.1% a year (t = 0.1). Hedging equities to SGD raised volatility without a significant change in return, so equities stay unhedged. If global bonds replace SGS (Phase 3 sensitivity), they are hedged to SGD.
 
 **Rebalancing rule (fixed now, before any Phase 3 backtest).** Rebalance to target once a year at the end of December, and also at any month-end when the equity weight is more than 10 percentage points from target. Rationale: in claim 11 the rules could not be told apart before costs, so the rule is chosen on economic grounds: few trades (minimum broker fees make small, frequent trades expensive at the USD 25,000 minimum) and a cap on drift away from the profile's risk level. Evidence, US 60/40 1962–2026 after costs: annual 0.016% a year in costs, volatility 10.0%; ±10-point band 0.003%, volatility 10.3%; monthly 0.194%, volatility 10.1%. Phase 3 tests the rule's sensitivity without changing it.
+
+## Holdout evaluation (added after the Phase 3 backtest)
+
+The in-sample selection above used SGD history that overlaps the backtest. As an out-of-sample check, each candidate, plus 'Maximum equity meeting limits' (largest equity share meeting the profile's limits on SGD history, rest SGS, labelled post-backtest), is scored on data not used to choose it: H1 the share of 15 non-US JST countries meeting the limits (annual, real, local currency, full history); H2 the share of rolling windows meeting them in US data before 1981 (Shiller monthly); H3 one minus the breach rate over 2,000 block-bootstrapped paths (3-year blocks) of the global JST portfolio. Annual drawdowns are scaled up by the measured monthly/annual drawdown ratio (`drawdown_bias_ratio`). Holdout score = mean of the three. Rule (owner): candidates within 0.05 of the best score tie; the lowest H3 breach rate wins; exact ties go to the higher score, then the lower equity share.
+
+| profile | candidate | w_equity | w_bonds | h1_non_us_share_passing | h2_us_pre1981_share_of_windows | h3_bootstrap_breach_rate | holdout_score | drawdown_bias_ratio | expected_real_return |
+|---|---|---|---|---|---|---|---|---|---|
+| Short | Glide path | 19.0% | 81.0% | 0.0% | 94.8% | 4.3% | 63.5% | 1.03 | 4.1% |
+| Short | Minimum variance | 10.9% | 89.1% | 0.0% | 94.2% | 4.5% | 63.2% | 1.03 | 3.8% |
+| Short | Mean-variance (shrunk) | 24.7% | 75.3% | 0.0% | 95.2% | 4.0% | 63.7% | 1.04 | 4.4% |
+| Short | Risk parity | 25.4% | 74.6% | 0.0% | 95.1% | 4.0% | 63.7% | 1.04 | 4.4% |
+| Short | Maximum equity meeting limits (post-backtest) | 34.0% | 66.0% | 0.0% | 94.8% | 4.2% | 63.5% | 1.05 | 4.7% |
+| Medium | Glide path | 29.5% | 70.5% | 13.3% | 97.3% | 2.3% | 69.5% | 1.04 | 4.5% |
+| Medium | Market cap | 49.5% | 50.5% | 13.3% | 97.4% | 3.4% | 69.1% | 1.15 | 5.2% |
+| Medium | Minimum variance | 10.9% | 89.1% | 6.7% | 93.7% | 2.5% | 65.9% | 1.03 | 3.8% |
+| Medium | Mean-variance (shrunk) | 24.7% | 75.3% | 13.3% | 97.2% | 2.2% | 69.4% | 1.04 | 4.4% |
+| Medium | Risk parity | 25.4% | 74.6% | 13.3% | 97.2% | 2.2% | 69.4% | 1.04 | 4.4% |
+| Medium | Maximum equity meeting limits (post-backtest) | 87.0% | 13.0% | 6.7% | 96.0% | 5.2% | 65.8% | 1.19 | 6.1% |
+| Long | Glide path | 37.0% | 63.0% | 0.0% | 80.6% | 12.2% | 56.1% | 1.05 | 4.8% |
+| Long | Market cap | 49.5% | 50.5% | 0.0% | 66.2% | 17.1% | 49.7% | 1.15 | 5.2% |
+| Long | Minimum variance | 10.9% | 89.1% | 0.0% | 70.6% | 8.2% | 54.1% | 1.03 | 3.8% |
+| Long | Mean-variance (shrunk) | 24.7% | 75.3% | 0.0% | 78.1% | 8.2% | 56.6% | 1.04 | 4.4% |
+| Long | Risk parity | 25.4% | 74.6% | 0.0% | 78.3% | 8.2% | 56.7% | 1.04 | 4.4% |
+| Long | Maximum equity meeting limits (post-backtest) | 58.0% | 42.0% | 0.0% | 57.9% | 22.0% | 45.3% | 1.16 | 5.4% |
+
+**Holdout selection:** Short: Mean-variance (shrunk); Medium: Mean-variance (shrunk); Long: Mean-variance (shrunk). In-sample selection was: Short: Risk parity; Medium: Market cap; Long: Market cap. If ties were broken by highest expected return instead: Short: Maximum equity meeting limits (post-backtest) (34% equities); Medium: Maximum equity meeting limits (post-backtest) (87% equities); Long: Glide path (37% equities).
+
+The three profiles select the same allocation on the holdout: under the current limits and tie-break, the profiles do not produce different portfolios.
+
+**Adopted (owner, 2026-10-27):** the profiles are merged into one allocation using risk-parity weights, 25.4% global equities and 74.6% SGS. Risk parity was chosen over the tie-break winner (mean-variance) because it gives nearly the same mix with stable weights. Both choices were made after the holdout.
+
+H1 hardly discriminates between candidates: in war and high-inflation countries, home-currency bonds and cash fail the limits whatever the mix. Shiller's monthly prices are averages, which smooths H2 drawdowns slightly.
