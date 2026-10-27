@@ -105,3 +105,13 @@ Weight sensitivity (5th–95th percentile over 2,000 moving-block bootstrap resa
 Glide-path equity weight, interquartile range across JST countries: Short: 10%–26%; Medium: 21%–53%; Long: 18%–82%.
 
 Caveats: SGD cash lost purchasing power in parts of the sample, so mixing a risky portfolio with cash does not always reduce real risk; methods that failed a limit at full weight ended at all cash, which can fail too (shown as not meeting limits). The SGD history is about 28 years without an SGD inflation crisis. The global stress columns show the same allocations on 1871–2020: every allocation, cash included, fails the limits there because of the First World War and 1940s inflation (global bonds -43% real over the five years to 1920). Mean-variance weights are unstable across resamples.
+
+## Weights within asset classes, currency policy and rebalancing
+
+**Within equities.** Hold one global market-cap-weighted equity index (developed and emerging markets) rather than fixed regional weights. The index provider updates country weights; no regional weight is hard-coded. At each annual review, the fund's published regional weights are recorded with their date in `reference/`.
+
+**Within SGS.** Market-value weights of a Singapore government bond index, with the sleeve's duration kept near the matched duration used in the bond-sleeve test (the fund choice is made in Phase 4).
+
+**Currency policy.** Equities unhedged; SGS needs no hedge (SGD). Evidence (claim 12): US equities: volatility in SGD 14.7% unhedged vs 15.5% hedged, real return difference +0.2% a year (t = 0.2); Developed-market equities: volatility in SGD 13.2% unhedged vs 15.0% hedged, real return difference +0.1% a year (t = 0.1). Hedging equities to SGD raised volatility without a significant change in return, so equities stay unhedged. If global bonds replace SGS (Phase 3 sensitivity), they are hedged to SGD.
+
+**Rebalancing rule (fixed now, before any Phase 3 backtest).** Rebalance to target once a year at the end of December, and also at any month-end when the equity weight is more than 10 percentage points from target. Rationale: in claim 11 the rules could not be told apart before costs, so the rule is chosen on economic grounds: few trades (minimum broker fees make small, frequent trades expensive at the USD 25,000 minimum) and a cap on drift away from the profile's risk level. Evidence, US 60/40 1962–2026 after costs: annual 0.016% a year in costs, volatility 10.0%; ±10-point band 0.003%, volatility 10.3%; monthly 0.194%, volatility 10.1%. Phase 3 tests the rule's sensitivity without changing it.

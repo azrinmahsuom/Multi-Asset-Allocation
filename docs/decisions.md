@@ -340,3 +340,17 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 **Evidence:** Owner decisions on 2026-10-27, and the diagnostics above (`design/allocation.global_portfolio_real`). The −15% level is the owner's judgement; on both tests from 1950, a 20/80 mix meets it.
 **What would change my mind:** A longer SGD history including an inflation crisis.
 **Effect on results:** Short = risk parity (about 25/75); Medium and Long = market cap (about 50/50). This supersedes the single-country stress columns in the earlier entry "Risk-capacity limits tested on SGD history".
+
+### 2026-10-27 — Weights within asset classes, currency policy, rebalancing rule
+**Context:** The remaining Phase 2 design rules.
+**Rule:**
+- **Equities:** one global market-cap-weighted index (developed and emerging); no hard-coded regional weights. The fund's regional weights are recorded with their date at each annual review.
+- **SGS:** market-value weights of a Singapore government bond index, with duration kept near the matched duration.
+- **Currency:** equities unhedged; SGS needs no hedge; if global bonds are used (Phase 3 sensitivity), they are hedged to SGD.
+- **Rebalancing:** to target every December, and at any month-end when the equity weight is more than 10 percentage points from target. Fixed now, before Phase 3; Phase 3 reports its sensitivity but doesn't change it.
+**Evidence:**
+- Claim 12: hedging equities to SGD raised volatility (USD/SGD moves were correlated −0.32 with US equity returns), with no significant change in return.
+- Claim 11: rebalancing rules were statistically indistinguishable before costs; at USD 25,000, monthly rebalancing cost the most because of minimum fees, and annual and band rules the least.
+- The 10-point band is one of the claim 11 rules. Its specific level: Evidence: pending (an economic choice to limit drift, not a measured optimum).
+**What would change my mind:** Phase 3 showing the rule breaks a profile's limits while an alternative doesn't.
+**Effect on results:** These are the implementation rules carried into Phase 3.

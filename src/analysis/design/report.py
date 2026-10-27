@@ -4,6 +4,7 @@ import pandas as pd
 
 from analysis.config import ROOT
 from analysis.design import allocation, bond_options, profiles, universe
+from analysis.evidence import claim11_rebalancing, claim12_hedging
 from analysis.report import _table_markdown
 
 OUTPUT = ROOT / "docs" / "strategy_design.md"
@@ -192,6 +193,49 @@ def _allocation_section(al: dict) -> list[str]:
     return lines
 
 
+def _implementation_section() -> list[str]:
+    rebal = claim11_rebalancing.run().tables["rules_after_costs"]
+    hedge = claim12_hedging.run().tables["samples"]
+    eq = hedge[hedge["asset_class"] == "equities"]
+    annual, monthly = rebal.loc["Annual"], rebal.loc["Monthly"]
+    band = rebal.loc["Band ±10 pts"]
+    return [
+        "## Weights within asset classes, currency policy and rebalancing",
+        "",
+        "**Within equities.** Hold one global market-cap-weighted equity index (developed and "
+        "emerging markets) rather than fixed regional weights. The index provider updates "
+        "country weights; no regional weight is hard-coded. At each annual review, the fund's "
+        "published regional weights are recorded with their date in `reference/`.",
+        "",
+        "**Within SGS.** Market-value weights of a Singapore government bond index, with the "
+        "sleeve's duration kept near the matched duration used in the bond-sleeve test "
+        "(the fund choice is made in Phase 4).",
+        "",
+        "**Currency policy.** Equities unhedged; SGS needs no hedge (SGD). Evidence (claim 12): "
+        + "; ".join(
+            f"{k}: volatility in SGD {row.vol_unhedged:.1%} unhedged vs {row.vol_hedged:.1%} "
+            f"hedged, real return difference {row.difference_per_year:+.1%} a year "
+            f"(t = {row.difference_t:.1f})"
+            for k, row in eq.iterrows()
+        )
+        + ". Hedging equities to SGD raised volatility without a significant change in "
+        "return, so equities stay unhedged. If global bonds replace SGS (Phase 3 sensitivity), "
+        "they are hedged to SGD.",
+        "",
+        "**Rebalancing rule (fixed now, before any Phase 3 backtest).** Rebalance to target "
+        "once a year at the end of December, and also at any month-end when the equity weight "
+        "is more than 10 percentage points from target. Rationale: in claim 11 the rules could "
+        "not be told apart before costs, so the rule is chosen on economic grounds: few trades "
+        "(minimum broker fees make small, frequent trades expensive at the USD 25,000 minimum) "
+        "and a cap on drift away from the profile's risk level. Evidence, US 60/40 1962–2026 "
+        f"after costs: annual {annual['cost_per_year']:.3%} a year in costs, volatility "
+        f"{annual['volatility']:.1%}; ±10-point band {band['cost_per_year']:.3%}, volatility "
+        f"{band['volatility']:.1%}; monthly {monthly['cost_per_year']:.3%}, volatility "
+        f"{monthly['volatility']:.1%}. Phase 3 tests the rule's sensitivity without changing it.",
+        "",
+    ]
+
+
 def run() -> dict:
     r = bond_options.run()
     u = universe.run()
@@ -207,6 +251,7 @@ def run() -> dict:
             *_bond_section(r),
             *_universe_section(u),
             *_allocation_section(al),
+            *_implementation_section(),
         ]
     )
     OUTPUT.write_text(text)

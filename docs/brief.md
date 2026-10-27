@@ -117,5 +117,6 @@ Not applicable: no hypothesis (see §5).
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
+- Rebalancing band of 10 percentage points: an economic choice to limit drift; Evidence: pending.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.
