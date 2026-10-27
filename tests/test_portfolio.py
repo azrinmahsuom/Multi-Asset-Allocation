@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -44,3 +45,32 @@ def test_calendar_or_threshold_triggers_on_either():
     big = pd.DataFrame({"eq": [0.6, 0.0], "bd": [0.0, 0.0]}, index=months)
     # Equity +60% in November: weight 0.8/1.3 = 0.615, more than 10 points over 0.5 -> trigger.
     assert portfolio.simulate(big, TARGET, rule)["rebalanced"].iloc[0]
+
+
+def test_cash_flow_split_fills_shortfall_then_target():
+    tgt = np.array([0.5, 0.5])
+    # Value 100 at 60/40, flow 10: shortfalls 0 and 15 -> all 10 to the second sleeve.
+    assert portfolio.cash_flow_split(np.array([60.0, 40.0]), tgt, 10) == pytest.approx([0, 10])
+    # Flow 30: shortfalls 5 and 25 (sum 30) -> exactly fills both.
+    assert portfolio.cash_flow_split(np.array([60.0, 40.0]), tgt, 30) == pytest.approx([5, 25])
+    # Flow 40 at 50/50: no shortfall beyond the flow's target share -> split by target.
+    assert portfolio.cash_flow_split(np.array([50.0, 50.0]), tgt, 40) == pytest.approx([20, 20])
+
+
+def test_simulate_cash_flows_band_and_contribution():
+    idx = pd.period_range("2020-11", periods=2, freq="M")
+    rets = pd.DataFrame({"a": [0.0, 0.2], "b": [0.0, 0.0]}, index=idx)
+    tgt = pd.Series({"a": 0.5, "b": 0.5})
+    # December: a grows 50 -> 60 (value 110); flow 10 goes to b (shortfall 10): 60/60, no
+    # breach, so one order and a net return of (120 - 10) / 100 - 1 = 10%.
+    out = portfolio.simulate_cash_flows(
+        rets, tgt, {"type": "threshold", "band": 0.05}, None, 100.0, 10.0
+    )
+    assert out["net"].iloc[1] == pytest.approx(0.10)
+    assert out["orders"].iloc[1] == 1
+    assert out["value"].iloc[1] == pytest.approx(120.0)
+    # A flat 1% cost on the 10 bought: cost 0.1, net (119.9 - 10) / 100 - 1 = 9.9%.
+    out = portfolio.simulate_cash_flows(
+        rets, tgt, {"type": "threshold", "band": 0.05}, lambda a, v, s: 0.01, 100.0, 10.0
+    )
+    assert out["net"].iloc[1] == pytest.approx(0.099)

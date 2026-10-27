@@ -79,3 +79,71 @@ def simulate(
             }
         )
     return pd.DataFrame(rows, index=returns.index)
+
+
+def cash_flow_split(values: np.ndarray, target: np.ndarray, flow: float) -> np.ndarray:
+    """Split a contribution across sleeves: in proportion to each sleeve's shortfall from
+    target (target x value after the flow, minus current value, floored at 0), capped at the
+    shortfall; any remainder by target weights."""
+    shortfall = np.maximum(target * (values.sum() + flow) - values, 0.0)
+    total = shortfall.sum()
+    if total >= flow:
+        return flow * shortfall / total if total > 0 else flow * target
+    return shortfall + (flow - total) * target
+
+
+def simulate_cash_flows(
+    returns: pd.DataFrame,
+    target: pd.Series,
+    rule: dict,
+    cost_fraction: CostFn | None,
+    start_value: float,
+    contribution: float = 0.0,
+    contribution_month: int = 12,
+) -> pd.DataFrame:
+    """Monthly time-weighted returns net of costs, tracking the portfolio's value.
+
+    Each month-end: returns accrue; in contribution_month a contribution arrives. With
+    rule {"type": "threshold", "band": b} the contribution is split by cash_flow_split and all
+    sleeves trade back to target if any weight is then more than b from target. With any
+    other rule the contribution is added and _should_rebalance decides a full rebalance (a
+    contribution month with no rebalance invests the contribution at target weights). Orders
+    are netted per sleeve and each pays cost_fraction at its actual size; costs are deducted
+    pro rata. Net return = (value after costs - contribution) / value at the start - 1.
+    """
+    assets = list(returns.columns)
+    tgt = target.reindex(assets).to_numpy(dtype=float)
+    values = tgt * start_value
+    rows = []
+    for month, r in zip(returns.index, returns.to_numpy(dtype=float), strict=True):
+        start = values.sum()
+        values = values * (1 + r)
+        pre = values.copy()
+        flow = contribution if month.month == contribution_month else 0.0
+        if rule["type"] == "threshold":
+            after = pre + (cash_flow_split(pre, tgt, flow) if flow else 0.0)
+            rebalance = bool(np.max(np.abs(after / after.sum() - tgt)) > rule["band"])
+        else:
+            after = pre + flow * tgt
+            rebalance = _should_rebalance(rule, month, pre / pre.sum(), tgt)
+        if rebalance:
+            after = tgt * after.sum()
+        orders = after - pre
+        cost = 0.0
+        if cost_fraction is not None:
+            for asset, order in zip(assets, orders, strict=True):
+                if abs(order) > 1e-9:
+                    side = "buy" if order > 0 else "sell"
+                    cost += abs(order) * cost_fraction(asset, abs(order), side)
+        total = after.sum()
+        values = after * (1 - cost / total)
+        rows.append(
+            {
+                "net": (values.sum() - flow) / start - 1,
+                "cost": cost / start,
+                "turnover": float(np.abs(orders).sum() / 2 / pre.sum()),
+                "orders": int((np.abs(orders) > 1e-9).sum()),
+                "value": values.sum(),
+            }
+        )
+    return pd.DataFrame(rows, index=returns.index)

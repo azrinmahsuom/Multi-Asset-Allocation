@@ -182,6 +182,58 @@ def _size_section(index_layer: pd.DataFrame) -> list[str]:
     ]
 
 
+def _rebalancing_test_section(index_layer: pd.DataFrame) -> list[str]:
+    t = robustness.cash_flow_test(index_layer)
+    t = t.assign(
+        return_gain_bps=t["return_gain"] * 1e4, drawdown_change_bps=t["drawdown_change"] * 1e4
+    )
+    zero = t[t["contribution"] == 0].set_index(["lse_broker", "portfolio_usd", "target"])
+    cols = [
+        "incumbent_real_return",
+        "band_5_real_return",
+        "return_gain_bps",
+        "incumbent_cost_per_year",
+        "band_5_cost_per_year",
+        "incumbent_orders_per_year",
+        "band_5_orders_per_year",
+        "drawdown_change_bps",
+        "band_5_preferred",
+    ]
+    by_flow = t.groupby(["lse_broker", "portfolio_usd", "contribution"]).agg(
+        mean_return_gain_bps=("return_gain_bps", "mean"),
+        mean_drawdown_change_bps=("drawdown_change_bps", "mean"),
+        targets_preferring_band_5=("band_5_preferred", "sum"),
+        targets=("band_5_preferred", "size"),
+    )
+    menu = zero[zero.index.get_level_values("target").str.startswith("Menu")]
+    verdict = "; ".join(
+        f"{b}, USD {v:,.0f}: {'band 5 preferred' if r['band_5_preferred'] else 'incumbent stays'}"
+        for (b, v, _), r in menu.iterrows()
+    )
+    return [
+        "## Rebalancing rule test: ±5-point band with cash-flow rebalancing",
+        "",
+        "Rule, comparison and decision criterion were logged in `docs/decisions.md` before "
+        "this was run. The value is tracked from each portfolio size; contributions arrive "
+        "each December and buy the underweight sleeves; orders pay costs at their actual "
+        "size. The band rule is preferred only if its net real return is higher by more than "
+        f"{robustness.DECISION_MARGIN:.2%} a year with no contribution and its maximum real "
+        f"drawdown is no more than {robustness.DRAWDOWN_MARGIN:.0%} point worse.",
+        "",
+        f"Menu mix: {verdict}.",
+        "",
+        "No contributions, by target mix:",
+        "",
+        _table_markdown(zero[cols]),
+        "",
+        "With contributions (0%, 5% or 10% of the starting value a year), averaged over the "
+        "target mixes:",
+        "",
+        _table_markdown(by_flow),
+        "",
+    ]
+
+
 def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list[str], dict]:
     sims = {k: engine.simulate(layer, w) for k, w in weights.items()}
     table = pd.DataFrame({k: engine.summarise(s, layer) for k, s in sims.items()}).T
@@ -268,6 +320,7 @@ def run() -> dict:
             *etf_lines,
             *_cost_section(idx_sims, index_layer, weights),
             *_size_section(index_layer),
+            *_rebalancing_test_section(index_layer),
             "## Turnover per profile",
             "",
             "One-way turnover from rebalancing, per year (a single-asset allocation never "

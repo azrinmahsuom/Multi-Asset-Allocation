@@ -19,7 +19,7 @@
 import numpy as np
 import pandas as pd
 
-from analysis import bootstrap, data, metrics
+from analysis import bootstrap, data, metrics, portfolio
 from analysis.backtest import engine
 from analysis.config import BOOTSTRAP_REPS
 from analysis.design import allocation, bond_options, holdout
@@ -207,3 +207,52 @@ def cost_ranking(layer: pd.DataFrame, frontier: pd.DataFrame) -> dict:
         "table": pd.DataFrame(rows).set_index(["lse_broker", "portfolio_usd"]),
         "costs": pd.DataFrame(costs_by_case),
     }
+
+
+CONTRIBUTIONS = [0.0, 0.05, 0.10]  # per year, share of the starting value, paid each December
+BAND_RULE = {"type": "threshold", "band": 0.05}
+DECISION_MARGIN = 0.0005  # net real return, per year
+DRAWDOWN_MARGIN = 0.01
+
+
+def cash_flow_test(layer: pd.DataFrame) -> pd.DataFrame:
+    """The ±5-point band with cash-flow rebalancing against the incumbent rule (rule and
+    criterion logged in docs/decisions.md before this was run)."""
+    targets = {name: w for name, (w, _) in engine.menu_mixes().items()}
+    for e in range(10, 100, 10):
+        targets[f"{e}% equity"] = pd.Series({"equity": e / 100, "bonds": 1 - e / 100})
+    rows = []
+    for broker in engine.lse_brokers():
+        for size in engine.PORTFOLIO_SIZES:
+            fn = engine.cost_fraction(None, broker)
+            for name, w in targets.items():
+                returns = layer[list(w.index)]
+                for c in CONTRIBUTIONS:
+                    out = {}
+                    for label, rule in (("incumbent", engine.RULE), ("band_5", BAND_RULE)):
+                        sim = portfolio.simulate_cash_flows(returns, w, rule, fn, size, c * size)
+                        real = metrics.real_returns(sim["net"], layer["inflation"])
+                        out[label] = {
+                            "real_return": metrics.annualised_return(real, 12),
+                            "cost_per_year": sim["cost"].mean() * 12,
+                            "turnover_per_year": sim["turnover"].mean() * 12,
+                            "orders_per_year": sim["orders"].mean() * 12,
+                            "max_drawdown_real": metrics.max_drawdown(real),
+                        }
+                    gain = out["band_5"]["real_return"] - out["incumbent"]["real_return"]
+                    dd = out["band_5"]["max_drawdown_real"] - out["incumbent"]["max_drawdown_real"]
+                    rows.append(
+                        {
+                            "lse_broker": broker,
+                            "portfolio_usd": size,
+                            "target": name,
+                            "contribution": c,
+                            **{f"{k}_{m}": v for k, d in out.items() for m, v in d.items()},
+                            "return_gain": gain,
+                            "drawdown_change": dd,
+                            "band_5_preferred": bool(
+                                gain > DECISION_MARGIN and dd >= -DRAWDOWN_MARGIN
+                            ),
+                        }
+                    )
+    return pd.DataFrame(rows)

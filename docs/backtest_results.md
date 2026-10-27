@@ -91,6 +91,61 @@ Does the cost model change the frontier ranking? Mixes ranked by expected real r
 | ('OCBC', 100000.0) | 0.1% | False | 2 | 100.0% | none |
 | ('OCBC', 500000.0) | 0.0% | True | 0 | 100.0% | none |
 
+## Rebalancing rule test: ±5-point band with cash-flow rebalancing
+
+Rule, comparison and decision criterion were logged in `docs/decisions.md` before this was run. The value is tracked from each portfolio size; contributions arrive each December and buy the underweight sleeves; orders pay costs at their actual size. The band rule is preferred only if its net real return is higher by more than 0.05% a year with no contribution and its maximum real drawdown is no more than 1% point worse.
+
+Menu mix: OCBC, USD 25,000: incumbent stays; OCBC, USD 100,000: incumbent stays; OCBC, USD 500,000: incumbent stays.
+
+No contributions, by target mix:
+
+|  | incumbent_real_return | band_5_real_return | return_gain_bps | incumbent_cost_per_year | band_5_cost_per_year | incumbent_orders_per_year | band_5_orders_per_year | drawdown_change_bps | band_5_preferred |
+|---|---|---|---|---|---|---|---|---|---|
+| ('OCBC', 25000.0, 'Menu: 59% equity (drawdown -50%)') | 3.5% | 3.6% | 2.47 | 0.2% | 0.1% | 2.03 | 1.19 | -71.70 | False |
+| ('OCBC', 25000.0, '10% equity') | 1.3% | 1.4% | 10.14 | 0.2% | 0.0% | 1.96 | 0.14 | -1.54 | True |
+| ('OCBC', 25000.0, '20% equity') | 1.8% | 2.0% | 17.17 | 0.2% | 0.1% | 1.96 | 0.70 | -25.14 | True |
+| ('OCBC', 25000.0, '30% equity') | 2.3% | 2.4% | 4.94 | 0.2% | 0.1% | 2.03 | 0.77 | -24.98 | False |
+| ('OCBC', 25000.0, '40% equity') | 2.7% | 2.7% | -1.86 | 0.2% | 0.1% | 2.03 | 0.98 | -65.68 | False |
+| ('OCBC', 25000.0, '50% equity') | 3.2% | 3.2% | 0.24 | 0.2% | 0.1% | 2.03 | 1.19 | -92.96 | False |
+| ('OCBC', 25000.0, '60% equity') | 3.6% | 3.6% | 2.64 | 0.2% | 0.1% | 2.03 | 1.19 | -68.55 | False |
+| ('OCBC', 25000.0, '70% equity') | 3.9% | 4.0% | 10.45 | 0.2% | 0.1% | 2.03 | 0.98 | -22.13 | True |
+| ('OCBC', 25000.0, '80% equity') | 4.3% | 4.4% | 6.72 | 0.2% | 0.0% | 2.03 | 0.49 | -111.46 | False |
+| ('OCBC', 25000.0, '90% equity') | 4.6% | 4.7% | 17.82 | 0.2% | 0.0% | 1.96 | 0.21 | -44.08 | True |
+| ('OCBC', 100000.0, 'Menu: 59% equity (drawdown -50%)') | 3.7% | 3.7% | -2.81 | 0.1% | 0.0% | 2.03 | 1.19 | -69.40 | False |
+| ('OCBC', 100000.0, '10% equity') | 1.4% | 1.4% | -4.38 | 0.1% | 0.0% | 1.96 | 0.14 | -10.85 | False |
+| ('OCBC', 100000.0, '20% equity') | 2.0% | 2.0% | 7.88 | 0.1% | 0.0% | 1.96 | 0.70 | -33.35 | True |
+| ('OCBC', 100000.0, '30% equity') | 2.5% | 2.4% | -4.08 | 0.1% | 0.0% | 2.03 | 0.77 | -32.25 | False |
+| ('OCBC', 100000.0, '40% equity') | 2.9% | 2.8% | -9.30 | 0.1% | 0.0% | 2.03 | 0.98 | -77.59 | False |
+| ('OCBC', 100000.0, '50% equity') | 3.3% | 3.3% | -5.08 | 0.1% | 0.0% | 2.03 | 1.19 | -90.92 | False |
+| ('OCBC', 100000.0, '60% equity') | 3.7% | 3.7% | -2.68 | 0.1% | 0.0% | 2.03 | 1.19 | -66.84 | False |
+| ('OCBC', 100000.0, '70% equity') | 4.1% | 4.1% | 3.19 | 0.1% | 0.0% | 2.03 | 0.98 | -21.23 | False |
+| ('OCBC', 100000.0, '80% equity') | 4.4% | 4.4% | -4.63 | 0.1% | 0.0% | 2.03 | 0.49 | -130.97 | False |
+| ('OCBC', 100000.0, '90% equity') | 4.7% | 4.8% | 4.80 | 0.0% | 0.0% | 1.96 | 0.21 | -50.84 | False |
+| ('OCBC', 500000.0, 'Menu: 59% equity (drawdown -50%)') | 3.7% | 3.7% | -4.16 | 0.0% | 0.0% | 2.03 | 1.19 | -68.62 | False |
+| ('OCBC', 500000.0, '10% equity') | 1.4% | 1.4% | -8.13 | 0.0% | 0.0% | 1.96 | 0.14 | -13.11 | False |
+| ('OCBC', 500000.0, '20% equity') | 2.0% | 2.0% | 5.44 | 0.0% | 0.0% | 1.96 | 0.70 | -34.85 | True |
+| ('OCBC', 500000.0, '30% equity') | 2.5% | 2.4% | -6.36 | 0.0% | 0.0% | 2.03 | 0.77 | -33.24 | False |
+| ('OCBC', 500000.0, '40% equity') | 2.9% | 2.8% | -11.13 | 0.0% | 0.0% | 2.03 | 0.98 | -80.40 | False |
+| ('OCBC', 500000.0, '50% equity') | 3.4% | 3.3% | -6.39 | 0.0% | 0.0% | 2.03 | 1.19 | -90.16 | False |
+| ('OCBC', 500000.0, '60% equity') | 3.8% | 3.7% | -4.04 | 0.0% | 0.0% | 2.03 | 1.19 | -66.24 | False |
+| ('OCBC', 500000.0, '70% equity') | 4.1% | 4.1% | 1.29 | 0.0% | 0.0% | 2.03 | 0.98 | -21.10 | False |
+| ('OCBC', 500000.0, '80% equity') | 4.5% | 4.4% | -7.49 | 0.0% | 0.0% | 2.03 | 0.49 | -135.04 | False |
+| ('OCBC', 500000.0, '90% equity') | 4.7% | 4.8% | 1.43 | 0.0% | 0.0% | 1.96 | 0.21 | -52.24 | False |
+
+With contributions (0%, 5% or 10% of the starting value a year), averaged over the target mixes:
+
+|  | mean_return_gain_bps | mean_drawdown_change_bps | targets_preferring_band_5 | targets |
+|---|---|---|---|---|
+| ('OCBC', 25000.0, 0.0) | 7.07 | -52.82 | 4 | 10 |
+| ('OCBC', 25000.0, 0.05) | -1.44 | -62.63 | 1 | 10 |
+| ('OCBC', 25000.0, 0.1) | -2.57 | -65.83 | 1 | 10 |
+| ('OCBC', 100000.0, 0.0) | -1.71 | -58.42 | 1 | 10 |
+| ('OCBC', 100000.0, 0.05) | -3.53 | -60.14 | 1 | 10 |
+| ('OCBC', 100000.0, 0.1) | -3.64 | -62.41 | 0 | 10 |
+| ('OCBC', 500000.0, 0.0) | -3.95 | -59.50 | 1 | 10 |
+| ('OCBC', 500000.0, 0.05) | -3.98 | -58.94 | 1 | 10 |
+| ('OCBC', 500000.0, 0.1) | -3.79 | -61.15 | 0 | 10 |
+
 ## Turnover per profile
 
 One-way turnover from rebalancing, per year (a single-asset allocation never rebalances):

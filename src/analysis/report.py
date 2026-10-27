@@ -29,6 +29,8 @@ OUTPUT = ROOT / "docs" / "evidence_review.md"
 
 # Columns holding ratios, statistics or other unitless numbers: shown as plain decimals.
 PLAIN_NUMBER_KEYS = (
+    "_bps",
+    "orders",
     "sharpe",
     "sortino",
     "corr",

@@ -561,3 +561,13 @@ Defined and committed before any code computed it.
 **Evidence:**
 - Band and cash-flow rebalancing are standard ways to reduce turnover. Vanguard's rebalancing research (Jaconetti, Kinniry and Zilbering, 2010) finds that thresholds of about 5% with annual or semi-annual monitoring balance risk control and cost.
 - The contribution levels (0%, 5%, 10%) and the 0.05-point and 1-point margins are illustrative choices, not derived from data. Evidence: pending (the owner's cash-flow plan sets the real figure).
+
+**Result of the ±5-point band test (run after the rule above was committed; `robustness.cash_flow_test`, OCBC schedule):**
+- Under the pre-set criterion, the incumbent rule (December or 10-point band) stays for the menu mix (59% equity) at USD 25,000, 100,000 and 500,000.
+- With no contributions, the band rule wins for 4 of 10 target mixes at USD 25,000, and for 1 at USD 100,000 and USD 500,000.
+- Averaged over the targets, the gain is +7 bps a year at USD 25,000 and negative at the larger sizes.
+- With contributions, the average gain is negative at every size.
+- The band rule's maximum real drawdown is worse by about 50–65 bps on average, because weights drift further from target.
+- The wins are scattered across mixes and small, so they're consistent with noise.
+- The rule is not adopted.
+- To be re-run when the IBKR LSE schedule is added.
