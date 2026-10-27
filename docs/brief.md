@@ -20,7 +20,7 @@ Build an evidence-based, long-horizon multi-asset allocation for a Singapore-dol
 The work runs in six phases (0 setup, 1 evidence review, 2 strategy design, 3 backtest, 4 implementation, 5 self-critique), with a checkpoint and owner approval at the end of each.
 
 ## 4. Audience
-Recruiters and investment hiring managers at a digital wealth platform. Secondary: any SGD-based long-horizon investor reading on GitHub.
+Readers evaluating investment research and portfolio construction work, and SGD-based long-horizon investors.
 
 ## 5. Hypothesis (research only)
 None. In the owner's words (2026-10-27): "A hypothesis will be anecdotal, whereas data driven allocation makes more sense. So what I prefer is the paper and research starting off with the question we are trying to answer, gathering all the data, analysing it, and coming up with the allocation based on that and any constraints of the investor."
