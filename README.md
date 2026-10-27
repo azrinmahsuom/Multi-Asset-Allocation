@@ -144,14 +144,24 @@ uv run pytest            # check everything works
 make all                 # download data, verify hashes, run the analysis end to end
 ```
 
-`make all` regenerates [docs/evidence_review.md](docs/evidence_review.md), [docs/strategy_design.md](docs/strategy_design.md), [docs/backtest_results.md](docs/backtest_results.md) and every figure. Every number in this README comes from those generated files or from the cited, hand-checked inputs in [reference/](reference/) (for example fund fees and tax rates).
+`make all` downloads any missing data, checks it, and regenerates [docs/evidence_review.md](docs/evidence_review.md), [docs/strategy_design.md](docs/strategy_design.md), [docs/backtest_results.md](docs/backtest_results.md), every figure and `reports/headline_figures.json`. Every number in this README comes from those generated files or from the cited, hand-checked inputs in [reference/](reference/) (for example fund fees and tax rates).
 
-**One manual step.** Nareit's site blocks scripted downloads, so its file must be saved by hand before `make all`:
+**Two kinds of rebuild.**
+
+| | From cached data (same raw files as the snapshot) | From a fresh download (new clone) |
+|---|---|---|
+| Raw data | Every file matches its SHA-256 in `data/MANIFEST.yaml` | Live sources (prices, yields, some factor files) have usually updated since the snapshot |
+| What `make all` does | Rebuilds every doc, figure and `reports/headline_figures.json` | Downloads, flags each updated file as "changed since snapshot", and carries on (only a missing file stops the run) |
+| Result | Byte-identical to the committed versions (`git status` stays clean) | Close to the committed results, with a drift report in `data/processed/drift_report.md` listing the changed sources and every headline figure that moved |
+
+For example, a fresh clone on 2026-10-27 found 28 sources updated since the snapshot. The menu and backtest headline figures were unchanged; only the implementation costs moved, by less than 0.1 bps a year. `git diff --stat docs` shows which generated documents changed. `make refresh` accepts the new data as the snapshot.
+
+**One manual step.** Nareit's site blocks scripted downloads, so its file must be saved by hand:
 
 1. Download <https://www.reit.com/sites/default/files/returns/MonthlyHistoricalReturns.xls> in a browser (listed on [Nareit's monthly index page](https://www.reit.com/data-research/reit-indexes/monthly-index-values-returns)).
 2. Save it as `data/raw/nareit/MonthlyHistoricalReturns.xls`.
 
-If the file is missing, the pipeline stops and prints this URL. Nareit updates the file monthly, so a fresh copy may not match the SHA-256 in `data/MANIFEST.yaml`. If so, `make verify` reports it, and `make refresh` records the new version. The same applies to any source that updates in place.
+If the file is missing, `make all` finishes the other downloads, then stops with "One manual step before the run can continue", the URL and the exact path to save to. Run `make all` again afterwards; files already downloaded are kept. Nareit updates the file monthly, so a new copy is reported as changed since snapshot like any other live source. It is used only privately to check the REIT ETF data, so it moves no published figure.
 
 On macOS, keep the project outside iCloud-synced folders (e.g. `~/Developer`). If it must live in `~/Documents`, put the environment in a folder iCloud skips: `uv venv .venv.nosync && ln -s .venv.nosync .venv && uv sync`.
 

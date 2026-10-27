@@ -710,3 +710,31 @@ No further Phase 4 scope (owner instruction).
 **Not changed (methodology frozen):**
 - The review's "justified against at least four alternatives" item is answered by the menu design. The 59% mix sits beside an 11-mix frontier, three benchmarks and five allocation methods. There is deliberately no single recommended portfolio.
 - The full `make all` with fresh downloads was not rerun in the review. The offline stages rebuilt every generated doc and figure byte-identically.
+
+### 2026-10-27: Fresh-clone rebuild with downloads; drift reported instead of failing
+**Rule:**
+- A download that differs from its snapshot hash in `data/MANIFEST.yaml` is kept and reported as "changed since snapshot". The run continues.
+- A re-downloaded file identical to the snapshot keeps its manifest entry, so the manifest doesn't churn.
+- Only a missing raw file stops the run. A missing manual download stops it after the other downloads, with a plain message giving the URL and the save path.
+- `reports/headline_figures.json` (committed) snapshots the README's headline figures. When sources have changed, `analysis.headline` writes `data/processed/drift_report.md` (not committed), listing the changed sources and every headline figure that moved.
+- `make refresh` accepts new data as the snapshot.
+
+**Evidence (run on 2026-10-27):**
+- **Clean clone, fresh downloads, all 63 files re-fetched:** exit 0.
+  - The manual-step message appeared as designed while the Nareit file was absent.
+  - 28 sources had changed since the snapshot (FRED daily series, the French developed-markets file, MAS rates and Yahoo prices).
+  - No menu or backtest headline figure moved. The implementation all-in costs moved by −0.04 to −0.07 bps a year.
+  - `docs/strategy_design.md` and `docs/backtest_results.md` differ slightly from the committed versions. The manifest, the figures and the evidence review are unchanged.
+- **Cache rebuild (`make all` in the working repo):** byte-identical; `git status` clean.
+
+**Definition of done (updated):**
+
+| Item | Status |
+|---|---|
+| `make all` rebuilds from raw data on a fresh clone | Pass: byte-identical from cached data, and a completed run with a drift report from fresh downloads (one manual Nareit step, disclosed) |
+| Every number in the README and docs generated or cited | Pass |
+| All 13 Phase 1 claims have verdicts | Pass |
+| Final allocation justified against at least four alternatives | Pass, as a menu: 11-mix frontier, three benchmarks and five allocation methods; no single recommended portfolio by design |
+| Backtest includes costs, withholding tax and FX, with a stated risk-free rate | Pass (SGD→USD conversion cost excluded, disclosed) |
+| Independent review completed and addressed | Pass |
+| No reference to any specific asset manager or its materials | Pass (issuers named only as product identifiers and document sources) |
