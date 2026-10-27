@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from analysis import charts, metrics
+from analysis import charts, costs, metrics
 from analysis.backtest import engine, robustness
 from analysis.config import ROOT
 from analysis.design import profiles
@@ -88,6 +88,77 @@ def _drawdown_figure(sims: dict, layer: pd.DataFrame) -> "charts.Path":
         f"Index layer, monthly, SGD, {layer.index[0]} to {layer.index[-1]}",
     )
     return charts.save(fig, "backtest_drawdowns_index_layer", SOURCE, SOURCES)
+
+
+def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> list[str]:
+    """Per-side cost by trade size, and cost per year under the spread sensitivity."""
+    fn = engine.cost_fraction()
+    sizes = [1_000, 2_500, 5_000, 10_000, 25_000]
+    by_size = pd.DataFrame(
+        {
+            f"{a} ({t}, {m})": {f"USD {v:,}": fn(a, v, "buy") for v in sizes}
+            for a, (t, m, _) in engine.INSTRUMENTS.items()
+            if a != "global_unhedged"
+        }
+    ).T
+    rows = {}
+    for name, w in weights.items():
+        row = {"base_case": engine.summarise(idx_sims[name], index_layer)["cost_per_year"]}
+        for bps in engine.SPREAD_SENSITIVITY:
+            sim = engine.simulate(index_layer, w, engine.RULE, bps)
+            row[f"spread_{bps * 1e4:.0f}bps"] = engine.summarise(sim, index_layer)["cost_per_year"]
+        rows[name] = row
+    snap = costs.spread_snapshot()
+    unverified = ", ".join(snap.index[snap["status"] != "verified"])
+    spreads = "; ".join(
+        f"{t} {costs.half_spread(t) * 1e4:.1f} bps" for t, _, _ in engine.INSTRUMENTS.values()
+    )
+    spreads = "; ".join(dict.fromkeys(spreads.split("; ")))
+    return [
+        "## Trading costs",
+        "",
+        "Cost per side = half the bid-ask spread from a dated snapshot "
+        "(`reference/spread_snapshot.csv`) + published broker and exchange fees "
+        "(`reference/trading_costs.csv`), with 9% GST on Singapore-charged fees; fee minimums "
+        "converted at the FX rates in `reference/fx_rates.csv`. Snapshot half-spreads: "
+        f"{spreads}. Spread rows still to verify against an exchange or issuer quote: "
+        f"{unverified or 'none'}; results that use them depend on that check. The SGD-to-USD "
+        "conversion cost for LSE trades is not published and is excluded. The schedules are "
+        "cost data only, not broker recommendations.",
+        "",
+        "Cost of one buy order, as a fraction of the order, by order size:",
+        "",
+        _table_markdown(by_size),
+        "",
+        "Trading cost per year (index layer), base case and with every spread replaced by 5, "
+        "15 or 30 bps per side (fees unchanged):",
+        "",
+        _table_markdown(pd.DataFrame(rows).T),
+        "",
+        "Rebalancing trades are sized from the USD 25,000 minimum, not the grown portfolio, so "
+        "fixed minimum commissions weigh as they would at the minimum account size.",
+        "",
+    ]
+
+
+def _frontier_turnover(layer: pd.DataFrame) -> pd.DataFrame:
+    """Turnover and trading cost per year for each equity/SGS mix on the frontier (10-point
+    steps); the same at every horizon, since the rebalancing rule does not depend on it."""
+    rows = {}
+    for e in range(10, 100, 10):
+        w = pd.Series({"equity": e / 100, "bonds": 1 - e / 100})
+        s = engine.summarise(engine.simulate(layer, w), layer)
+        rows[f"{e}% equity"] = {
+            "turnover_per_year": s["turnover_per_year"],
+            "cost_per_year": s["cost_per_year"],
+            **{
+                f"cost_spread_{bps * 1e4:.0f}bps": engine.summarise(
+                    engine.simulate(layer, w, engine.RULE, bps), layer
+                )["cost_per_year"]
+                for bps in engine.SPREAD_SENSITIVITY
+            },
+        }
+    return pd.DataFrame(rows).T
 
 
 def _feasible_profiles() -> list:
@@ -195,12 +266,19 @@ def run() -> dict:
             f"![Drawdowns](../{drawdowns.relative_to(ROOT).as_posix()})",
             "",
             *etf_lines,
+            *_cost_section(idx_sims, index_layer, weights),
             "## Turnover per profile",
             "",
             "One-way turnover from rebalancing, per year (a single-asset allocation never "
             "rebalances):",
             "",
             _table_markdown(turnover),
+            "",
+            "Turnover and trading cost per year for every equity/SGS mix on the frontier "
+            "(index layer; 0% and 100% equity never rebalance). These apply to whichever mix a "
+            "horizon's loss budget selects in `docs/strategy_design.md`:",
+            "",
+            _table_markdown(_frontier_turnover(index_layer)),
             "",
             "## Subperiods (index layer)",
             "",
@@ -243,8 +321,8 @@ def run() -> dict:
             "- Index-layer equities are developed markets only (no emerging markets before the "
             "ETF layer); the withholding-tax drag uses the 15% treaty rate on the whole "
             "dividend yield, an approximation.",
-            "- Trading costs still use US-listed ETF spreads and a US fee schedule as stand-ins "
-            "for LSE and SGX trading; these are to be replaced before README numbers are final.",
+            "- Spreads are a single dated snapshot; spreads widen in stressed markets, which "
+            "the 5/15/30 bps sensitivity covers only partly.",
             "- Benchmark global bonds use US Treasuries hedged to SGD before July 2019, with no "
             "fund fee.",
             "",

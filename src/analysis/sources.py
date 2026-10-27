@@ -309,6 +309,49 @@ FUND_DOCUMENTS = [
 ]
 
 
+IRS_PDF = "https://www.irs.gov/pub/irs-pdf/"
+TAX_DOCUMENTS = [
+    (
+        "US_Ireland_treaty.pdf",
+        "US-Ireland income tax convention (1997), treaty text",
+        "https://www.irs.gov/businesses/international-businesses/ireland-tax-treaty-documents",
+        "Article 10 (dividends) withholding rates",
+        _fixed("https://www.irs.gov/pub/irs-trty/ireland.pdf"),
+    ),
+    (
+        "IRS_p515.pdf",
+        "IRS Publication 515, Withholding of Tax on Nonresident Aliens and Foreign Entities",
+        "https://www.irs.gov/publications/p515",
+        "statutory 30% withholding on US-source income of foreign persons",
+        _fixed(IRS_PDF + "p515.pdf"),
+    ),
+    (
+        "IRS_p901.pdf",
+        "IRS Publication 901, U.S. Tax Treaties",
+        "https://www.irs.gov/publications/p901",
+        "list of US income tax treaty countries (no Singapore treaty)",
+        _fixed(IRS_PDF + "p901.pdf"),
+    ),
+    (
+        "IRS_i706na.pdf",
+        "Instructions for Form 706-NA (estate of a nonresident not a US citizen)",
+        "https://www.irs.gov/forms-pubs/about-form-706-na",
+        "US-situs rules, filing threshold, unified credit, death-tax treaty list",
+        _fixed(IRS_PDF + "i706na.pdf"),
+    ),
+    (
+        "Revenue_TDM_27-01A-03.pdf",
+        "Irish Revenue Tax and Duty Manual Part 27-01A-03, Exchange Traded Funds",
+        "https://www.revenue.ie/en/tax-professionals/tdm/income-tax-capital-gains-tax-corporation-tax/part-27/index.aspx",
+        "Irish stamp duty on Irish-domiciled ETFs",
+        _fixed(
+            "https://www.revenue.ie/en/tax-professionals/tdm/income-tax-capital-gains-tax-"
+            "corporation-tax/part-27/27-01a-03-20201001155445.pdf"
+        ),
+    ),
+]
+
+
 def _describe_fred(path: Path) -> tuple[int, str, str]:
     df = pd.read_csv(path)
     return len(df), str(df.iloc[0, 0])[:7], str(df.iloc[-1, 0])[:7]
@@ -575,6 +618,21 @@ REGISTRY: list[RawFile] = (
             describe=_describe_pdf,
         )
         for filename, name, landing, what, resolver in FUND_DOCUMENTS
+    ]
+    + [
+        RawFile(
+            source="documents",
+            filename=filename,
+            name=name,
+            landing_page=landing,
+            series="Tax document (PDF): " + what,
+            licence="Government publication; downloaded for citation only.",
+            redistributable=False,
+            units="PDF; facts extracted by analysis.documents and checked against reference/.",
+            resolve_url=resolver,
+            describe=_describe_pdf,
+        )
+        for filename, name, landing, what, resolver in TAX_DOCUMENTS
     ]
     + [
         RawFile(

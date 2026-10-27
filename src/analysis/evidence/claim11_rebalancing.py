@@ -36,7 +36,7 @@ MINIMUM_ALLOCATION = 25_000.0
 
 
 def cost_fraction() -> portfolio.CostFn:
-    fees = costs.fee_rows("moomoo SG")
+    fees = costs.fee_rows("moomoo SG", "US")
     spreads = {a: costs.half_spread(t) for a, t in STAND_INS.items()}
     prices = {a: costs.reference_price(t) for a, t in STAND_INS.items()}
 

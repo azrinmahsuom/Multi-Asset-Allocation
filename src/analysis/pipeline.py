@@ -23,7 +23,7 @@ def verify() -> None:
     """Re-hash every raw file against the manifest; raises on any mismatch."""
     print(f"Verified {manifest.verify_data()} raw files against data/MANIFEST.yaml.")
     documents.verify_reference()
-    print("Verified reference/ figures against the fund documents.")
+    print("Verified reference/ figures against the fund and tax documents.")
 
 
 def main() -> None:

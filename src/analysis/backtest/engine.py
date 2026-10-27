@@ -20,9 +20,11 @@ Rules (fixed before results were computed):
   market-cap multi-asset (equity and bond weights from reference/market_cap_weights.csv,
   bonds hedged).
 - Rebalancing: every December and at any month-end when a weight is more than 10 points from
-  target (design rule); trading costs at the USD 25,000 minimum (analysis.costs: ACWI and
-  IEF published spreads and verified fee rows as stand-ins), spread multiplier 1 unless a
-  stress test says otherwise.
+  target (design rule); trading costs on trades sized from the USD 25,000 minimum
+  (analysis.costs): half the dated bid-ask spread snapshot of the instrument that implements
+  each sleeve (INSTRUMENTS) plus published fees for its market (SGX: moomoo SG schedule and SGX
+  fees; LSE: OCBC online schedule and LSE levies) with 9% GST on Singapore-charged fees.
+  Sensitivity: the spread replaced by 5, 15 and 30 bps per side.
 - Metrics: annualised return (nominal SGD), real annualised return (Singapore CPI),
   volatility, Sharpe and Sortino over the SGD one-month rate, maximum drawdown and months to
   recover, worst rolling 1/3/5/10-year annualised returns, turnover and costs per year.
@@ -38,7 +40,15 @@ from analysis.design import allocation, bond_options, holdout
 RULE = {"type": "calendar_or_threshold", "months": 12, "band": 0.10}
 MINIMUM_ALLOCATION = 25_000.0
 WHT_RATE = 0.15
-STAND_INS = {"equity": "ACWI", "bonds": "IEF", "global_bonds": "IEF", "global_unhedged": "IEF"}
+# Sleeve -> (instrument whose spread is used, market, broker schedule). IGLO.L is the cost proxy
+# for both benchmark global-bond sleeves.
+INSTRUMENTS = {
+    "equity": ("ISAC.L", "LSE", "OCBC"),
+    "bonds": ("A35.SI", "SGX", "moomoo SG"),
+    "global_bonds": ("IGLO.L", "LSE", "OCBC"),
+    "global_unhedged": ("IGLO.L", "LSE", "OCBC"),
+}
+SPREAD_SENSITIVITY = [0.0005, 0.0015, 0.0030]
 
 
 def _ter(ticker: str) -> float:
@@ -127,25 +137,33 @@ def infeasible_profiles() -> list[str]:
     return [p for p, w in holdout.final_allocations().items() if w is None]
 
 
-def cost_fraction(spread_multiplier: float = 1.0) -> portfolio.CostFn:
-    fees = costs.fee_rows("moomoo SG")
-    spreads = {a: costs.half_spread(t) * spread_multiplier for a, t in STAND_INS.items()}
-    px = {a: costs.reference_price(t) for a, t in STAND_INS.items()}
+def cost_fraction(spread_per_side: float | None = None) -> portfolio.CostFn:
+    """Cost per side by sleeve; spread_per_side replaces every snapshot half-spread."""
+    gst = costs.gst_rate()
+    fees = {a: costs.fee_rows(b, m) for a, (_, m, b) in INSTRUMENTS.items()}
+    spreads = {
+        a: costs.half_spread(t) if spread_per_side is None else spread_per_side
+        for a, (t, _, _) in INSTRUMENTS.items()
+    }
+    px = {a: costs.mid_price_usd(t) for a, (t, _, _) in INSTRUMENTS.items()}
 
     def fn(asset: str, value: float, side: str) -> float:
         if asset == "cash":
             return 0.0
-        return costs.cost_per_side(value, px[asset], spreads[asset], fees, side)
+        return costs.cost_per_side(value, px[asset], spreads[asset], fees[asset], side, gst)
 
     return fn
 
 
 def simulate(
-    layer: pd.DataFrame, weights: pd.Series, rule: dict = RULE, spread_multiplier: float = 1.0
+    layer: pd.DataFrame,
+    weights: pd.Series,
+    rule: dict = RULE,
+    spread_per_side: float | None = None,
 ) -> pd.DataFrame:
     returns = layer[list(weights.index)]
     return portfolio.simulate(
-        returns, weights, rule, cost_fraction(spread_multiplier), MINIMUM_ALLOCATION
+        returns, weights, rule, cost_fraction(spread_per_side), MINIMUM_ALLOCATION
     )
 
 

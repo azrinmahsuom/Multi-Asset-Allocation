@@ -1,0 +1,6 @@
+ticker,exchange,currency,bid,ask,median_spread,quote_time,source,checked_on,status,note
+A35.SI,SGX,SGD,1.116,1.118,,2026-10-27 09:16 SGT,SGX securities quote service https://api.sgx.com/securities/v1.1 (data behind sgx.com quote pages),2026-10-27,verified,One snapshot 16 minutes after the open; the Yahoo quote at the same time was identical
+ISAC.L,LSE,USD,122.21,122.23,,2026-10-27 12:46 UTC,Yahoo Finance quote via yfinance (LSE and Deutsche Boerse pages refuse automated requests),2026-10-27,to_verify,Secondary source; to be checked against an exchange or issuer quote
+IGLO.L,LSE,USD,85.46,85.58,,2026-10-27 12:44 UTC,Yahoo Finance quote via yfinance (LSE pages refuse automated requests),2026-10-27,to_verify,Benchmark global-bond cost proxy; secondary source
+ACWI,NYSE Arca,USD,,,0.0001,30 days to 2026-10-23,https://www.ishares.com/us/products/239600/ishares-msci-acwi-etf (30-day median bid/ask spread 0.01%),2026-10-27,verified,Claim 11 (US evidence) only
+IEF,NASDAQ,USD,,,0.0001,30 days to 2026-10-26,https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf (30-day median bid/ask spread 0.01%),2026-10-27,verified,Claim 11 (US evidence) only

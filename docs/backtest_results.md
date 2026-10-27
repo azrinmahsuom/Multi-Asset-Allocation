@@ -13,11 +13,11 @@ Withholding-tax drag on equities in the index layer averaged 0.27% a year (trail
 |  | annual_return | real_annual_return | volatility | sharpe | sortino | max_drawdown | recovery_months | turnover_per_year | cost_per_year | worst_1y | worst_3y | worst_5y | worst_10y |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Long profile (v2) | 6.8% | 5.0% | 13.5% | 0.48 | 0.68 | -51.2% | 60 | 0.0% | 0.0% | -41.6% | -16.8% | -7.2% | -2.2% |
-| In-sample medium pick | 5.1% | 3.3% | 6.8% | 0.61 | 0.93 | -23.5% | 46 | 3.9% | 0.0% | -19.1% | -4.5% | -1.0% | 1.9% |
-| In-sample long pick | 5.1% | 3.3% | 6.8% | 0.61 | 0.93 | -23.5% | 46 | 3.9% | 0.0% | -19.1% | -4.5% | -1.0% | 1.9% |
+| In-sample medium pick | 4.8% | 3.0% | 6.8% | 0.57 | 0.85 | -24.2% | 47 | 3.9% | 0.3% | -19.6% | -4.9% | -1.3% | 1.6% |
+| In-sample long pick | 4.8% | 3.0% | 6.8% | 0.57 | 0.85 | -24.2% | 47 | 3.9% | 0.3% | -19.6% | -4.9% | -1.3% | 1.6% |
 | 100% global equity | 6.8% | 5.0% | 13.5% | 0.48 | 0.68 | -51.2% | 60 | 0.0% | 0.0% | -41.6% | -16.8% | -7.2% | -2.2% |
-| Global 60/40 | 5.7% | 3.9% | 7.8% | 0.61 | 0.90 | -28.2% | 36 | 4.1% | 0.0% | -23.3% | -6.6% | -1.2% | 1.5% |
-| Global market cap | 5.2% | 3.5% | 6.7% | 0.64 | 0.94 | -21.4% | 20 | 4.2% | 0.0% | -18.4% | -4.1% | -0.1% | 2.2% |
+| Global 60/40 | 5.0% | 3.2% | 7.8% | 0.52 | 0.75 | -29.5% | 47 | 4.1% | 0.7% | -24.3% | -7.3% | -2.0% | 0.7% |
+| Global market cap | 4.5% | 2.8% | 6.8% | 0.53 | 0.78 | -22.8% | 34 | 4.2% | 0.7% | -19.4% | -4.9% | -0.9% | 1.5% |
 
 Feasible profiles against their own v2 limits on this layer's real SGD path:
 
@@ -34,17 +34,42 @@ Feasible profiles against their own v2 limits on this layer's real SGD path:
 |  | annual_return | real_annual_return | volatility | sharpe | sortino | max_drawdown | recovery_months | turnover_per_year | cost_per_year | worst_1y | worst_3y | worst_5y | worst_10y |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Long profile (v2) | 11.3% | 9.4% | 11.3% | 0.92 | 1.45 | -19.6% | 16 | 0.0% | 0.0% | -18.9% | 2.4% | 3.6% | 7.7% |
-| In-sample medium pick | 6.7% | 4.8% | 6.2% | 0.90 | 1.43 | -15.3% | 17 | 2.8% | 0.0% | -13.0% | 1.3% | 2.9% | 4.5% |
-| In-sample long pick | 6.7% | 4.8% | 6.2% | 0.90 | 1.43 | -15.3% | 17 | 2.8% | 0.0% | -13.0% | 1.3% | 2.9% | 4.5% |
+| In-sample medium pick | 6.3% | 4.5% | 6.2% | 0.85 | 1.34 | -15.3% | 18 | 2.8% | 0.3% | -13.3% | 1.0% | 2.6% | 4.2% |
+| In-sample long pick | 6.3% | 4.5% | 6.2% | 0.85 | 1.34 | -15.3% | 18 | 2.8% | 0.3% | -13.3% | 1.0% | 2.6% | 4.2% |
 | 100% global equity | 11.3% | 9.4% | 11.3% | 0.92 | 1.45 | -19.6% | 16 | 0.0% | 0.0% | -18.9% | 2.4% | 3.6% | 7.7% |
-| Global 60/40 | 7.2% | 5.4% | 7.0% | 0.88 | 1.37 | -16.6% | 18 | 2.7% | 0.0% | -16.5% | 1.1% | 3.0% | 5.0% |
-| Global market cap | 6.1% | 4.3% | 6.1% | 0.83 | 1.29 | -15.8% | 18 | 2.8% | 0.0% | -15.8% | 0.4% | 2.4% | 4.3% |
+| Global 60/40 | 6.5% | 4.7% | 7.1% | 0.78 | 1.21 | -17.0% | 18 | 2.7% | 0.7% | -17.0% | 0.5% | 2.3% | 4.3% |
+| Global market cap | 5.4% | 3.6% | 6.2% | 0.72 | 1.10 | -16.4% | 19 | 2.8% | 0.7% | -16.4% | -0.3% | 1.8% | 3.6% |
 
 Feasible profiles against their own v2 limits on this layer's real SGD path:
 
 |  | worst_window_real | max_drawdown_real | meets_limits |
 |---|---|---|---|
 | Long profile (v2) | n/a | -23.9% | not testable |
+
+## Trading costs
+
+Cost per side = half the bid-ask spread from a dated snapshot (`reference/spread_snapshot.csv`) + published broker and exchange fees (`reference/trading_costs.csv`), with 9% GST on Singapore-charged fees; fee minimums converted at the FX rates in `reference/fx_rates.csv`. Snapshot half-spreads: ISAC.L 0.8 bps; A35.SI 9.0 bps; IGLO.L 7.0 bps. Spread rows still to verify against an exchange or issuer quote: ISAC.L, IGLO.L; results that use them depend on that check. The SGD-to-USD conversion cost for LSE trades is not published and is excluded. The schedules are cost data only, not broker recommendations.
+
+Cost of one buy order, as a fraction of the order, by order size:
+
+|  | USD 1,000 | USD 2,500 | USD 5,000 | USD 10,000 | USD 25,000 |
+|---|---|---|---|---|---|
+| equity (ISAC.L, LSE) | 8.0% | 3.2% | 1.6% | 0.8% | 0.3% |
+| bonds (A35.SI, SGX) | 0.3% | 0.2% | 0.2% | 0.2% | 0.2% |
+| global_bonds (IGLO.L, LSE) | 8.1% | 3.3% | 1.7% | 0.9% | 0.4% |
+
+Trading cost per year (index layer), base case and with every spread replaced by 5, 15 or 30 bps per side (fees unchanged):
+
+|  | base_case | spread_5bps | spread_15bps | spread_30bps |
+|---|---|---|---|---|
+| Long profile (v2) | 0.0% | 0.0% | 0.0% | 0.0% |
+| In-sample medium pick | 0.3% | 0.3% | 0.3% | 0.4% |
+| In-sample long pick | 0.3% | 0.3% | 0.3% | 0.4% |
+| 100% global equity | 0.0% | 0.0% | 0.0% | 0.0% |
+| Global 60/40 | 0.7% | 0.7% | 0.7% | 0.7% |
+| Global market cap | 0.7% | 0.7% | 0.7% | 0.7% |
+
+Rebalancing trades are sized from the USD 25,000 minimum, not the grown portfolio, so fixed minimum commissions weigh as they would at the minimum account size.
 
 ## Turnover per profile
 
@@ -56,16 +81,30 @@ One-way turnover from rebalancing, per year (a single-asset allocation never reb
 | In-sample medium pick | 3.9% | 2.8% |
 | In-sample long pick | 3.9% | 2.8% |
 
+Turnover and trading cost per year for every equity/SGS mix on the frontier (index layer; 0% and 100% equity never rebalance). These apply to whichever mix a horizon's loss budget selects in `docs/strategy_design.md`:
+
+|  | turnover_per_year | cost_per_year | cost_spread_5bps | cost_spread_15bps | cost_spread_30bps |
+|---|---|---|---|---|---|
+| 10% equity | 1.4% | 0.3% | 0.3% | 0.3% | 0.3% |
+| 20% equity | 2.5% | 0.3% | 0.3% | 0.3% | 0.3% |
+| 30% equity | 3.2% | 0.3% | 0.3% | 0.3% | 0.4% |
+| 40% equity | 3.7% | 0.3% | 0.3% | 0.3% | 0.4% |
+| 50% equity | 3.9% | 0.3% | 0.3% | 0.3% | 0.4% |
+| 60% equity | 3.7% | 0.3% | 0.3% | 0.3% | 0.4% |
+| 70% equity | 3.2% | 0.3% | 0.3% | 0.3% | 0.4% |
+| 80% equity | 2.5% | 0.3% | 0.3% | 0.3% | 0.4% |
+| 90% equity | 1.4% | 0.3% | 0.3% | 0.3% | 0.3% |
+
 ## Subperiods (index layer)
 
 |  | 1998–2007 | 2008–2009 | 2010–2019 | 2020 | 2022 | 2023 to latest | 1998–2007 drawdown | 2008–2009 drawdown | 2010–2019 drawdown | 2020 drawdown | 2022 drawdown | 2023 to latest drawdown |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Long profile (v2) | 6.0% | -12.8% | 8.7% | 14.7% | -18.8% | 18.1% | -43.1% | -43.5% | -15.8% | -17.7% | -16.5% | -7.3% |
-| In-sample medium pick | 5.7% | -2.6% | 5.2% | 11.0% | -12.6% | 10.8% | -15.8% | -19.9% | -6.3% | -7.4% | -12.9% | -4.4% |
-| In-sample long pick | 5.7% | -2.6% | 5.2% | 11.0% | -12.6% | 10.8% | -15.8% | -19.9% | -6.3% | -7.4% | -12.9% | -4.4% |
+| In-sample medium pick | 5.3% | -3.0% | 4.9% | 10.6% | -12.9% | 10.6% | -16.3% | -20.4% | -6.6% | -7.4% | -12.9% | -4.4% |
+| In-sample long pick | 5.3% | -3.0% | 4.9% | 10.6% | -12.9% | 10.6% | -16.3% | -20.4% | -6.6% | -7.4% | -12.9% | -4.4% |
 | 100% global equity | 6.0% | -12.8% | 8.7% | 14.7% | -18.8% | 18.1% | -43.1% | -43.5% | -15.8% | -17.7% | -16.5% | -7.3% |
-| Global 60/40 | 5.8% | -4.3% | 7.0% | 12.9% | -17.8% | 11.0% | -18.6% | -23.4% | -8.1% | -7.3% | -15.7% | -6.9% |
-| Global market cap | 5.6% | -2.5% | 6.6% | 12.5% | -17.5% | 9.1% | -12.0% | -18.0% | -6.4% | -4.6% | -15.5% | -6.8% |
+| Global 60/40 | 5.1% | -5.2% | 6.4% | 12.2% | -18.3% | 10.4% | -20.5% | -24.3% | -8.7% | -7.3% | -15.7% | -6.9% |
+| Global market cap | 4.9% | -3.4% | 5.9% | 11.7% | -18.0% | 8.5% | -13.8% | -19.1% | -7.0% | -4.6% | -15.5% | -6.8% |
 
 ## Rising-rate era and long history (global JST portfolio, real USD, annual)
 
@@ -91,23 +130,24 @@ One-way turnover from rebalancing, per year (a single-asset allocation never reb
 |  | p5 | median | p95 | share_below_zero |
 |---|---|---|---|---|
 | Long profile (v2) | -2.9% | 5.0% | 12.7% | 15.6% |
-| In-sample medium pick | -0.5% | 3.4% | 7.0% | 7.5% |
-| In-sample long pick | -0.5% | 3.4% | 7.0% | 7.5% |
+| In-sample medium pick | -0.8% | 3.0% | 6.7% | 9.6% |
+| In-sample long pick | -0.8% | 3.0% | 6.7% | 9.6% |
 
 ## Parameter grid (index layer, each feasible profile against its own limits)
 
 |  | real_annual_return | volatility | max_drawdown | cost_per_year | worst_window_real | meets_limits |
 |---|---|---|---|---|---|---|
 | ('Long', 'Base case') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
-| ('Long', 'Equity -10%') | 4.7% | 12.0% | -46.0% | 0.0% | 30.1% | True |
+| ('Long', 'Equity -10%') | 4.4% | 12.0% | -46.3% | 0.3% | 22.2% | True |
 | ('Long', 'Equity +10%') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
 | ('Long', 'Band 5%') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
 | ('Long', 'Band 15%') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
 | ('Long', 'Calendar only') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
 | ('Long', 'Global hedged bonds') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
 | ('Long', 'Global unhedged bonds') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
-| ('Long', 'Spreads x2') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
-| ('Long', 'Spreads x3') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
+| ('Long', 'Spread 5 bps per side') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
+| ('Long', 'Spread 15 bps per side') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
+| ('Long', 'Spread 30 bps per side') | 5.0% | 13.5% | -51.2% | 0.0% | 23.7% | True |
 
 Variants that fail: none.
 
@@ -119,5 +159,5 @@ Annualised sleeve returns over the index layer: equities 6.8%, SGS 2.6%, SGD cas
 
 - About 28 years of SGD history; the ETF layer starts in November 2011 and has no 2008 crisis.
 - Index-layer equities are developed markets only (no emerging markets before the ETF layer); the withholding-tax drag uses the 15% treaty rate on the whole dividend yield, an approximation.
-- Trading costs still use US-listed ETF spreads and a US fee schedule as stand-ins for LSE and SGX trading; these are to be replaced before README numbers are final.
+- Spreads are a single dated snapshot; spreads widen in stressed markets, which the 5/15/30 bps sensitivity covers only partly.
 - Benchmark global bonds use US Treasuries hedged to SGD before July 2019, with no fund fee.

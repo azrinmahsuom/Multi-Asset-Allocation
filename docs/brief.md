@@ -54,7 +54,9 @@ One source per line, with whether results derived from it can be published. Upda
 | US equity REIT total return: All Equity REITs (monthly, 1971-12 to 2026-09) | Nareit, MonthlyHistoricalReturns.xls | Manual download, recorded by `analysis.sources` | 2026-10-27 | **No.** Private validation only (owner's decision, 2026-10-27); its terms (s.4) prohibit public display and derivative works |
 | REIT ETF daily prices and distributions: VNQ, VNQI, RWO, REET, IDWP.L, CLR.SI, CFA.SI, SRT.SI | Yahoo Finance via `yfinance` 1.7.0 (pinned) | `analysis.prices` / `analysis.sources` | 2026-10-27 | Derived results only; Yahoo terms |
 | Issuer-published ETF annual returns (cross-check) | Issuer websites | Hand-entered in `reference/etf_annual_returns.csv` | TBD | Cited, not redistributed |
-| ETF documents (TER, domicile, replication, AUM) and ETF prices | ETF issuer sites; free price data (Phase 3–4) | TBD | TBD | TBD |
+| Fund documents: ISAC and IGLO factsheets, A35 factsheet and audited annual report (TER, duration, domicile, income use, fund tax) | Issuer sites (iShares UK, Amova AM) | `analysis.sources` (FUND_DOCUMENTS) | 2026-10-27 | Extracted figures only; documents not redistributed |
+| Tax documents: US–Ireland treaty, IRS Publications 515 and 901, Form 706-NA instructions, Irish Revenue Tax and Duty Manual 27-01A-03 | irs.gov, revenue.ie | `analysis.sources` (TAX_DOCUMENTS) | 2026-10-27 | Extracted facts with citations |
+| ETF prices and distributions | Yahoo Finance via yfinance 1.7.0 | `analysis.prices` | 2026-10-26 | Derived results only |
 
 ## 9. Processing steps
 1. Fetch each source to `data/raw/<source>/` and record it in `data/MANIFEST.yaml`.
@@ -79,7 +81,7 @@ Not applicable (Research). The model portfolio tables in Phase 4 are dated and c
 
 ## 12. Limits, assumptions and things to avoid
 Each threshold or default cites its evidence, or says `Evidence: pending` (and is listed under Open questions).
-- Transaction costs: half the issuer-published 30-day median bid-ask spread plus broker and regulatory fees at the trade size (`analysis.costs`, `reference/trading_costs.csv`); spreads stress-tested at 2× and 3×.
+- Transaction costs: half the bid-ask spread from a dated quote snapshot (`reference/spread_snapshot.csv`) plus published SGX and LSE broker and exchange fees at the trade size, with 9% GST on Singapore-charged fees (`analysis.costs`, `reference/trading_costs.csv`); sensitivity with spreads of 5, 15 and 30 bps per side.
 - Risk-free rate: SGD, from MAS. Monthly change in the SORA Index from August 2005; the compounded interbank overnight rate from July 1987 to July 2005 (see decisions.md). USD results use US T-bills.
 - Dividend withholding tax by ETF domicile for a Singapore resident, from cited primary sources (`reference/`).
 - No look-ahead: weights, rules and parameters are either chosen with data available at the time, or fixed ex ante on economic grounds. Anything tuned in-sample is reported as in-sample.
@@ -113,13 +115,13 @@ Not applicable: no hypothesis (see §5).
 - Trading costs: the SGD→USD conversion markup is undisclosed (Evidence: pending); more primary broker fee schedules are needed for a median.
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
 - SingStat Table Builder's own licence terms are still to be confirmed.
-- The global government bond fund's effective duration (6.28 years) comes from a secondary extract of the issuer page; status to_verify.
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
 - Rebalancing band of 10 percentage points: an economic choice to limit drift; Evidence: pending.
-- TERs of the representative funds (ISAC.L 0.20%, A35.SI 0.24%) are from secondary sources; issuer documents to check (to_verify).
 - Withholding-tax drag applies the 15% US–Ireland treaty rate to the whole dividend yield; non-US treaty rates not yet sourced.
-- Trading costs on LSE and SGX use US-listed spreads and a US fee schedule as stand-ins.
+- Trading costs: the ISAC.L and IGLO.L spread quotes come from Yahoo (LSE and Deutsche Börse pages refuse automated requests); to check against an exchange or issuer quote (to_verify).
+- Trading costs: the only LSE broker schedule verified so far has a GBP 55 minimum commission, which dominates rebalancing costs at USD 25,000 (about 0.3% a year from the December rebalance alone). A lower-cost published LSE schedule has not been verified.
+- Withholding tax and US estate tax (`reference/withholding_tax.csv`): awaiting the owner's review. Distributions to individuals from A35.SI (a Designated Unit Trust) and from distributing Irish ETFs are still to_verify.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.

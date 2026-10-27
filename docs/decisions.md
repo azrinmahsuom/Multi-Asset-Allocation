@@ -450,3 +450,51 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 - Long is feasible at X = 15% and 20% (100% equities).
 - **Finding:** at 10 and 20 years, P(real loss) is lowest at high equity shares, so this rule also selects 100% equities wherever a budget can be met. A loss-probability limit alone doesn't restrain the equity share at these horizons.
 - Allocation work is paused.
+
+### 2026-10-27: Trading costs from SGX and LSE schedules; withholding-tax and estate-tax table from primary sources
+**Context:** The owner asked for the US stand-ins to be replaced before any README numbers are final. The rules were: no Corwin–Schultz; actual annual turnover per profile; published SGX and LSE broker schedules plus a dated spread snapshot from issuer or exchange sources, with sensitivity at 5, 15 and 30 bps; WHT rates from primary sources, cited in the manifest, with the US estate-tax exposure flagged.
+
+**Options considered:** Corwin–Schultz high-low spread estimates (rejected by the owner). One flat cost per trade (rejected: hides minimum commissions). Published schedules plus a quote snapshot (chosen).
+
+**Rule (trading costs):**
+- Cost per side = half the quoted spread (`reference/spread_snapshot.csv`) + the broker and exchange fees of the instrument's market at the trade size (`reference/trading_costs.csv`).
+- GST of 9% (IRAS) applies to Singapore-charged fees.
+- Fee minimums are converted at dated FRED rates (`reference/fx_rates.csv`).
+- Instruments: ISAC.L (equities, LSE), A35.SI (SGS, SGX) and IGLO.L (benchmark global bonds, LSE).
+- Schedules:
+  - SGX: the moomoo SG schedule, plus clearing 0.0325% and access 0.0075% (same in the moomoo and OCBC schedules).
+  - LSE: the OCBC online table (0.30%, minimum GBP 55). The PTM levy of GBP 1.50 applies on orders of GBP 10,000 or more (OCBC schedule, 23 March 2026). There is no UK stamp duty on ETFs and no Irish stamp duty on Irish ETFs (Irish Revenue Tax and Duty Manual 27-01A-03).
+- Sensitivity: every spread is replaced by 5, 15 and 30 bps per side.
+- Turnover and cost per year are reported for every frontier mix.
+- Schedules are cost data, not broker recommendations.
+
+**Rule (tax):**
+- `reference/withholding_tax.csv` cites each rate to a document hashed in `data/MANIFEST.yaml` (or, for one IRAS web page, its URL and check date).
+- `documents.verify_reference` fails if a cited fact changes in its document.
+
+**Evidence:**
+- US–Ireland treaty Art. 10(2)(b): 15% on portfolio dividends.
+- IRS Publication 515: 30% statutory rate. Publication 901 lists no US–Singapore treaty.
+- Form 706-NA instructions (Rev. September 2025):
+  - US-company stock is US-situs, and foreign-company stock is not.
+  - The filing threshold is USD 60,000, and the maximum unified credit is USD 13,000.
+  - Singapore is not in the death-tax treaty list.
+  - The RIC look-through applied only to deaths 2005–2011.
+- ISAC factsheet: Irish domicile, accumulating.
+- A35 annual report note 3: Designated Unit Trust, no income tax.
+- IRAS: overseas income received by individuals is generally not taxable.
+
+**Not verified (to_verify):**
+- The ISAC.L and IGLO.L quotes come from Yahoo, because the LSE and Deutsche Börse pages refuse automated requests. A35.SI's quote comes from SGX and matched Yahoo.
+- The SGD→USD conversion markup is not published and is excluded.
+- Lower-cost LSE schedules could not be fetched.
+- Distributions to individuals from A35.SI and from distributing Irish ETFs.
+
+**What would change my mind:** A verified lower-cost LSE schedule, or a measured spread history.
+
+**Finding:**
+- At USD 25,000, the LSE minimum commission dominates. A USD 2,500 equity trade costs about 3.2% per side.
+- Every mix that rebalances pays about 0.3% a year, mostly from the December calendar rebalance. Spread sensitivity barely changes this.
+- The rebalancing rule is not changed here (allocation paused). The owner is to decide.
+
+**Owner review:** the WHT and estate-tax table awaits the owner's review before use in the README.

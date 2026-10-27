@@ -1,0 +1,4 @@
+currency,usd_per_unit,as_of,source,checked_on,status
+USD,1,,identity,2026-10-27,verified
+GBP,1.3375,2026-10-23,FRED DEXUSUK (US dollars to one pound),2026-10-27,verified
+SGD,0.782350,2026-10-23,"FRED DEXSIUS (1.2782 Singapore dollars to one US dollar), inverted",2026-10-27,verified

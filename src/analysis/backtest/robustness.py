@@ -103,26 +103,26 @@ def parameter_grid(layer: pd.DataFrame, base: pd.Series, plist=None) -> pd.DataF
     rows = []
     for p in plist or profiles.PROFILES:
         eq = float(base.get("equity", 0))
-        variants = {"Base case": (base, engine.RULE, 1.0)}
+        variants = {"Base case": (base, engine.RULE, None)}
         for shift in (-0.10, 0.10):
             e = min(max(eq + shift, 0.0), 1.0)
             variants[f"Equity {shift:+.0%}"] = (
                 pd.Series({"equity": e, "bonds": 1 - e}),
                 engine.RULE,
-                1.0,
+                None,
             )
         for band in (0.05, 0.15):
-            variants[f"Band {band:.0%}"] = (base, {**engine.RULE, "band": band}, 1.0)
-        variants["Calendar only"] = (base, {"type": "calendar", "months": 12}, 1.0)
+            variants[f"Band {band:.0%}"] = (base, {**engine.RULE, "band": band}, None)
+        variants["Calendar only"] = (base, {"type": "calendar", "months": 12}, None)
         for sleeve, col in [
             ("Global hedged bonds", "global_bonds"),
             ("Global unhedged bonds", "global_unhedged"),
         ]:
-            variants[sleeve] = (base.rename({"bonds": col}), engine.RULE, 1.0)
-        for m in (2.0, 3.0):
-            variants[f"Spreads x{m:.0f}"] = (base, engine.RULE, m)
-        for label, (w, rule, mult) in variants.items():
-            sim = engine.simulate(layer, w, rule, mult)
+            variants[sleeve] = (base.rename({"bonds": col}), engine.RULE, None)
+        for bps in engine.SPREAD_SENSITIVITY:
+            variants[f"Spread {bps * 1e4:.0f} bps per side"] = (base, engine.RULE, bps)
+        for label, (w, rule, spread) in variants.items():
+            sim = engine.simulate(layer, w, rule, spread)
             s = engine.summarise(sim, layer)
             chk = engine.profile_check(sim, layer, p)
             rows.append(

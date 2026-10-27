@@ -58,6 +58,52 @@ files:
     end: 05-Oct-2026
     units: PDF; figures extracted by analysis.documents and checked against reference/.
     sha256: b9a61730af4a574a41b0978b62ed7441926c83925096e06d6f0e399ab5d178fe
+  documents/IRS_i706na.pdf:
+    source: Instructions for Form 706-NA (estate of a nonresident not a US citizen)
+    url: https://www.irs.gov/pub/irs-pdf/i706na.pdf
+    landing_page: https://www.irs.gov/forms-pubs/about-form-706-na
+    series: 'Tax document (PDF): US-situs rules, filing threshold, unified credit,
+      death-tax treaty list'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Government publication; downloaded for citation only.
+    redistributable: false
+    rows: 9
+    start: unknown
+    end: unknown
+    units: PDF; facts extracted by analysis.documents and checked against reference/.
+    sha256: 5385db6d73835f724453376b1658ede187e780f507773f92c6752e12be296bf2
+  documents/IRS_p515.pdf:
+    source: IRS Publication 515, Withholding of Tax on Nonresident Aliens and Foreign
+      Entities
+    url: https://www.irs.gov/pub/irs-pdf/p515.pdf
+    landing_page: https://www.irs.gov/publications/p515
+    series: 'Tax document (PDF): statutory 30% withholding on US-source income of
+      foreign persons'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Government publication; downloaded for citation only.
+    redistributable: false
+    rows: 86
+    start: unknown
+    end: unknown
+    units: PDF; facts extracted by analysis.documents and checked against reference/.
+    sha256: 5b8ecb50ba25aaa07da88e2b3d949f4b416bcb0a50d78bd8999bd27a50cbba78
+  documents/IRS_p901.pdf:
+    source: IRS Publication 901, U.S. Tax Treaties
+    url: https://www.irs.gov/pub/irs-pdf/p901.pdf
+    landing_page: https://www.irs.gov/publications/p901
+    series: 'Tax document (PDF): list of US income tax treaty countries (no Singapore
+      treaty)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Government publication; downloaded for citation only.
+    redistributable: false
+    rows: 56
+    start: unknown
+    end: unknown
+    units: PDF; facts extracted by analysis.documents and checked against reference/.
+    sha256: 8b5654b6b3c1bcc9f63889a78ecbc3793d4b7907750ec9d409c41427073c4469
   documents/ISAC_factsheet.pdf:
     source: iShares MSCI ACWI UCITS ETF USD (Acc), factsheet
     url: https://www.ishares.com/uk/individual/en/literature/fact-sheet/ssac-ishares-msci-acwi-ucits-etf-fund-fact-sheet-en-gb.pdf
@@ -72,6 +118,34 @@ files:
     end: 07-Aug-2026
     units: PDF; figures extracted by analysis.documents and checked against reference/.
     sha256: 10cd1cbcd79c8c28e559bb893ac0bc85e54d46f9c1d60ec669f3dfe161c0e55f
+  documents/Revenue_TDM_27-01A-03.pdf:
+    source: Irish Revenue Tax and Duty Manual Part 27-01A-03, Exchange Traded Funds
+    url: https://www.revenue.ie/en/tax-professionals/tdm/income-tax-capital-gains-tax-corporation-tax/part-27/27-01a-03-20201001155445.pdf
+    landing_page: https://www.revenue.ie/en/tax-professionals/tdm/income-tax-capital-gains-tax-corporation-tax/part-27/index.aspx
+    series: 'Tax document (PDF): Irish stamp duty on Irish-domiciled ETFs'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Government publication; downloaded for citation only.
+    redistributable: false
+    rows: 6
+    start: unknown
+    end: unknown
+    units: PDF; facts extracted by analysis.documents and checked against reference/.
+    sha256: ee98b6248550ff8be5b362f64ce1fd912c24e7cd8007d13f060c2c86d2f05249
+  documents/US_Ireland_treaty.pdf:
+    source: US-Ireland income tax convention (1997), treaty text
+    url: https://www.irs.gov/pub/irs-trty/ireland.pdf
+    landing_page: https://www.irs.gov/businesses/international-businesses/ireland-tax-treaty-documents
+    series: 'Tax document (PDF): Article 10 (dividends) withholding rates'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Government publication; downloaded for citation only.
+    redistributable: false
+    rows: 41
+    start: unknown
+    end: unknown
+    units: PDF; facts extracted by analysis.documents and checked against reference/.
+    sha256: 1396fb82bdcb5ab3c6da7c607c39bf0b8d4a616d1ddcdfb210ca2f44d58f1b8f
   fred/AAA.csv:
     source: 'FRED: Moody''s seasoned Aaa corporate bond yield'
     url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=AAA
