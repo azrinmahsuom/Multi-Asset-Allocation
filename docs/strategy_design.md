@@ -24,75 +24,113 @@ Superseded v1 limits, kept for the record of the v1 finding below:
 
 How the limits were set, stated plainly: the profiles are generic (no actual investor's spending amount, flexibility or reserve), so investor need could not produce numbers of its own. The v1 limits began as draft starting points adjusted by the owner, with the short limit loosened after history showed the first number could not be met; the v2 limits were set after the v1 holdout. Need is used to describe and check the limits, not to derive them.
 
-## Core result: risk and return by horizon
+## Core result: a risk menu per horizon
 
-Decision rule (changed after the v2 holdout, 2026-10-27): for each horizon, maximise expected real return subject to P(real loss over the horizon) <= X, reported for X = 5%, 10%, 15%, 20%. P is the highest of the three holdout loss shares (H1 non-US JST windows pooled across countries, H2 US before 1981, H3 global JST block bootstrap); the in-sample SGD loss share is shown alongside. Mixes are global equities (unhedged) and SGS in 1-point steps; expected real return is the global JST portfolio's long-run real return. The previous rule (highest return among mixes meeting all limits) always selected the riskiest feasible mix.
+Decision rule (changed after the holdout, 2026-10-27): no single recommended portfolio. For each horizon and each maximum-drawdown tolerance (-20%, -30%, -40%, -50%), the menu shows the highest-expected-return equity/SGS mix (1-point steps) whose maximum real drawdown is no worse than the tolerance, with its chance of a real loss over the horizon, worst horizon real return and CVaR at 5% of horizon real returns. The loss-probability rule it replaces did not constrain equity at long horizons.
 
-Highest-return mix for each loss budget:
+Definitions (fixed before the results were computed):
 
-|  | P(real loss) <= 5% | P(real loss) <= 10% | P(real loss) <= 15% | P(real loss) <= 20% |
-|---|---|---|---|---|
-| Short | no mix | no mix | no mix | no mix |
-| Medium | no mix | no mix | no mix | 100% equity (P 18.8%, real 6.3%) |
-| Long | no mix | no mix | 100% equity (P 14.8%, real 6.3%) | 100% equity (P 14.8%, real 6.3%) |
+- Maximum drawdown: the worse of the real SGD monthly path (1998 onwards) and the US real monthly path from 1871 to 1980 (Shiller). Annual JST data are not used for drawdowns, because annual observations hide falls within a year. Drawdowns do not depend on the horizon, so the same mixes appear at every horizon; the horizon changes the loss measures.
+- P(real loss): the highest real-loss share across the three holdout tests (H1 non-US JST windows pooled across countries, H2 US before 1981, H3 global JST block bootstrap).
+- Worst horizon real return: the worst cumulative real return over any horizon-length window in the actual histories (H1 and H2).
+- CVaR 5%: the average of the worst 5% of horizon real returns, the lowest of the three tests.
+- Expected real return: the global JST portfolio's long-run real return.
 
 ### Short (about 5 years)
 
-Lowest holdout P(real loss over 5 years) across all mixes: 21.5%, at 48% equities.
+Risk menu:
 
-No mix keeps the chance of a real loss over 5 years within 20%. On this evidence the short horizon sits outside the strategy, consistent with the brief's separation of near-term spending money from long-horizon capital.
+|  | result | equity_share | expected_real_return | max_drawdown | max_drawdown_sgd | max_drawdown_us_pre1981 | p_loss_holdout | worst_window_holdout | cvar5_holdout |
+|---|---|---|---|---|---|---|---|---|---|
+| Drawdown no worse than -20% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -30% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -40% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -50% | meets tolerance | 59.0% | 5.4% | -49.4% | -35.4% | -49.4% | 22.1% | -92.7% | -57.8% |
 
-| mix | expected_real_return | p_loss_holdout | h1_non_us_loss_share | h2_us_pre1981_loss_share | h3_bootstrap_loss_share | p_loss_sgd_in_sample | sgd_worst_window | sgd_max_drawdown |
-|---|---|---|---|---|---|---|---|---|
-| 0% equity | 3.4% | 34.8% | 28.6% | 34.8% | 17.0% | 41.2% | -14.6% | -22.5% |
-| 10% equity | 3.8% | 28.6% | 26.1% | 28.6% | 14.2% | 34.9% | -9.5% | -20.8% |
-| 20% equity | 4.2% | 24.7% | 23.9% | 24.7% | 13.1% | 26.4% | -8.7% | -20.4% |
-| 30% equity | 4.5% | 23.0% | 23.0% | 21.4% | 13.2% | 14.8% | -13.2% | -20.8% |
-| 40% equity | 4.9% | 21.9% | 21.9% | 19.8% | 13.2% | 15.5% | -17.6% | -24.5% |
-| 50% equity | 5.2% | 21.5% | 21.5% | 17.5% | 13.4% | 18.3% | -22.0% | -30.4% |
-| 60% equity | 5.5% | 22.5% | 22.5% | 16.3% | 13.9% | 19.0% | -26.2% | -35.9% |
-| 70% equity | 5.7% | 23.5% | 23.5% | 16.4% | 15.0% | 20.1% | -30.4% | -41.1% |
-| 80% equity | 5.9% | 24.2% | 24.2% | 17.5% | 16.1% | 22.5% | -34.5% | -45.9% |
-| 90% equity | 6.1% | 26.0% | 26.0% | 17.8% | 17.0% | 25.7% | -38.5% | -50.5% |
-| 100% equity | 6.3% | 27.3% | 27.3% | 18.5% | 18.2% | 28.2% | -42.3% | -54.6% |
+Frontier (10-point steps):
+
+| mix | expected_real_return | max_drawdown | max_drawdown_sgd | max_drawdown_us_pre1981 | p_loss_holdout | worst_window_holdout | cvar5_holdout |
+|---|---|---|---|---|---|---|---|
+| 0% equity | 3.4% | -53.2% | -22.5% | -53.2% | 34.8% | -96.8% | -62.2% |
+| 10% equity | 3.8% | -44.0% | -20.8% | -44.0% | 28.6% | -94.2% | -60.8% |
+| 20% equity | 4.2% | -43.9% | -20.4% | -43.9% | 24.7% | -92.6% | -59.7% |
+| 30% equity | 4.5% | -43.8% | -20.8% | -43.8% | 23.0% | -92.1% | -58.7% |
+| 40% equity | 4.9% | -43.7% | -24.5% | -43.7% | 21.9% | -91.9% | -58.1% |
+| 50% equity | 5.2% | -43.7% | -30.4% | -43.7% | 21.5% | -91.8% | -57.8% |
+| 60% equity | 5.5% | -50.3% | -35.9% | -50.3% | 22.5% | -92.9% | -57.8% |
+| 70% equity | 5.7% | -58.7% | -41.1% | -58.7% | 23.5% | -94.1% | -58.4% |
+| 80% equity | 5.9% | -65.8% | -45.9% | -65.8% | 24.2% | -95.2% | -59.4% |
+| 90% equity | 6.1% | -71.7% | -50.5% | -71.7% | 26.0% | -96.1% | -60.8% |
+| 100% equity | 6.3% | -76.8% | -54.6% | -76.8% | 27.3% | -96.9% | -62.7% |
 
 ### Medium (about 10 years)
 
-Lowest holdout P(real loss over 10 years) across all mixes: 16.3%, at 62% equities.
+Risk menu:
 
-| mix | expected_real_return | p_loss_holdout | h1_non_us_loss_share | h2_us_pre1981_loss_share | h3_bootstrap_loss_share | p_loss_sgd_in_sample | sgd_worst_window | sgd_max_drawdown |
-|---|---|---|---|---|---|---|---|---|
-| 0% equity | 3.4% | 33.2% | 29.4% | 33.2% | 10.9% | 36.6% | -12.2% | -22.5% |
-| 10% equity | 3.8% | 27.0% | 27.0% | 26.3% | 9.8% | 5.8% | -2.9% | -20.8% |
-| 20% equity | 4.2% | 23.1% | 23.1% | 19.4% | 9.1% | 0.0% | 0.6% | -20.4% |
-| 30% equity | 4.5% | 19.8% | 19.8% | 18.1% | 8.2% | 0.0% | 3.8% | -20.8% |
-| 40% equity | 4.9% | 18.2% | 18.2% | 15.1% | 8.5% | 0.0% | 5.6% | -24.5% |
-| 50% equity | 5.2% | 16.9% | 16.9% | 13.6% | 8.3% | 0.0% | 3.0% | -30.4% |
-| 60% equity | 5.5% | 16.6% | 16.6% | 11.8% | 8.6% | 2.7% | -3.2% | -35.9% |
-| 70% equity | 5.7% | 16.4% | 16.4% | 11.2% | 9.3% | 7.1% | -9.4% | -41.1% |
-| 80% equity | 5.9% | 17.2% | 17.2% | 10.8% | 10.2% | 11.2% | -15.7% | -45.9% |
-| 90% equity | 6.1% | 17.5% | 17.5% | 10.7% | 11.2% | 14.7% | -21.8% | -50.5% |
-| 100% equity | 6.3% | 18.8% | 18.8% | 11.2% | 12.4% | 17.4% | -27.6% | -54.6% |
+|  | result | equity_share | expected_real_return | max_drawdown | max_drawdown_sgd | max_drawdown_us_pre1981 | p_loss_holdout | worst_window_holdout | cvar5_holdout |
+|---|---|---|---|---|---|---|---|---|---|
+| Drawdown no worse than -20% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -30% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -40% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -50% | meets tolerance | 59.0% | 5.4% | -49.4% | -35.4% | -49.4% | 16.6% | -94.4% | -70.8% |
+
+Frontier (10-point steps):
+
+| mix | expected_real_return | max_drawdown | max_drawdown_sgd | max_drawdown_us_pre1981 | p_loss_holdout | worst_window_holdout | cvar5_holdout |
+|---|---|---|---|---|---|---|---|
+| 0% equity | 3.4% | -53.2% | -22.5% | -53.2% | 33.2% | -98.5% | -78.0% |
+| 10% equity | 3.8% | -44.0% | -20.8% | -44.0% | 27.0% | -95.5% | -76.4% |
+| 20% equity | 4.2% | -43.9% | -20.4% | -43.9% | 23.1% | -94.2% | -75.0% |
+| 30% equity | 4.5% | -43.8% | -20.8% | -43.8% | 19.8% | -94.0% | -73.7% |
+| 40% equity | 4.9% | -43.7% | -24.5% | -43.7% | 18.2% | -93.9% | -72.6% |
+| 50% equity | 5.2% | -43.7% | -30.4% | -43.7% | 16.9% | -93.8% | -71.6% |
+| 60% equity | 5.5% | -50.3% | -35.9% | -50.3% | 16.6% | -94.5% | -70.7% |
+| 70% equity | 5.7% | -58.7% | -41.1% | -58.7% | 16.4% | -95.7% | -70.1% |
+| 80% equity | 5.9% | -65.8% | -45.9% | -65.8% | 17.2% | -96.6% | -69.9% |
+| 90% equity | 6.1% | -71.7% | -50.5% | -71.7% | 17.5% | -97.4% | -69.8% |
+| 100% equity | 6.3% | -76.8% | -54.6% | -76.8% | 18.8% | -98.1% | -70.1% |
 
 ### Long (20+ years)
 
-Lowest holdout P(real loss over 20 years) across all mixes: 14.6%, at 86% equities.
+Risk menu:
 
-| mix | expected_real_return | p_loss_holdout | h1_non_us_loss_share | h2_us_pre1981_loss_share | h3_bootstrap_loss_share | p_loss_sgd_in_sample | sgd_worst_window | sgd_max_drawdown |
-|---|---|---|---|---|---|---|---|---|
-| 0% equity | 3.4% | 32.8% | 32.8% | 30.6% | 5.3% | 31.7% | -9.8% | -22.5% |
-| 10% equity | 3.8% | 28.6% | 28.6% | 14.3% | 3.9% | 0.0% | 3.0% | -20.8% |
-| 20% equity | 4.2% | 24.3% | 24.3% | 5.3% | 3.1% | 0.0% | 17.1% | -20.4% |
-| 30% equity | 4.5% | 20.8% | 20.8% | 3.5% | 2.9% | 0.0% | 32.6% | -20.8% |
-| 40% equity | 4.9% | 18.2% | 18.2% | 1.5% | 3.1% | 0.0% | 45.6% | -24.5% |
-| 50% equity | 5.2% | 16.9% | 16.9% | 0.7% | 3.4% | 0.0% | 45.7% | -30.4% |
-| 60% equity | 5.5% | 15.7% | 15.7% | 0.6% | 4.0% | 0.0% | 45.2% | -35.9% |
-| 70% equity | 5.7% | 15.3% | 15.3% | 0.3% | 4.5% | 0.0% | 43.9% | -41.1% |
-| 80% equity | 5.9% | 15.2% | 15.2% | 0.2% | 5.3% | 0.0% | 41.9% | -45.9% |
-| 90% equity | 6.1% | 14.6% | 14.6% | 0.1% | 6.1% | 0.0% | 39.3% | -50.5% |
-| 100% equity | 6.3% | 14.8% | 14.8% | 0.1% | 7.0% | 0.0% | 36.0% | -54.6% |
+|  | result | equity_share | expected_real_return | max_drawdown | max_drawdown_sgd | max_drawdown_us_pre1981 | p_loss_holdout | worst_window_holdout | cvar5_holdout |
+|---|---|---|---|---|---|---|---|---|---|
+| Drawdown no worse than -20% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -30% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -40% | no mix | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| Drawdown no worse than -50% | meets tolerance | 59.0% | 5.4% | -49.4% | -35.4% | -49.4% | 15.9% | -92.1% | -74.7% |
 
-Reading: over 10 and 20 years, P(real loss) does not rise with the equity share (its lowest point is at a high equity share), so wherever a loss budget can be met at all, it is also met at 100% equities, and maximising expected return selects 100% equities. A loss-probability limit alone does not restrain the equity share at these horizons; that would need a limit on the size of losses. No threshold has been changed (owner instruction).
+Frontier (10-point steps):
+
+| mix | expected_real_return | max_drawdown | max_drawdown_sgd | max_drawdown_us_pre1981 | p_loss_holdout | worst_window_holdout | cvar5_holdout |
+|---|---|---|---|---|---|---|---|
+| 0% equity | 3.4% | -53.2% | -22.5% | -53.2% | 32.8% | -98.3% | -87.0% |
+| 10% equity | 3.8% | -44.0% | -20.8% | -44.0% | 28.6% | -95.1% | -84.7% |
+| 20% equity | 4.2% | -43.9% | -20.4% | -43.9% | 24.3% | -93.3% | -82.4% |
+| 30% equity | 4.5% | -43.8% | -20.8% | -43.8% | 20.8% | -92.8% | -80.1% |
+| 40% equity | 4.9% | -43.7% | -24.5% | -43.7% | 18.2% | -92.3% | -77.7% |
+| 50% equity | 5.2% | -43.7% | -30.4% | -43.7% | 16.9% | -92.1% | -75.7% |
+| 60% equity | 5.5% | -50.3% | -35.9% | -50.3% | 15.7% | -92.1% | -74.6% |
+| 70% equity | 5.7% | -58.7% | -41.1% | -58.7% | 15.3% | -92.2% | -74.5% |
+| 80% equity | 5.9% | -65.8% | -45.9% | -65.8% | 15.2% | -92.4% | -75.0% |
+| 90% equity | 6.1% | -71.7% | -50.5% | -71.7% | 14.6% | -93.1% | -75.8% |
+| 100% equity | 6.3% | -76.8% | -54.6% | -76.8% | 14.8% | -95.0% | -77.0% |
+
+### Reading
+
+No mix keeps the US 1871–1980 real drawdown better than -43.7% (the best is at 51% equities): long US government bonds lost about half their real value between the 1940s and 1981, so bond-heavy mixes fall as far as equity-heavy ones. Under the rule as fixed, tolerances tighter than that floor have no mix. The short horizon remains outside the strategy on the loss measures (its lowest P(real loss) over 5 years is above 20% for every mix).
+
+The worst horizon real returns come from the non-US JST histories, which include wars and hyperinflations. Worst windows: short, 0% equity: Germany to 1922 (-97%); short, 50% equity: Japan to 1945 (-92%); short, 100% equity: Portugal to 1978 (-97%); medium, 0% equity: Germany to 1922 (-98%); medium, 50% equity: France to 1951 (-94%); medium, 100% equity: Portugal to 1983 (-98%); long, 0% equity: Germany to 1922 (-98%); long, 50% equity: France to 1950 (-92%); long, 100% equity: Portugal to 1993 (-95%).
+
+Sensitivity, not a selection: the largest equity share meeting each tolerance if only the SGD path (1998 onwards, in-sample) set the drawdown:
+
+|  | equity_share | max_drawdown_sgd |
+|---|---|---|
+| Drawdown no worse than -20% | n/a | n/a |
+| Drawdown no worse than -30% | 49.0% | -29.8% |
+| Drawdown no worse than -40% | 67.0% | -39.6% |
+| Drawdown no worse than -50% | 88.0% | -49.6% |
 
 ## Bond sleeve: SGS vs global hedged vs global unhedged
 

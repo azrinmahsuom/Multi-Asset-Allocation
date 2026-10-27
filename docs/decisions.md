@@ -498,3 +498,30 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 - The rebalancing rule is not changed here (allocation paused). The owner is to decide.
 
 **Owner review:** the WHT and estate-tax table awaits the owner's review before use in the README.
+
+### 2026-10-27: Decision rule changed again after the holdout: a risk menu per horizon, no single portfolio
+**Context:** The loss-budget rule (maximise expected real return subject to P(real loss) ≤ X) doesn't constrain equity at 10 and 20 years: P(real loss) is lowest at high equity shares, so it selects 100% equity wherever a budget can be met. The owner replaced single-pick selection with a menu.
+
+**Rule (post-holdout, disclosed as such; definitions fixed in `holdout.risk_frontier` before results were computed):**
+- **Menu:** for each horizon and each maximum-drawdown tolerance (−20%, −30%, −40%, −50%), report the highest-expected-return equity/SGS mix (1-point steps) whose maximum real drawdown is no worse than the tolerance. Each entry shows:
+  - P(real loss over the horizon): the highest across H1, H2 and H3;
+  - worst horizon real return: actual histories H1 and H2;
+  - CVaR at 5% of horizon real returns: the lowest across H1–H3; `metrics.cvar` is the mean of the worst ceil(5% × n) outcomes.
+- **No single recommended portfolio.**
+- **Maximum drawdown** is the worse of:
+  - the real SGD monthly path (1998 onwards);
+  - the US real monthly path from 1871 to 1980 (Shiller).
+
+  Annual JST data aren't used for drawdowns, because annual observations hide falls within a year.
+- **Backtest:** the strategies are the menu's distinct mixes, each checked against its tolerance. The v2 selection and the in-sample picks are dropped from the backtest.
+
+**Evidence:**
+- Drawdown and CVaR are standard path and tail risk measures. CVaR (expected shortfall) follows Rockafellar and Uryasev (2000).
+- The 5% level and the four tolerances were set by the owner. Evidence for these specific levels: pending (owner preference, not derived from data).
+
+**Result:**
+- Only the −50% tolerance has a mix: 59% equity, at every horizon.
+- No mix keeps the US 1871–1980 real drawdown better than about −44%, because long US government bonds lost about half their real value between the 1940s and 1981.
+- An SGD-only drawdown basis is shown as a sensitivity, not a selection.
+
+**What would change my mind:** If the owner prefers an SGD-only or JST-based drawdown basis, that is a further rule change and would be logged as such.

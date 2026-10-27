@@ -5,7 +5,6 @@ import pandas as pd
 from analysis import charts, costs, metrics
 from analysis.backtest import engine, robustness
 from analysis.config import ROOT
-from analysis.design import profiles
 from analysis.report import _table_markdown
 
 OUTPUT = ROOT / "docs" / "backtest_results.md"
@@ -36,7 +35,7 @@ def _plotted(sims: dict) -> list[str]:
 def _legend(name: str) -> str:
     """Name a benchmark that is also a profile's selection."""
     w = {**engine.strategy_weights(), **engine.benchmark_weights()}
-    same = [k for k in engine.strategy_weights() if "(v2)" in k and w[k].equals(w.get(name))]
+    same = [k for k in engine.strategy_weights() if w[k].equals(w.get(name))]
     return f"{name} (= {', '.join(same)})" if name in BENCHMARKS and same else name
 
 
@@ -161,28 +160,20 @@ def _frontier_turnover(layer: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
-def _feasible_profiles() -> list:
-    names = engine.strategy_weights()
-    return [p for p in profiles.PROFILES if f"{p.name} profile (v2)" in names]
-
-
 def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list[str], dict]:
     sims = {k: engine.simulate(layer, w) for k, w in weights.items()}
     table = pd.DataFrame({k: engine.summarise(s, layer) for k, s in sims.items()}).T
     checks = pd.DataFrame(
-        {
-            f"{p.name} profile (v2)": engine.profile_check(sims[f"{p.name} profile (v2)"], layer, p)
-            for p in _feasible_profiles()
-        }
+        {k: engine.menu_check(sims[k], layer, tol) for k, (_, tol) in engine.menu_mixes().items()}
     ).T
     lines = [
         f"## {title} ({layer.index[0]} to {layer.index[-1]})",
         "",
         _table_markdown(table),
         "",
-        "Feasible profiles against their own v2 limits on this layer's real SGD path:",
+        "Menu mixes against their drawdown tolerance on this layer's real SGD path:",
         "",
-        _table_markdown(checks) if len(checks) else "No feasible profile.",
+        _table_markdown(checks) if len(checks) else "No menu mix.",
         "",
     ]
     return lines, sims
@@ -192,7 +183,6 @@ def run() -> dict:
     index_layer, etf_layer = engine.index_layer(), engine.etf_layer()
     weights = {**engine.strategy_weights(), **engine.benchmark_weights()}
     strategies = engine.strategy_weights()
-    infeasible = engine.infeasible_profiles()
     idx_lines, idx_sims = _layer_section("Index layer", index_layer, weights)
     etf_lines, etf_sims = _layer_section("ETF layer", etf_layer, weights)
     growth = _growth_figure(idx_sims, index_layer)
@@ -201,8 +191,8 @@ def run() -> dict:
     rising = robustness.rising_rate_era(weights)
     forward = robustness.forward_outcomes({k: idx_sims[k] for k in strategies}, index_layer)
     grids = [
-        robustness.parameter_grid(index_layer, strategies[f"{p.name} profile (v2)"], [p])
-        for p in _feasible_profiles()
+        robustness.parameter_grid(index_layer, w, name, tol)
+        for name, (w, tol) in engine.menu_mixes().items()
     ]
     grid = pd.concat(grids) if grids else pd.DataFrame()
     attr = robustness.attribution(index_layer, weights)
@@ -220,7 +210,7 @@ def run() -> dict:
         }
     ).T
     wht = float(index_layer["wht_drag"].mean() * 12)
-    fails = grid[~grid["meets_limits"].astype(bool)] if len(grid) else grid
+    fails = grid[~grid["meets_tolerance"].astype(bool)] if len(grid) else grid
 
     text = "\n".join(
         [
@@ -234,27 +224,15 @@ def run() -> dict:
             "trading costs at the USD 25,000 minimum; rebalancing every December and when a "
             "weight drifts more than 10 points.",
             "",
-            "**Status: allocation work paused (2026-10-27).** The v2 selection rule shown "
-            "here is superseded by the loss-budget frontier in `docs/strategy_design.md`; "
-            "these backtests are kept for reference until an allocation is adopted. "
-            "**v2 limits, holdout-based selection:** "
-            + (
-                "infeasible profiles: " + ", ".join(infeasible) + " (no candidate met the "
-                "limits both in-sample and on the holdout; see `docs/strategy_design.md`). "
-                if infeasible
-                else ""
-            )
-            + "Selected: "
-            + "; ".join(
-                f"{k}: " + ", ".join(f"{a} {v:.0%}" for a, v in w.items())
-                for k, w in strategies.items()
-                if "(v2)" in k
-            )
-            + ". In-sample picks are shown for reference only. This result is not final.",
+            "**Status (2026-10-27):** no single recommended portfolio. The strategies "
+            "below are the distinct mixes in the risk menu of `docs/strategy_design.md` "
+            "(highest expected return for each maximum-drawdown tolerance): "
+            + "; ".join(strategies)
+            + ". This result is not final.",
             "",
-            "**In-sample caveat:** the in-sample picks and the limits' SGD tests use SGD history "
-            "that overlaps this backtest, so these results are not out of sample. The holdout "
-            "evaluation is the out-of-sample check.",
+            "**In-sample caveat:** the menu's drawdown test uses SGD history that overlaps this "
+            "backtest (alongside US history before 1981), so these results are not out of "
+            "sample.",
             "",
             f"Withholding-tax drag on equities in the index layer averaged {wht:.2%} a year "
             "(trailing dividend yield x 15%). The ETF layer's fund prices already include TER "
@@ -296,9 +274,9 @@ def run() -> dict:
             "",
             _table_markdown(forward),
             "",
-            "## Parameter grid (index layer, each feasible profile against its own limits)",
+            "## Parameter grid (index layer, each menu mix against its drawdown tolerance)",
             "",
-            _table_markdown(grid) if len(grid) else "No feasible profile.",
+            _table_markdown(grid) if len(grid) else "No menu mix.",
             "",
             "Variants that fail: "
             + ("; ".join(f"{p} – {v}" for p, v in fails.index) or "none")

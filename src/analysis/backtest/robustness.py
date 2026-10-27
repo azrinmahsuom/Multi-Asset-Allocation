@@ -22,7 +22,7 @@ import pandas as pd
 from analysis import bootstrap, data, metrics
 from analysis.backtest import engine
 from analysis.config import BOOTSTRAP_REPS
-from analysis.design import allocation, bond_options, profiles
+from analysis.design import allocation, bond_options
 
 SUBPERIODS = {
     "1998–2007": ("1998-02", "2007-12"),
@@ -96,48 +96,49 @@ def _unhedged_global_bonds(layer: pd.DataFrame) -> pd.Series:
     return metrics.to_base_currency(us10, c["fx"]).reindex(layer.index)
 
 
-def parameter_grid(layer: pd.DataFrame, base: pd.Series, plist=None) -> pd.DataFrame:
-    """Variants of an allocation, each checked against the given profiles' limits."""
+def parameter_grid(
+    layer: pd.DataFrame, base: pd.Series, name: str, tolerance: float
+) -> pd.DataFrame:
+    """Variants of a menu mix, each checked against the mix's drawdown tolerance."""
     layer = layer.assign(global_unhedged=_unhedged_global_bonds(layer)).dropna()
     base = base.reindex(["equity", "bonds"]).fillna(0.0)
     rows = []
-    for p in plist or profiles.PROFILES:
-        eq = float(base.get("equity", 0))
-        variants = {"Base case": (base, engine.RULE, None)}
-        for shift in (-0.10, 0.10):
-            e = min(max(eq + shift, 0.0), 1.0)
-            variants[f"Equity {shift:+.0%}"] = (
-                pd.Series({"equity": e, "bonds": 1 - e}),
-                engine.RULE,
-                None,
-            )
-        for band in (0.05, 0.15):
-            variants[f"Band {band:.0%}"] = (base, {**engine.RULE, "band": band}, None)
-        variants["Calendar only"] = (base, {"type": "calendar", "months": 12}, None)
-        for sleeve, col in [
-            ("Global hedged bonds", "global_bonds"),
-            ("Global unhedged bonds", "global_unhedged"),
-        ]:
-            variants[sleeve] = (base.rename({"bonds": col}), engine.RULE, None)
-        for bps in engine.SPREAD_SENSITIVITY:
-            variants[f"Spread {bps * 1e4:.0f} bps per side"] = (base, engine.RULE, bps)
-        for label, (w, rule, spread) in variants.items():
-            sim = engine.simulate(layer, w, rule, spread)
-            s = engine.summarise(sim, layer)
-            chk = engine.profile_check(sim, layer, p)
-            rows.append(
-                {
-                    "profile": p.name,
-                    "variant": label,
-                    "real_annual_return": s["real_annual_return"],
-                    "volatility": s["volatility"],
-                    "max_drawdown": s["max_drawdown"],
-                    "cost_per_year": s["cost_per_year"],
-                    "worst_window_real": chk["worst_window_real"],
-                    "meets_limits": chk["meets_limits"],
-                }
-            )
-    return pd.DataFrame(rows).set_index(["profile", "variant"])
+    eq = float(base.get("equity", 0))
+    variants = {"Base case": (base, engine.RULE, None)}
+    for shift in (-0.10, 0.10):
+        e = min(max(eq + shift, 0.0), 1.0)
+        variants[f"Equity {shift:+.0%}"] = (
+            pd.Series({"equity": e, "bonds": 1 - e}),
+            engine.RULE,
+            None,
+        )
+    for band in (0.05, 0.15):
+        variants[f"Band {band:.0%}"] = (base, {**engine.RULE, "band": band}, None)
+    variants["Calendar only"] = (base, {"type": "calendar", "months": 12}, None)
+    for sleeve, col in [
+        ("Global hedged bonds", "global_bonds"),
+        ("Global unhedged bonds", "global_unhedged"),
+    ]:
+        variants[sleeve] = (base.rename({"bonds": col}), engine.RULE, None)
+    for bps in engine.SPREAD_SENSITIVITY:
+        variants[f"Spread {bps * 1e4:.0f} bps per side"] = (base, engine.RULE, bps)
+    for label, (w, rule, spread) in variants.items():
+        sim = engine.simulate(layer, w, rule, spread)
+        s = engine.summarise(sim, layer)
+        chk = engine.menu_check(sim, layer, tolerance)
+        rows.append(
+            {
+                "mix": name,
+                "variant": label,
+                "real_annual_return": s["real_annual_return"],
+                "volatility": s["volatility"],
+                "max_drawdown": s["max_drawdown"],
+                "cost_per_year": s["cost_per_year"],
+                "max_drawdown_real": chk["max_drawdown_real"],
+                "meets_tolerance": chk["meets_tolerance"],
+            }
+        )
+    return pd.DataFrame(rows).set_index(["mix", "variant"])
 
 
 def attribution(layer: pd.DataFrame, weights: dict[str, pd.Series]) -> dict:

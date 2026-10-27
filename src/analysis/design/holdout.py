@@ -57,7 +57,9 @@ def _jst_real() -> pd.DataFrame:
     ).dropna()
 
 
-def h1_non_us(w: np.ndarray, p, real: pd.DataFrame) -> float:
+def h1_windows(w: np.ndarray, p, real: pd.DataFrame) -> np.ndarray:
+    """Cumulative real returns over every horizon-length window in each non-US JST country,
+    pooled (windows never span a missing year)."""
     windows = []
     for country, g in real.groupby(level="country"):
         if country == "USA":
@@ -66,25 +68,56 @@ def h1_non_us(w: np.ndarray, p, real: pd.DataFrame) -> float:
         s = pd.Series(g.to_numpy() @ w, index=g.index)
         s = s.reindex(range(int(s.index.min()), int(s.index.max()) + 1))
         windows.append(metrics.rolling_annualised(s, p.window_years, 1))
-    pooled = pd.concat(windows)
-    return float((pooled < 0).mean())
+    return (1 + pd.concat(windows).to_numpy()) ** p.window_years - 1
+
+
+def h1_worst(w: np.ndarray, p, real: pd.DataFrame) -> tuple[str, int, float]:
+    """Country, end year and cumulative real return of the worst H1 window."""
+    worst = ("", 0, np.inf)
+    for country, g in real.groupby(level="country"):
+        if country == "USA":
+            continue
+        g = g.droplevel("country")
+        s = pd.Series(g.to_numpy() @ w, index=g.index)
+        s = s.reindex(range(int(s.index.min()), int(s.index.max()) + 1))
+        cum = (1 + metrics.rolling_annualised(s, p.window_years, 1)) ** p.window_years - 1
+        if len(cum) and cum.min() < worst[2]:
+            worst = (str(country), int(cum.idxmin()), float(cum.min()))
+    return worst
+
+
+def h1_non_us(w: np.ndarray, p, real: pd.DataFrame) -> float:
+    return float((h1_windows(w, p, real) < 0).mean())
+
+
+def _us_pre1981_real(w: np.ndarray) -> pd.Series:
+    sh = data.monthly("us_monthly_shiller").loc[: f"{US_END}-12"]
+    port = w[0] * sh["us_eq_tr_nominal_usd"] + (w[1] + w[2]) * sh["us_gov10_tr_nominal_usd"]
+    return metrics.real_returns(port, sh["us_cpi_inflation"]).dropna()
+
+
+def h2_windows(w: np.ndarray, p) -> np.ndarray:
+    ann = metrics.rolling_annualised(_us_pre1981_real(w), p.window_years, 12)
+    return (1 + ann.to_numpy()) ** p.window_years - 1
 
 
 def h2_us_pre1981(w: np.ndarray, p) -> float:
-    sh = data.monthly("us_monthly_shiller").loc[: f"{US_END}-12"]
-    port = w[0] * sh["us_eq_tr_nominal_usd"] + (w[1] + w[2]) * sh["us_gov10_tr_nominal_usd"]
-    real = metrics.real_returns(port, sh["us_cpi_inflation"]).dropna()
-    return allocation.loss_share(real, p.window_years, 12)
+    return allocation.loss_share(_us_pre1981_real(w), p.window_years, 12)
+
+
+def h3_paths(w: np.ndarray, p, glob: pd.DataFrame) -> np.ndarray:
+    """Cumulative real return of each bootstrap path of the horizon's length."""
+    r = glob[allocation.ASSETS].to_numpy() @ w
+    generator = bootstrap.rng()
+    out = np.empty(BOOTSTRAP_REPS)
+    for i in range(BOOTSTRAP_REPS):
+        idx = bootstrap.moving_block_indices(len(r), BLOCK_YEARS, generator)[: p.window_years]
+        out[i] = np.prod(1 + r[idx]) - 1
+    return out
 
 
 def h3_bootstrap(w: np.ndarray, p, glob: pd.DataFrame) -> float:
-    r = glob[allocation.ASSETS].to_numpy() @ w
-    generator = bootstrap.rng()
-    losses = 0
-    for _ in range(BOOTSTRAP_REPS):
-        idx = bootstrap.moving_block_indices(len(r), BLOCK_YEARS, generator)[: p.window_years]
-        losses += int(np.prod(1 + r[idx]) < 1)
-    return losses / BOOTSTRAP_REPS
+    return float((h3_paths(w, p, glob) < 0).mean())
 
 
 def run() -> dict:
@@ -133,20 +166,6 @@ def run() -> dict:
         "in_sample_selected": comparison["selected"],
         "block_years": BLOCK_YEARS,
     }
-
-
-def final_allocations() -> dict[str, pd.Series | None]:
-    """Weights (equity, bonds, cash) per profile from the v2 holdout; None if infeasible."""
-    r = run()
-    t = r["table"].set_index(["profile", "candidate"])
-    out = {}
-    for profile, cand in r["selected"].items():
-        out[profile] = (
-            None
-            if cand == INFEASIBLE
-            else pd.Series({a: float(t.loc[(profile, cand), f"w_{a}"]) for a in allocation.ASSETS})
-        )
-    return out
 
 
 def v1_finding() -> pd.DataFrame:
@@ -203,63 +222,64 @@ def frontier(step: float = 0.10) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
-LOSS_BUDGETS = [0.05, 0.10, 0.15, 0.20]
+DRAWDOWN_TOLERANCES = [-0.20, -0.30, -0.40, -0.50]
+CVAR_ALPHA = 0.05
 
 
-def probability_frontier(step: float = 0.01) -> pd.DataFrame:
-    """Per horizon and equity/SGS mix: P(real loss) on each holdout test and in-sample, the
-    holdout P used by the decision rule (the highest of H1, H2, H3) and expected real return.
+def risk_frontier(step: float = 0.01) -> pd.DataFrame:
+    """Per horizon and equity/SGS mix (post-holdout rule, 2026-10-27, fixed before computing):
 
-    Rule (post-holdout, 2026-10-27): for each loss budget X, choose the mix with the highest
-    expected real return whose holdout P(real loss over the horizon) <= X.
+    - max_drawdown: the worse of the real SGD monthly path (1998 onwards) and the US real
+      monthly path before 1981 (Shiller). Annual JST data are not used for drawdowns because
+      annual observations hide falls within the year. Drawdowns do not depend on the horizon.
+    - p_loss_holdout: the highest real-loss share across H1, H2 and H3.
+    - worst_window_holdout: the worst cumulative real return over any horizon-length window in
+      the actual histories (H1 and H2; bootstrap paths are excluded).
+    - cvar5_holdout: the lowest of the three tests' CVaR at 5% of horizon real returns.
+    - expected_real_return: the global JST portfolio's long-run real return.
     """
     sgd = allocation.sgd_history()
     glob = allocation.global_portfolio_real()
     real = _jst_real()
     rows = []
-    for p in profiles.PROFILES:
-        for e in np.round(np.arange(0, 1 + 1e-9, step), 2):
-            w = np.array([e, 1 - e, 0.0])
-            t = _sgd_test(w, sgd, p)
-            h1, h2, h3 = h1_non_us(w, p, real), h2_us_pre1981(w, p), h3_bootstrap(w, p, glob)
-            g = pd.Series(glob[allocation.ASSETS].to_numpy() @ w)
+    for e in np.round(np.arange(0, 1 + 1e-9, step), 2):
+        w = np.array([e, 1 - e, 0.0])
+        sgd_real = metrics.real_returns(
+            pd.Series(sgd[allocation.ASSETS].to_numpy() @ w, index=sgd.index), sgd["inflation"]
+        )
+        dd_sgd = metrics.max_drawdown(sgd_real)
+        dd_us = metrics.max_drawdown(_us_pre1981_real(w))
+        g = pd.Series(glob[allocation.ASSETS].to_numpy() @ w)
+        for p in profiles.PROFILES:
+            h1, h2, h3 = h1_windows(w, p, real), h2_windows(w, p), h3_paths(w, p, glob)
             rows.append(
                 {
                     "profile": p.name,
                     "equity_share": float(e),
                     "expected_real_return": float(np.expm1(np.log1p(g).mean())),
-                    "p_loss_holdout": max(h1, h2, h3),
-                    "h1_non_us_loss_share": h1,
-                    "h2_us_pre1981_loss_share": h2,
-                    "h3_bootstrap_loss_share": h3,
-                    "p_loss_sgd_in_sample": t["loss_share"],
-                    "sgd_worst_window": t["worst_window"],
-                    "sgd_max_drawdown": t["max_drawdown"],
+                    "max_drawdown": min(dd_sgd, dd_us),
+                    "max_drawdown_sgd": dd_sgd,
+                    "max_drawdown_us_pre1981": dd_us,
+                    "p_loss_holdout": max(float((x < 0).mean()) for x in (h1, h2, h3)),
+                    "worst_window_holdout": float(min(h1.min(), h2.min())),
+                    "cvar5_holdout": min(metrics.cvar(x, CVAR_ALPHA) for x in (h1, h2, h3)),
                 }
             )
     return pd.DataFrame(rows)
 
 
-def loss_budget_table(frontier: pd.DataFrame) -> pd.DataFrame:
-    """For each horizon and loss budget X: the highest-expected-return mix with holdout P <= X."""
+def risk_menu(frontier: pd.DataFrame) -> pd.DataFrame:
+    """For each horizon and drawdown tolerance: the highest-expected-return mix whose maximum
+    drawdown is no worse than the tolerance. A menu, not a recommendation."""
     rows = {}
     for p in profiles.PROFILES:
         f = frontier[frontier["profile"] == p.name]
-        for x in LOSS_BUDGETS:
-            ok = f[f["p_loss_holdout"] <= x]
+        for tol in DRAWDOWN_TOLERANCES:
+            ok = f[f["max_drawdown"] >= tol]
+            key = (p.name, f"{tol:.0%}")
             if ok.empty:
-                rows[(p.name, f"{x:.0%}")] = {
-                    "equity_share": np.nan,
-                    "expected_real_return": np.nan,
-                    "p_loss_holdout": np.nan,
-                    "result": "no mix",
-                }
+                rows[key] = {"result": "no mix"}
                 continue
             best = ok.sort_values("expected_real_return", ascending=False).iloc[0]
-            rows[(p.name, f"{x:.0%}")] = {
-                "equity_share": best["equity_share"],
-                "expected_real_return": best["expected_real_return"],
-                "p_loss_holdout": best["p_loss_holdout"],
-                "result": "feasible",
-            }
+            rows[key] = {**best.drop("profile").to_dict(), "result": "meets tolerance"}
     return pd.DataFrame(rows).T

@@ -14,8 +14,8 @@ Rules (fixed before results were computed):
   A35.SI (SGD), total returns from prices and distributions, which already include TER and
   fund-level withholding tax; benchmark global bonds: SGLU.AS hedged to SGD from July 2019,
   the US 10-year stand-in before.
-- Strategies: each feasible profile's v2 holdout selection (design.holdout.final_allocations)
-  and, for reference, the in-sample picks.
+- Strategies: the distinct mixes in the risk menu (design.holdout.risk_menu; no single
+  recommended portfolio), each labelled with the tightest drawdown tolerance it meets.
 - Benchmarks: 100% global equity; global 60/40 (equities / global bonds hedged); global
   market-cap multi-asset (equity and bond weights from reference/market_cap_weights.csv,
   bonds hedged).
@@ -29,6 +29,8 @@ Rules (fixed before results were computed):
   volatility, Sharpe and Sortino over the SGD one-month rate, maximum drawdown and months to
   recover, worst rolling 1/3/5/10-year annualised returns, turnover and costs per year.
 """
+
+import functools
 
 import numpy as np
 import pandas as pd
@@ -121,20 +123,28 @@ def benchmark_weights() -> dict[str, pd.Series]:
     }
 
 
-def strategy_weights() -> dict[str, pd.Series]:
-    """Each feasible profile's v2 holdout selection, and, for reference, the in-sample picks
-    of every profile (infeasible profiles have no adopted allocation)."""
-    out = {}
-    for profile, w in holdout.final_allocations().items():
-        if w is not None:
-            out[f"{profile} profile (v2)"] = w[w > 0]
-    for profile, w in allocation.selected_weights().items():
-        out[f"In-sample {profile.lower()} pick"] = w[w > 0]
+@functools.cache
+def menu_mixes() -> dict[str, tuple[pd.Series, float]]:
+    """Label -> (weights, drawdown tolerance) for each distinct mix in the risk menu, labelled
+    with the tightest tolerance it meets. The menu's mixes are the same at every horizon."""
+    menu = holdout.risk_menu(holdout.risk_frontier())
+    menu = menu[menu["result"] == "meets tolerance"]
+    out, seen = {}, set()
+    for tol in holdout.DRAWDOWN_TOLERANCES:
+        rows = menu[menu.index.get_level_values(1) == f"{tol:.0%}"]
+        if rows.empty:
+            continue
+        e = float(rows["equity_share"].iloc[0])
+        if e in seen:
+            continue
+        seen.add(e)
+        w = pd.Series({"equity": e, "bonds": 1 - e})
+        out[f"Menu: {e:.0%} equity (drawdown {tol:.0%})"] = (w[w > 0], tol)
     return out
 
 
-def infeasible_profiles() -> list[str]:
-    return [p for p, w in holdout.final_allocations().items() if w is None]
+def strategy_weights() -> dict[str, pd.Series]:
+    return {k: w for k, (w, _) in menu_mixes().items()}
 
 
 def cost_fraction(spread_per_side: float | None = None) -> portfolio.CostFn:
@@ -195,21 +205,8 @@ def summarise(sim: pd.DataFrame, layer: pd.DataFrame) -> dict:
     return out
 
 
-def profile_check(sim: pd.DataFrame, layer: pd.DataFrame, profile) -> dict:
-    """The profile's limits on the backtest's real monthly path ('not testable' when the
-    sample is shorter than the profile's window)."""
+def menu_check(sim: pd.DataFrame, layer: pd.DataFrame, tolerance: float) -> dict:
+    """The mix's maximum real drawdown on this layer against its menu tolerance."""
     real = metrics.real_returns(sim["net"], layer.loc[sim.index, "inflation"])
-    roll = metrics.rolling_annualised(real, profile.window_years, 12)
     dd = metrics.max_drawdown(real)
-    if not len(roll):
-        untestable = "not testable"
-        return {"worst_window_real": np.nan, "max_drawdown_real": dd, "meets_limits": untestable}
-    worst = (
-        float(roll.min())
-        if profile.floor_is_annualised
-        else float((1 + roll.min()) ** profile.window_years - 1)
-    )
-    ok = worst >= profile.worst_window_floor
-    if profile.max_drawdown_cap is not None:
-        ok = ok and dd >= profile.max_drawdown_cap
-    return {"worst_window_real": worst, "max_drawdown_real": dd, "meets_limits": bool(ok)}
+    return {"max_drawdown_real": dd, "tolerance": tolerance, "meets_tolerance": dd >= tolerance}

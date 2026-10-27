@@ -88,6 +88,16 @@ def rolling_annualised(returns: pd.Series, years: int, periods_per_year: int) ->
     return np.expm1(log_growth / years).dropna()
 
 
+def cvar(values: np.ndarray | pd.Series, alpha: float = 0.05) -> float:
+    """Conditional value at risk: the mean of the worst ceil(alpha * n) outcomes (lower is
+    worse), e.g. the average of the worst 5% of horizon returns."""
+    x = np.sort(np.asarray(values, dtype=float)[~np.isnan(np.asarray(values, dtype=float))])
+    if not len(x):
+        return np.nan
+    k = max(1, int(np.ceil(alpha * len(x))))
+    return float(x[:k].mean())
+
+
 def worst_rolling_return(returns: pd.Series, years: int, periods_per_year: int) -> float:
     """Worst annualised return over any rolling window of `years` (overlapping windows)."""
     window = years * periods_per_year

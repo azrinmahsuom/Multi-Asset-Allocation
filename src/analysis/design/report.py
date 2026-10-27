@@ -272,70 +272,121 @@ def _v1_finding_section() -> list[str]:
     ]
 
 
-def _budget_display(budget: pd.DataFrame) -> pd.DataFrame:
-    """One row per horizon, one column per loss budget: the selected equity share."""
-    out = {}
-    for (profile, x), r in budget.iterrows():
-        out.setdefault(profile, {})[f"P(real loss) <= {x}"] = (
-            f"{r['equity_share']:.0%} equity (P {r['p_loss_holdout']:.1%}, "
-            f"real {r['expected_real_return']:.1%})"
-            if r["result"] == "feasible"
-            else "no mix"
+MENU_COLUMNS = [
+    "equity_share",
+    "expected_real_return",
+    "max_drawdown",
+    "max_drawdown_sgd",
+    "max_drawdown_us_pre1981",
+    "p_loss_holdout",
+    "worst_window_holdout",
+    "cvar5_holdout",
+]
+
+
+def _menu_display(menu: pd.DataFrame, profile: str) -> pd.DataFrame:
+    m = menu.loc[profile].copy()
+    m.index = [f"Drawdown no worse than {t}" for t in m.index]
+    return m[["result", *[c for c in MENU_COLUMNS if c in m.columns]]]
+
+
+def _sgd_only_menu(f: pd.DataFrame) -> pd.DataFrame:
+    """Sensitivity, not a selection: the menu if only the SGD path (1998 onwards) set the
+    drawdown."""
+    g = f[f["profile"] == profiles.PROFILES[0].name]
+    rows = {}
+    for tol in holdout.DRAWDOWN_TOLERANCES:
+        ok = g[g["max_drawdown_sgd"] >= tol]
+        rows[f"Drawdown no worse than {tol:.0%}"] = (
+            {
+                "equity_share": ok["equity_share"].max(),
+                "max_drawdown_sgd": ok.loc[ok["equity_share"].idxmax(), "max_drawdown_sgd"],
+            }
+            if len(ok)
+            else {"equity_share": np.nan, "max_drawdown_sgd": np.nan}
         )
-    return pd.DataFrame(out).T
+    return pd.DataFrame(rows).T
+
+
+def _worst_window_note(f: pd.DataFrame) -> list[str]:
+    real = holdout._jst_real()
+    parts = []
+    for p in profiles.PROFILES:
+        for e in (0.0, 0.5, 1.0):
+            c, year, v = holdout.h1_worst(np.array([e, 1 - e, 0.0]), p, real)
+            parts.append(f"{p.name.lower()}, {e:.0%} equity: {c} to {year} ({v:.0%})")
+    return [
+        "The worst horizon real returns come from the non-US JST histories, which include "
+        "wars and hyperinflations. Worst windows: " + "; ".join(parts) + ".",
+        "",
+    ]
 
 
 def _core_result_section() -> list[str]:
-    f = holdout.probability_frontier()
-    budget = holdout.loss_budget_table(f)
+    f = holdout.risk_frontier()
+    menu = holdout.risk_menu(f)
     lines = [
-        "## Core result: risk and return by horizon",
+        "## Core result: a risk menu per horizon",
         "",
-        "Decision rule (changed after the v2 holdout, 2026-10-27): for each horizon, maximise "
-        "expected real return subject to P(real loss over the horizon) <= X, reported for X = "
-        + ", ".join(f"{x:.0%}" for x in holdout.LOSS_BUDGETS)
-        + ". P is the highest of the three holdout loss shares (H1 non-US JST windows pooled "
-        "across countries, H2 US before 1981, H3 global JST block bootstrap); the in-sample SGD "
-        "loss share is shown alongside. Mixes are global equities (unhedged) and SGS in 1-point "
-        "steps; expected real return is the global JST portfolio's long-run real return. The "
-        "previous rule (highest return among mixes meeting all limits) always selected the "
-        "riskiest feasible mix.",
+        "Decision rule (changed after the holdout, 2026-10-27): no single recommended "
+        "portfolio. For each horizon and each maximum-drawdown tolerance ("
+        + ", ".join(f"{t:.0%}" for t in holdout.DRAWDOWN_TOLERANCES)
+        + "), the menu shows the highest-expected-return equity/SGS mix (1-point steps) whose "
+        "maximum real drawdown is no worse than the tolerance, with its chance of a real loss "
+        "over the horizon, worst horizon real return and CVaR at 5% of horizon real returns. "
+        "The loss-probability rule it replaces did not constrain equity at long horizons.",
         "",
-        "Highest-return mix for each loss budget:",
+        "Definitions (fixed before the results were computed):",
         "",
-        _table_markdown(_budget_display(budget)),
+        "- Maximum drawdown: the worse of the real SGD monthly path (1998 onwards) and the US "
+        "real monthly path from 1871 to 1980 (Shiller). Annual JST data are not used for "
+        "drawdowns, because annual observations hide falls within a year. Drawdowns do not "
+        "depend on the horizon, so the same mixes appear at every horizon; the horizon "
+        "changes the loss measures.",
+        "- P(real loss): the highest real-loss share across the three holdout tests (H1 non-US "
+        "JST windows pooled across countries, H2 US before 1981, H3 global JST block "
+        "bootstrap).",
+        "- Worst horizon real return: the worst cumulative real return over any horizon-length "
+        "window in the actual histories (H1 and H2).",
+        "- CVaR 5%: the average of the worst 5% of horizon real returns, the lowest of the "
+        "three tests.",
+        "- Expected real return: the global JST portfolio's long-run real return.",
         "",
     ]
     for p in profiles.PROFILES:
         g = f[f["profile"] == p.name]
-        i = g["p_loss_holdout"].idxmin()
-        floor_p, floor_e = g.loc[i, "p_loss_holdout"], g.loc[i, "equity_share"]
         shown = g[np.isclose(g["equity_share"] * 10, np.round(g["equity_share"] * 10))]
         shown = shown.assign(mix=[f"{e:.0%} equity" for e in shown["equity_share"]])
-        shown = shown.set_index("mix").drop(columns=["profile", "equity_share"])
+        shown = shown.set_index("mix")[MENU_COLUMNS[1:]]
         lines += [
             f"### {p.name} ({p.horizon})",
             "",
-            f"Lowest holdout P(real loss over {p.window_years} years) across all mixes: "
-            f"{floor_p:.1%}, at {floor_e:.0%} equities.",
+            "Risk menu:",
+            "",
+            _table_markdown(_menu_display(menu, p.name)),
+            "",
+            "Frontier (10-point steps):",
+            "",
+            _table_markdown(shown),
             "",
         ]
-        if floor_p > max(holdout.LOSS_BUDGETS):
-            lines += [
-                f"No mix keeps the chance of a real loss over {p.window_years} years within "
-                f"{max(holdout.LOSS_BUDGETS):.0%}. On this evidence the {p.name.lower()} "
-                "horizon sits outside the strategy, consistent with the brief's separation of "
-                "near-term spending money from long-horizon capital.",
-                "",
-            ]
-        lines += [_table_markdown(shown), ""]
+    dd_us_floor = f["max_drawdown_us_pre1981"].max()
+    dd_us_at = f.loc[f["max_drawdown_us_pre1981"].idxmax(), "equity_share"]
     lines += [
-        "Reading: over 10 and 20 years, P(real loss) does not rise with the equity share (its "
-        "lowest point is at a high equity share), so wherever a loss budget can be met at all, "
-        "it is also met at 100% equities, and maximising expected return selects 100% "
-        "equities. A loss-probability limit alone does not restrain the equity share at these "
-        "horizons; that would need a limit on the size of losses. No threshold has been "
-        "changed (owner instruction).",
+        "### Reading",
+        "",
+        f"No mix keeps the US 1871–1980 real drawdown better than {dd_us_floor:.1%} (the best "
+        f"is at {dd_us_at:.0%} equities): long US government bonds lost about half their real "
+        "value between the 1940s and 1981, so bond-heavy mixes fall as far as equity-heavy "
+        "ones. Under the rule as fixed, tolerances tighter than that floor have no mix. The "
+        "short horizon remains outside the strategy on the loss measures (its lowest P(real "
+        "loss) over 5 years is above 20% for every mix).",
+        "",
+        *_worst_window_note(f),
+        "Sensitivity, not a selection: the largest equity share meeting each tolerance if "
+        "only the SGD path (1998 onwards, in-sample) set the drawdown:",
+        "",
+        _table_markdown(_sgd_only_menu(f)),
         "",
     ]
     return lines

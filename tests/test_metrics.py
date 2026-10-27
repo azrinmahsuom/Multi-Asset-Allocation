@@ -139,3 +139,12 @@ def test_par_bond_duration_closed_form():
 def test_maturity_for_duration_on_flat_curve():
     m = metrics.maturity_for_duration(5.0, lambda _m: 0.03)
     assert metrics.par_bond_duration(0.03, m) == pytest.approx(5.0)
+
+
+def test_cvar_mean_of_worst_tail():
+    x = np.arange(1, 21) / 100  # 0.01 ... 0.20
+    # 5% of 20 = 1 outcome: the worst, 0.01. 10% of 20 = 2: mean(0.01, 0.02) = 0.015.
+    assert metrics.cvar(x, 0.05) == pytest.approx(0.01)
+    assert metrics.cvar(x, 0.10) == pytest.approx(0.015)
+    # 5% of 30 rounds up to 2 outcomes.
+    assert metrics.cvar(np.arange(30.0), 0.05) == pytest.approx(0.5)
