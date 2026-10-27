@@ -4,7 +4,7 @@
 
 ![CI](https://github.com/azrinmahsuom/Multi-Asset-Allocation/actions/workflows/ci.yml/badge.svg)
 
-## Summary for recruiters
+## Summary
 
 - **Problem:** which long-horizon mix of low-cost ETFs is best supported by evidence for an investor who spends Singapore dollars? And which popular allocation claims survive testing?
 - **What I built:** a reproducible Python research pipeline. One command (`make all`) does the full run:
