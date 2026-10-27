@@ -639,3 +639,46 @@ The owner accepted the band-rule test as run. The following are the owner's judg
 - **Update to the earlier OCBC result:** at USD 25,000 with no contributions, 5 of 10 targets now favour the band rule (previously 4). The likely cause is the later change to the withholding-tax drag, though this wasn't isolated. The menu-mix decision is unchanged.
 
 Methodology is now frozen (owner instruction, 2026-10-27).
+
+### 2026-10-27: Headline cost case set to IBKR at USD 100,000 (owner)
+**Rule:** The headline backtest tables use the IBKR LSE schedule at a USD 100,000 portfolio value (`engine.BASE_LSE_BROKER`, `engine.HEADLINE_VALUE`). The OCBC schedule and the USD 25,000 and USD 500,000 sizes are sensitivities. Singapore GST on the IBKR commission is an assumption, and every table labels it so. The strategy's USD 25,000 minimum allocation is unchanged.
+
+**Evidence:** Owner instruction. The schedules are documented in the trading-cost entries above.
+
+### 2026-10-27: Cause of the OCBC USD 25,000 band-rule change confirmed
+**Test:** The ±5-point band test (OCBC, USD 25,000, no contributions) was rerun with the old 15% withholding rate and everything else unchanged.
+
+**Result:**
+- With the 15% rate, 4 of 10 targets favour the band rule. With the current effective rate, 5 of 10 do.
+- The one mix that flips is 30% equity. Its net gain moves from 4.94 to 5.03 bps a year, crossing the 5 bps margin.
+- **Confirmed cause:** the withholding-tax update.
+- The menu-mix decision is unaffected.
+
+### 2026-10-27: Issuer return cross-check for ISAC, IGLO and A35; duplicate distribution records removed
+**Rule:**
+- **Comparison:** our total returns (closing prices plus distributions) are compared with the issuer's published NAV returns over the same periods. A gap above 0.5 percentage points a year is logged as a mismatch (owner rule). Code: `prices.period_return_check`; the issuer figures are extracted from the hashed documents by `documents.issuer_period_returns`.
+- **Periods:**
+  - ISAC and IGLO: calendar years 2016–2025, from their factsheets.
+  - A35: 1-, 3- and 5-year returns to June 2025, December 2025 and June 2026, from its reports.
+- **New cleaning rule (`clean.drop_duplicate_distributions`):** a distribution equal to the previous one and dated within 7 calendar days of it is treated as a duplicate record and dropped. Real distributions are at least about a month apart.
+
+**Evidence:**
+- The first run showed A35 gaps of +1.29 and +1.38 points in the two 1-year windows that contain January 2025.
+- The Yahoo data record A35's January 2025 distribution (0.0126) on both 2 and 3 January.
+- The rule removed one duplicate each from A35.SI, TIP and CFA.SI. No evidence verdict changed. Claim 8's TIP check moved slightly: the 2008 gap went from 0.0% to −0.5%.
+
+**Result after the fix (29 periods):**
+- A35: 0 mismatches; largest gap 17 bps.
+- ISAC: 1 mismatch, 2019 (issuer 26.37%, ours 25.75%, −62 bps).
+- IGLO: 1 mismatch, 2025 (issuer 6.45%, ours 7.14%, +69 bps).
+- Mean gaps are under 5 bps a year for all three funds.
+- **Likely cause of the two mismatches:** the price-vs-NAV basis, through premiums or discounts at year-end. This isn't confirmed, because NAV histories weren't collected. Both are logged and not adjusted.
+
+### 2026-10-27: Minimal implementation table (Phase 4, owner-limited scope)
+**Rule:**
+- **Mixes covered:** each menu mix, and the SGD-era sensitivity mixes the README shows. Each is mapped to one ETF per sleeve: ISAC.L for equities and A35.SI for SGS. Illustrative, as of 2026-10.
+- **All-in annual cost** at USD 100,000 with IBKR = weighted TER + fund-level withholding-tax drag + rebalancing trading cost per year. The withholding drag is equity weight × trailing dividend yield × ISAC's effective rate.
+- **Also shown:** the one-off cost of the initial purchase.
+- **Not included:** SGD→USD conversion and platform or custody fees.
+
+No further Phase 4 scope (owner instruction).

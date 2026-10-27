@@ -116,7 +116,7 @@ Not applicable: no hypothesis (see §5).
 - Trading costs: the SGD→USD conversion markup is undisclosed (Evidence: pending); more primary broker fee schedules are needed for a median.
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
 - SingStat Table Builder's own licence terms are still to be confirmed.
-- Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
+- Issuer return cross-check: done for ISAC, IGLO and A35 (docs/backtest_results.md); two single-year gaps above 0.5pp logged. The REIT ETF cross-check in `reference/etf_annual_returns.csv` is not done (REITs are outside the final universe).
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
 - Rebalancing band of 10 percentage points: an economic choice to limit drift; Evidence: pending.

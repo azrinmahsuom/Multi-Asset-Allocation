@@ -63,3 +63,11 @@ def test_fill_single_month_gaps_only_fills_isolated_months():
     assert filled.iloc[1] == pytest.approx(110.0)  # geometric midpoint of 100 and 121
     assert filled.iloc[3:5].isna().all()  # two-month gap left missing
     assert flag.tolist() == [False, True, False, False, False, False]
+
+
+def test_drop_duplicate_distributions():
+    idx = pd.to_datetime(["2025-01-02", "2025-01-03", "2025-07-01", "2025-07-30", "2025-08-29"])
+    div = pd.Series([0.0126, 0.0126, 0.0132, 0.01, 0.01], index=idx)
+    out = clean.drop_duplicate_distributions(div)
+    # The 3 January repeat goes; equal monthly payments a month apart stay.
+    assert out.tolist() == [0.0126, 0.0, 0.0132, 0.01, 0.01]

@@ -197,6 +197,56 @@ def factsheet_fund_duration(doc: str) -> float:
     return float(m.group(1))
 
 
+def ishares_calendar_returns(doc: str) -> pd.Series:
+    """Share-class calendar-year returns (NAV, %, decimals) from an iShares factsheet's
+    'CALENDAR YEAR PERFORMANCE' table."""
+    m = re.search(r"CALENDAR YEAR PERFORMANCE ((?:\d{4} )+)Share Class ((?:-?[0-9.]+ )+)", doc)
+    years = [int(y) for y in m.group(1).split()]
+    values = [float(v) / 100 for v in m.group(2).split()[: len(years)]]
+    return pd.Series(values, index=years)
+
+
+AMOVA_PERIODS = {"1 Yr": 1, "3 Yr": 3, "5 Yr": 5}
+
+
+def amova_period_returns(doc: str) -> pd.DataFrame:
+    """Fund NAV returns (1, 3 and 5 years; multi-year annualised) from each 'PERFORMANCE
+    SUMMARY' table in an Amova report, with the 'Returns as at' date of each table."""
+    rows = []
+    pattern = (
+        r"Returns \(%\) 3 Mth 6 Mth 1 Yr 3 Yr 5 Yr 10 Yr Since Inception "
+        r"ABF Singapore Bond Index Fund ((?:-?[0-9.]+ ){7}).*?Returns as at (\d{1,2} \w+ \d{4})"
+    )
+    for m in re.finditer(pattern, doc):
+        values = [float(v) / 100 for v in m.group(1).split()]
+        end = pd.Period(pd.Timestamp(m.group(2)), freq="M")
+        for label, years in AMOVA_PERIODS.items():
+            idx = ["3 Mth", "6 Mth", "1 Yr", "3 Yr", "5 Yr", "10 Yr", "SI"].index(label)
+            rows.append({"period_end": end, "years": years, "issuer_return": values[idx]})
+    return pd.DataFrame(rows).drop_duplicates()
+
+
+def issuer_period_returns() -> pd.DataFrame:
+    """Issuer-published NAV total returns for ISAC, IGLO (calendar years, USD) and A35 (1, 3
+    and 5 years to each report date, SGD), from the hashed documents."""
+    rows = []
+    for ticker, f in (("ISAC.L", "ISAC_factsheet.pdf"), ("IGLO.L", "IGLO_factsheet.pdf")):
+        for year, r in ishares_calendar_returns(text(DOCS / f)).items():
+            rows.append(
+                {
+                    "ticker": ticker,
+                    "period_end": pd.Period(f"{year}-12", freq="M"),
+                    "years": 1,
+                    "issuer_return": r,
+                    "source": f,
+                }
+            )
+    a35 = amova_period_returns(text(DOCS / "A35_annual_report.pdf"))
+    for r in a35.to_dict("records"):
+        rows.append({"ticker": "A35.SI", **r, "source": "A35_annual_report.pdf"})
+    return pd.DataFrame(rows)
+
+
 def extracted() -> dict[str, float]:
     isac, iglo = text(DOCS / "ISAC_factsheet.pdf"), text(DOCS / "IGLO_factsheet.pdf")
     a35 = text(DOCS / "A35_annual_report.pdf")

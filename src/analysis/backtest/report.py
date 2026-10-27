@@ -98,7 +98,7 @@ def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> l
         for a, (t, m, b) in engine.INSTRUMENTS.items():
             if a == "global_unhedged" or (m != "LSE" and broker != engine.BASE_LSE_BROKER):
                 continue
-            label = f"{a} ({t}, {m}, {broker if m == 'LSE' else b})"
+            label = f"{a} ({t}, {m}, {engine.broker_label(broker) if m == 'LSE' else b})"
             by_size[label] = {f"USD {v:,}": fn(a, v, "buy") for v in sizes}
     by_size = pd.DataFrame(by_size).T
     rows = {}
@@ -127,8 +127,7 @@ def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> l
         "cost data only, not broker recommendations.",
         "",
         "Cost of one buy order, as a fraction of the order, by order size and LSE broker "
-        f"schedule (IBKR is the low-cost case, OCBC the high-cost case; the tables above use "
-        f"{engine.BASE_LSE_BROKER}):",
+        "schedule (IBKR is the headline low-cost case, OCBC the high-cost sensitivity):",
         "",
         _table_markdown(by_size),
         "",
@@ -137,8 +136,8 @@ def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> l
         "",
         _table_markdown(pd.DataFrame(rows).T),
         "",
-        "Rebalancing trades are sized from the USD 25,000 minimum, not the grown portfolio, so "
-        "fixed minimum commissions weigh as they would at the minimum account size.",
+        f"Rebalancing trades are sized from the headline value, USD {engine.HEADLINE_VALUE:,.0f}, "
+        "not the grown portfolio; other sizes are in the sensitivity below.",
         "",
     ]
 
@@ -170,20 +169,122 @@ def _menu_by_size(index_layer: pd.DataFrame) -> pd.DataFrame:
             for size in engine.PORTFOLIO_SIZES:
                 sim = engine.simulate(index_layer, w, portfolio_value=size, lse_broker=broker)
                 s = engine.summarise(sim, index_layer)
-                rows[f"{name}, {broker}, USD {size:,.0f}"] = {
+                rows[f"{name}, {engine.broker_label(broker)}, USD {size:,.0f}"] = {
                     "real_annual_return": s["real_annual_return"],
                     "cost_per_year_bps": s["cost_per_year"] * 1e4,
                 }
     return pd.DataFrame(rows).T
 
 
+ETF_COLUMNS = {
+    "ISAC.L": "ISAC.L_tr_nominal_usd",
+    "IGLO.L": "IGLO.L_tr_nominal_usd",
+    "A35.SI": "A35.SI_tr_nominal_sgd",
+}
+
+
+def _issuer_check_section() -> list[str]:
+    from analysis import data, documents, prices
+
+    c = prices.period_return_check(
+        data.monthly("etf_monthly"), documents.issuer_period_returns(), ETF_COLUMNS
+    )
+    c = c.assign(gap_bps=c["gap"] * 1e4, period_end=c["period_end"].astype(str))
+    summary = c.groupby("ticker").agg(
+        periods=("gap", "size"),
+        mean_gap_bps=("gap_bps", "mean"),
+        largest_gap_bps=("gap_bps", lambda g: g.abs().max()),
+        mismatches=("mismatch", "sum"),
+    )
+    bad = c[c["mismatch"]]
+    listed = "; ".join(
+        f"{r.ticker} {r.period_end} ({r.years}y): issuer {r.issuer_return:.2%}, ours "
+        f"{r.ours:.2%}, gap {r.gap_bps:+.0f} bps"
+        for r in bad.itertuples()
+    )
+    return [
+        "## Issuer return cross-check (ISAC, IGLO, A35)",
+        "",
+        "Our total returns (closing prices plus distributions) against the issuer's published "
+        "NAV returns over the same periods: calendar years from the iShares factsheets; 1-, 3- "
+        "and 5-year returns to each report date from the A35 reports (multi-year figures "
+        "annualised). A gap above "
+        f"{prices.RETURN_CHECK_THRESHOLD * 1e4:.0f} bps a year is logged as a mismatch. Our "
+        "returns are market-price based and the issuer's are NAV based, so year-end premiums "
+        "or discounts can open gaps.",
+        "",
+        _table_markdown(summary),
+        "",
+        f"Mismatches: {listed or 'none'}.",
+        "",
+    ]
+
+
+def _implementation_section() -> list[str]:
+    """Menu mixes mapped to illustrative ETFs with all-in annual cost at the headline value."""
+    from analysis.design import holdout
+
+    layer = engine.index_layer()
+    f = engine.risk_frontier()
+    g = f[f["profile"] == f["profile"].iloc[0]]
+    mixes = {
+        name: (float(w.get("equity", 0)), "binding menu")
+        for name, w in engine.strategy_weights().items()
+    }
+    for tol in holdout.DRAWDOWN_TOLERANCES:
+        ok = g[g["max_drawdown_sgd"] >= tol]
+        if len(ok):
+            e = float(ok["equity_share"].max())
+            mixes[f"SGD-era sensitivity: {e:.0%} equity (drawdown {tol:.0%})"] = (
+                e,
+                "SGD-era sensitivity",
+            )
+    ter = {"equity": engine._ter("ISAC.L"), "bonds": engine._ter("A35.SI")}
+    dy = float(engine.dividend_yield().iloc[-1])
+    wht = engine.effective_wht("ISAC.L")
+    fn = engine.cost_fraction()
+    rows = {}
+    for name, (e, basis) in mixes.items():
+        w = pd.Series({"equity": e, "bonds": 1 - e})
+        w = w[w > 0]
+        trading = engine.summarise(engine.simulate(layer, w), layer)["cost_per_year"]
+        weighted_ter = sum(ter[a] * v for a, v in w.items())
+        wht_drag = e * dy * wht
+        purchase = sum(v * fn(a, v * engine.HEADLINE_VALUE, "buy") for a, v in w.items())
+        rows[name] = {
+            "basis": basis,
+            "ISAC.L_weight": e,
+            "A35.SI_weight": 1 - e,
+            "ter_bps": weighted_ter * 1e4,
+            "wht_drag_bps": wht_drag * 1e4,
+            "trading_bps": trading * 1e4,
+            "all_in_annual_bps": (weighted_ter + wht_drag + trading) * 1e4,
+            "one_off_purchase_bps": purchase * 1e4,
+        }
+    return [
+        "## Implementation (illustrative, as of 2026-10; not a recommendation)",
+        "",
+        "Menu mixes mapped to one ETF per sleeve: equities iShares MSCI ACWI UCITS ETF (ISAC.L, "
+        "LSE, Irish-domiciled, accumulating); SGS ABF Singapore Bond Index Fund (A35.SI, SGX). "
+        f"All-in annual cost at USD {engine.HEADLINE_VALUE:,.0f} with the "
+        f"{engine.broker_label(engine.BASE_LSE_BROKER)} schedule = weighted fund TER + "
+        f"fund-level withholding-tax drag (equity weight x trailing dividend yield {dy:.2%} x "
+        f"ISAC's effective rate {wht:.1%}) + trading cost per year from rebalancing (index "
+        "layer). The one-off cost of the initial purchase is shown separately. Not included: "
+        "the SGD-to-USD conversion cost (not published) and any platform or custody fee.",
+        "",
+        _table_markdown(pd.DataFrame(rows).T),
+        "",
+    ]
+
+
 def _size_section(index_layer: pd.DataFrame) -> list[str]:
     r = robustness.cost_ranking(index_layer, engine.risk_frontier())
     shown = r["costs"].loc[[e / 10 for e in range(11)]]
     shown.index = [f"{e:.0%} equity" for e in shown.index]
-    shown.columns = [f"{b}, USD {v:,.0f}" for b, v in shown.columns]
+    shown.columns = [f"{engine.broker_label(b)}, USD {v:,.0f}" for b, v in shown.columns]
     return [
-        "## Portfolio size, broker schedule and the frontier ranking",
+        "## Sensitivity: portfolio size, broker schedule and the frontier ranking",
         "",
         "Trading cost per year (index layer) for each equity/SGS mix, by portfolio size and LSE "
         f"broker schedule (verified LSE schedules: {', '.join(engine.lse_brokers())}; OCBC is "
@@ -317,8 +418,10 @@ def run() -> dict:
             "before results were computed. Risk-free rate for Sharpe and Sortino: the SGD "
             "one-month rate (SORA Index from August 2005, compounded SGD interbank overnight "
             "before; MAS). All returns in SGD, net of fund TER, dividend withholding tax and "
-            "trading costs at the USD 25,000 minimum; rebalancing every December and when a "
-            "weight drifts more than 10 points.",
+            f"trading costs at USD {engine.HEADLINE_VALUE:,.0f} with the "
+            f"{engine.broker_label(engine.BASE_LSE_BROKER)} LSE schedule (headline case; OCBC "
+            "and USD 25,000 and 500,000 are sensitivities below); rebalancing every December "
+            "and when a weight drifts more than 10 points.",
             "",
             "**Status (2026-10-27):** no single recommended portfolio. The strategies "
             "below are the distinct mixes in the risk menu of `docs/strategy_design.md` "
@@ -344,6 +447,8 @@ def run() -> dict:
             *etf_lines,
             *_cost_section(idx_sims, index_layer, weights),
             *_size_section(index_layer),
+            *_implementation_section(),
+            *_issuer_check_section(),
             *_rebalancing_test_section(index_layer),
             "## Turnover per profile",
             "",

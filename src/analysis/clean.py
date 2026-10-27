@@ -340,13 +340,39 @@ def complete_months(daily: pd.Series) -> pd.Series:
     return monthly
 
 
+DUPLICATE_DISTRIBUTION_DAYS = 7
+
+
+def drop_duplicate_distributions(
+    dividend: pd.Series, max_gap_days: int = DUPLICATE_DISTRIBUTION_DAYS
+) -> pd.Series:
+    """Remove repeated records of one distribution: a non-zero amount equal to the previous
+    non-zero amount and dated within max_gap_days of it (e.g. A35.SI's January 2025
+    distribution appears on 2 and 3 January in the Yahoo data). Real distributions are at
+    least about a month apart."""
+    out = dividend.copy()
+    paid = dividend[dividend.fillna(0) > 0]
+    prev_date, prev_amount = None, None
+    for date, amount in paid.items():
+        if (
+            prev_date is not None
+            and amount == prev_amount
+            and (pd.Timestamp(date) - pd.Timestamp(prev_date)).days <= max_gap_days
+        ):
+            out.loc[date] = 0.0
+            continue
+        prev_date, prev_amount = date, amount
+    return out
+
+
 def etf_monthly() -> pd.DataFrame:
     """Monthly total returns (close + distributions) of each ETF, trading currency."""
     columns = {}
     for ticker, (_label, currency) in sources.ETFS.items():
         df = prices.PRICE_SOURCE.read(DATA_RAW / prices.PRICE_SOURCE.name / f"{ticker}.csv")
         df = df[df["close"].notna()]
-        daily = metrics.total_returns_from_distributions(df["close"], df["dividend"])
+        dividend = drop_duplicate_distributions(df["dividend"])
+        daily = metrics.total_returns_from_distributions(df["close"], dividend)
         columns[f"{ticker}_tr_nominal_{currency.lower()}"] = complete_months(daily)
     return pd.DataFrame(columns)
 

@@ -21,11 +21,13 @@ Rules (fixed before results were computed):
   market-cap multi-asset (equity and bond weights from reference/market_cap_weights.csv,
   bonds hedged).
 - Rebalancing: every December and at any month-end when a weight is more than 10 points from
-  target (design rule); trading costs on trades sized from the USD 25,000 minimum
-  (analysis.costs): half the dated bid-ask spread snapshot of the instrument that implements
-  each sleeve (INSTRUMENTS) plus published fees for its market (SGX: moomoo SG schedule and SGX
-  fees; LSE: OCBC online schedule and LSE levies) with 9% GST on Singapore-charged fees.
-  Sensitivity: the spread replaced by 5, 15 and 30 bps per side.
+  target (design rule); trading costs on trades sized from the headline portfolio value,
+  USD 100,000 (analysis.costs): half the dated bid-ask spread snapshot of the instrument that
+  implements each sleeve (INSTRUMENTS) plus published fees for its market (SGX: moomoo SG
+  schedule and SGX fees; LSE: the IBKR schedule, with OCBC as the high-cost sensitivity, and
+  LSE levies) with 9% GST on Singapore-charged fees (assumed for IBKR's commission).
+  Sensitivities: other portfolio sizes, the OCBC schedule, and the spread replaced by 5, 15
+  and 30 bps per side.
 - Metrics: annualised return (nominal SGD), real annualised return (Singapore CPI),
   volatility, Sharpe and Sortino over the SGD one-month rate, maximum drawdown and months to
   recover, worst rolling 1/3/5/10-year annualised returns, turnover and costs per year.
@@ -62,7 +64,13 @@ INSTRUMENTS = {
 }
 SPREAD_SENSITIVITY = [0.0005, 0.0015, 0.0030]
 PORTFOLIO_SIZES = [25_000.0, 100_000.0, 500_000.0]
-BASE_LSE_BROKER = "OCBC"  # the only verified LSE schedule so far; the high-cost case
+BASE_LSE_BROKER = "IBKR"  # headline (owner, 2026-10-27); OCBC is the high-cost sensitivity
+HEADLINE_VALUE = 100_000.0  # headline portfolio value (owner, 2026-10-27)
+BROKER_LABELS = {"IBKR": "IBKR (Singapore GST assumed)"}
+
+
+def broker_label(broker: str) -> str:
+    return BROKER_LABELS.get(broker, broker)
 
 
 def lse_brokers() -> list[str]:
@@ -201,7 +209,7 @@ def simulate(
     weights: pd.Series,
     rule: dict = RULE,
     spread_per_side: float | None = None,
-    portfolio_value: float = MINIMUM_ALLOCATION,
+    portfolio_value: float = HEADLINE_VALUE,
     lse_broker: str = BASE_LSE_BROKER,
 ) -> pd.DataFrame:
     returns = layer[list(weights.index)]

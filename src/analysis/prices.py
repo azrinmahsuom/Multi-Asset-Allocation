@@ -111,3 +111,33 @@ def cross_check(ours: dict[str, pd.Series], reference: pd.DataFrame) -> pd.DataF
     out["modified_z"] = modified_z_scores(out["gap"], mad_floor=PUBLISHED_PRECISION)
     out["mismatch"] = out["modified_z"].abs() > OUTLIER_THRESHOLD
     return out
+
+
+RETURN_CHECK_THRESHOLD = 0.005  # per year (owner rule, 2026-10-27)
+
+
+def period_return_check(
+    monthly: pd.DataFrame, issuer: pd.DataFrame, columns: dict[str, str]
+) -> pd.DataFrame:
+    """Our price-based total return over each issuer-published period (annualised for periods
+    longer than a year) against the issuer's NAV return; a mismatch is a gap above
+    RETURN_CHECK_THRESHOLD a year. Periods our data do not fully cover are skipped."""
+    rows = []
+    for r in issuer.to_dict("records"):
+        series = monthly[columns[r["ticker"]]].dropna()
+        end = r["period_end"]
+        start = end - 12 * r["years"] + 1
+        window = series.loc[start:end]
+        if len(window) < 12 * r["years"] or series.index[0] > start:
+            continue
+        ours = float(np.prod(1 + window.to_numpy()) ** (1 / r["years"]) - 1)
+        gap = ours - r["issuer_return"]
+        rows.append(
+            {
+                **r,
+                "ours": ours,
+                "gap": gap,
+                "mismatch": abs(gap) > RETURN_CHECK_THRESHOLD,
+            }
+        )
+    return pd.DataFrame(rows)
