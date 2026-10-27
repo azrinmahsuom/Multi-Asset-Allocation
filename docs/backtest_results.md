@@ -65,6 +65,32 @@ Trading cost per year (index layer), base case and with every spread replaced by
 
 Rebalancing trades are sized from the USD 25,000 minimum, not the grown portfolio, so fixed minimum commissions weigh as they would at the minimum account size.
 
+## Portfolio size, broker schedule and the frontier ranking
+
+Trading cost per year (index layer) for each equity/SGS mix, by portfolio size and LSE broker schedule (verified LSE schedules: OCBC; OCBC is the high-cost case):
+
+|  | OCBC, USD 25,000 | OCBC, USD 100,000 | OCBC, USD 500,000 |
+|---|---|---|---|
+| 0% equity | 0.0% | 0.0% | 0.0% |
+| 10% equity | 0.3% | 0.1% | 0.0% |
+| 20% equity | 0.3% | 0.1% | 0.0% |
+| 30% equity | 0.3% | 0.1% | 0.0% |
+| 40% equity | 0.3% | 0.1% | 0.0% |
+| 50% equity | 0.3% | 0.1% | 0.0% |
+| 60% equity | 0.3% | 0.1% | 0.0% |
+| 70% equity | 0.3% | 0.1% | 0.0% |
+| 80% equity | 0.3% | 0.1% | 0.0% |
+| 90% equity | 0.3% | 0.1% | 0.0% |
+| 100% equity | 0.0% | 0.0% | 0.0% |
+
+Does the cost model change the frontier ranking? Mixes ranked by expected real return net of cost per year, against the gross ranking; menu picks re-run on net returns:
+
+|  | max_cost_per_year | order_unchanged | mixes_changing_rank | net_return_peak_equity | menu_picks_changed |
+|---|---|---|---|---|---|
+| ('OCBC', 25000.0) | 0.3% | False | 9 | 100.0% | none |
+| ('OCBC', 100000.0) | 0.1% | False | 2 | 100.0% | none |
+| ('OCBC', 500000.0) | 0.0% | True | 0 | 100.0% | none |
+
 ## Turnover per profile
 
 One-way turnover from rebalancing, per year (a single-asset allocation never rebalances):

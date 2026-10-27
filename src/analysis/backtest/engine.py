@@ -44,13 +44,25 @@ MINIMUM_ALLOCATION = 25_000.0
 WHT_RATE = 0.15
 # Sleeve -> (instrument whose spread is used, market, broker schedule). IGLO.L is the cost proxy
 # for both benchmark global-bond sleeves.
+# The LSE broker is a parameter (LSE_BROKERS); "LSE" below is replaced by it.
 INSTRUMENTS = {
-    "equity": ("ISAC.L", "LSE", "OCBC"),
+    "equity": ("ISAC.L", "LSE", "LSE"),
     "bonds": ("A35.SI", "SGX", "moomoo SG"),
-    "global_bonds": ("IGLO.L", "LSE", "OCBC"),
-    "global_unhedged": ("IGLO.L", "LSE", "OCBC"),
+    "global_bonds": ("IGLO.L", "LSE", "LSE"),
+    "global_unhedged": ("IGLO.L", "LSE", "LSE"),
 }
 SPREAD_SENSITIVITY = [0.0005, 0.0015, 0.0030]
+PORTFOLIO_SIZES = [25_000.0, 100_000.0, 500_000.0]
+BASE_LSE_BROKER = "OCBC"  # the only verified LSE schedule so far; the high-cost case
+
+
+def lse_brokers() -> list[str]:
+    """LSE broker schedules with verified rows in reference/trading_costs.csv."""
+    s = costs.load_schedule()
+    names = s.loc[
+        (s["market"] == "LSE") & (s["component"] == "commission"), "provider_or_instrument"
+    ]
+    return sorted({n.split(" (")[0] for n in names})
 
 
 def _ter(ticker: str) -> float:
@@ -124,10 +136,15 @@ def benchmark_weights() -> dict[str, pd.Series]:
 
 
 @functools.cache
+def risk_frontier() -> pd.DataFrame:
+    return holdout.risk_frontier()
+
+
+@functools.cache
 def menu_mixes() -> dict[str, tuple[pd.Series, float]]:
     """Label -> (weights, drawdown tolerance) for each distinct mix in the risk menu, labelled
     with the tightest tolerance it meets. The menu's mixes are the same at every horizon."""
-    menu = holdout.risk_menu(holdout.risk_frontier())
+    menu = holdout.risk_menu(risk_frontier())
     menu = menu[menu["result"] == "meets tolerance"]
     out, seen = {}, set()
     for tol in holdout.DRAWDOWN_TOLERANCES:
@@ -147,10 +164,15 @@ def strategy_weights() -> dict[str, pd.Series]:
     return {k: w for k, (w, _) in menu_mixes().items()}
 
 
-def cost_fraction(spread_per_side: float | None = None) -> portfolio.CostFn:
+def cost_fraction(
+    spread_per_side: float | None = None, lse_broker: str = BASE_LSE_BROKER
+) -> portfolio.CostFn:
     """Cost per side by sleeve; spread_per_side replaces every snapshot half-spread."""
     gst = costs.gst_rate()
-    fees = {a: costs.fee_rows(b, m) for a, (_, m, b) in INSTRUMENTS.items()}
+    fees = {
+        a: costs.fee_rows(lse_broker if b == "LSE" else b, m)
+        for a, (_, m, b) in INSTRUMENTS.items()
+    }
     spreads = {
         a: costs.half_spread(t) if spread_per_side is None else spread_per_side
         for a, (t, _, _) in INSTRUMENTS.items()
@@ -170,10 +192,12 @@ def simulate(
     weights: pd.Series,
     rule: dict = RULE,
     spread_per_side: float | None = None,
+    portfolio_value: float = MINIMUM_ALLOCATION,
+    lse_broker: str = BASE_LSE_BROKER,
 ) -> pd.DataFrame:
     returns = layer[list(weights.index)]
     return portfolio.simulate(
-        returns, weights, rule, cost_fraction(spread_per_side), MINIMUM_ALLOCATION
+        returns, weights, rule, cost_fraction(spread_per_side, lse_broker), portfolio_value
     )
 
 

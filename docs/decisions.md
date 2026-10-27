@@ -525,3 +525,39 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 - An SGD-only drawdown basis is shown as a sensitivity, not a selection.
 
 **What would change my mind:** If the owner prefers an SGD-only or JST-based drawdown basis, that is a further rule change and would be logged as such.
+
+### 2026-10-27: Portfolio size and LSE broker as parameters; does the cost model change the frontier ranking?
+**Rule:**
+- Portfolio sizes are USD 25,000, 100,000 and 500,000 (`engine.PORTFOLIO_SIZES`).
+- The LSE broker schedule is a parameter. Every verified LSE commission schedule in `reference/trading_costs.csv` is run (`engine.lse_brokers`). OCBC is the high-cost case. The IBKR schedule is to be added from the owner's paste.
+- **Ranking test:** compare each equity/SGS mix's expected real return net of its cost per year (index layer, 1-point steps) with the gross ranking, and re-run the menu picks on net returns.
+
+**Evidence:** The cost components are documented in the trading-cost entry above.
+
+**Result (OCBC):**
+- Costs reorder mixes only at the edges: 0% equity never rebalances, so it nets more than mixes with a few percent equity.
+  - At USD 25,000, 9 mixes change rank.
+  - At USD 100,000, 2 change rank.
+  - At USD 500,000, none change rank.
+- No menu pick changes.
+
+### 2026-10-27: Rule defined before running: ±5-point band with cash-flow rebalancing
+Defined and committed before any code computed it.
+
+**Rule (`portfolio.simulate_cash_flows`):**
+- **Value tracking:** the portfolio's value is tracked in USD. It starts at the portfolio size, and every order is sized from the actual value. The value grows with the sleeves' SGD returns, which are applied as if the account value were in USD at a fixed rate (a simplification).
+- **Cash flows:** a contribution C each December, with C = 0%, 5% or 10% of the starting value per year. This is a fixed nominal USD amount.
+- **Cash-flow rebalancing:**
+  - Each sleeve's shortfall is target weight × (value after the contribution) − current value, floored at 0.
+  - The contribution is split across sleeves in proportion to their shortfalls, each capped at its shortfall. Any remainder is split by target weights.
+- **Band:** at every month-end, after any contribution, if any sleeve's weight differs from target by more than 5 percentage points, all sleeves trade back to target. There is no calendar rebalance.
+- **Comparison rule (incumbent):** December or 10-point band. In December the contribution is added and all sleeves trade back to target. In other months, a breach of the 10-point band triggers a full rebalance.
+- **Costs:** every order, including contribution purchases, pays `engine.cost_fraction` at its actual size, at each portfolio size and with each verified LSE broker schedule.
+- **Return:** monthly time-weighted return net of costs = (value after costs − contribution) / value at the start of the month − 1.
+- **Targets tested:** the menu mixes, and the frontier mixes in 10-point steps from 10% to 90% equity. Index layer, real SGD.
+- **Reported:** annualised real return net of costs, cost per year, turnover per year, orders per year, and maximum real drawdown.
+- **Decision criterion (fixed now):** the new rule replaces the incumbent for a given size and broker only if its annualised real return net of costs is higher by more than 0.05 percentage points a year in the zero-contribution case, and its maximum real drawdown is no more than 1 percentage point worse. Otherwise the incumbent stays.
+
+**Evidence:**
+- Band and cash-flow rebalancing are standard ways to reduce turnover. Vanguard's rebalancing research (Jaconetti, Kinniry and Zilbering, 2010) finds that thresholds of about 5% with annual or semi-annual monitoring balance risk control and cost.
+- The contribution levels (0%, 5%, 10%) and the 0.05-point and 1-point margins are illustrative choices, not derived from data. Evidence: pending (the owner's cash-flow plan sets the real figure).

@@ -160,6 +160,28 @@ def _frontier_turnover(layer: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
+def _size_section(index_layer: pd.DataFrame) -> list[str]:
+    r = robustness.cost_ranking(index_layer, engine.risk_frontier())
+    shown = r["costs"].loc[[e / 10 for e in range(11)]]
+    shown.index = [f"{e:.0%} equity" for e in shown.index]
+    shown.columns = [f"{b}, USD {v:,.0f}" for b, v in shown.columns]
+    return [
+        "## Portfolio size, broker schedule and the frontier ranking",
+        "",
+        "Trading cost per year (index layer) for each equity/SGS mix, by portfolio size and LSE "
+        f"broker schedule (verified LSE schedules: {', '.join(engine.lse_brokers())}; OCBC is "
+        "the high-cost case):",
+        "",
+        _table_markdown(shown),
+        "",
+        "Does the cost model change the frontier ranking? Mixes ranked by expected real return "
+        "net of cost per year, against the gross ranking; menu picks re-run on net returns:",
+        "",
+        _table_markdown(r["table"]),
+        "",
+    ]
+
+
 def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list[str], dict]:
     sims = {k: engine.simulate(layer, w) for k, w in weights.items()}
     table = pd.DataFrame({k: engine.summarise(s, layer) for k, s in sims.items()}).T
@@ -245,6 +267,7 @@ def run() -> dict:
             "",
             *etf_lines,
             *_cost_section(idx_sims, index_layer, weights),
+            *_size_section(index_layer),
             "## Turnover per profile",
             "",
             "One-way turnover from rebalancing, per year (a single-asset allocation never "

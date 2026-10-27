@@ -22,7 +22,7 @@ import pandas as pd
 from analysis import bootstrap, data, metrics
 from analysis.backtest import engine
 from analysis.config import BOOTSTRAP_REPS
-from analysis.design import allocation, bond_options
+from analysis.design import allocation, bond_options, holdout
 
 SUBPERIODS = {
     "1998–2007": ("1998-02", "2007-12"),
@@ -157,4 +157,53 @@ def attribution(layer: pd.DataFrame, weights: dict[str, pd.Series]) -> dict:
         "sgs10_min": float(sgs.min()),
         "sgs10_min_month": str(sgs.idxmin()),
         "sgs10_end": float(sgs.dropna().iloc[-1]),
+    }
+
+
+def cost_ranking(layer: pd.DataFrame, frontier: pd.DataFrame) -> dict:
+    """Does the cost model change the frontier ranking? For each portfolio size and LSE broker:
+    cost per year of every equity/SGS mix (1-point steps, index layer), the expected real
+    return net of that cost, whether mixes keep their order, and whether any menu pick changes
+    when the menu ranks by net instead of gross expected return."""
+    f = frontier[frontier["profile"] == frontier["profile"].iloc[0]].set_index("equity_share")
+    gross = f["expected_real_return"]
+    order = gross.rank(method="first")
+    rows, costs_by_case = [], {}
+    for broker in engine.lse_brokers():
+        for size in engine.PORTFOLIO_SIZES:
+            cost = pd.Series(
+                {
+                    e: engine.summarise(
+                        engine.simulate(
+                            layer,
+                            pd.Series({"equity": e, "bonds": 1 - e}),
+                            portfolio_value=size,
+                            lse_broker=broker,
+                        ),
+                        layer,
+                    )["cost_per_year"]
+                    for e in gross.index
+                }
+            )
+            net = gross - cost
+            changed = []
+            for tol in holdout.DRAWDOWN_TOLERANCES:
+                ok = f[f["max_drawdown"] >= tol]
+                if len(ok) and gross[ok.index].idxmax() != net[ok.index].idxmax():
+                    changed.append(f"{tol:.0%}")
+            costs_by_case[(broker, size)] = cost
+            rows.append(
+                {
+                    "lse_broker": broker,
+                    "portfolio_usd": size,
+                    "max_cost_per_year": float(cost.max()),
+                    "order_unchanged": bool((net.rank(method="first") == order).all()),
+                    "mixes_changing_rank": int((net.rank(method="first") != order).sum()),
+                    "net_return_peak_equity": float(net.idxmax()),
+                    "menu_picks_changed": ", ".join(changed) or "none",
+                }
+            )
+    return {
+        "table": pd.DataFrame(rows).set_index(["lse_broker", "portfolio_usd"]),
+        "costs": pd.DataFrame(costs_by_case),
     }
