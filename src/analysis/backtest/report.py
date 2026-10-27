@@ -234,8 +234,9 @@ def _issuer_check_section() -> list[str]:
     ]
 
 
-def _implementation_section() -> list[str]:
-    """Menu mixes mapped to illustrative ETFs with all-in annual cost at the headline value."""
+def implementation_table() -> tuple[pd.DataFrame, float, float]:
+    """Menu mixes mapped to illustrative ETFs with all-in annual cost at the headline value;
+    also returns the trailing dividend yield and ISAC's effective withholding rate used."""
     from analysis.design import holdout
 
     layer = engine.index_layer()
@@ -275,6 +276,11 @@ def _implementation_section() -> list[str]:
             "all_in_annual_bps": (weighted_ter + wht_drag + trading) * 1e4,
             "one_off_purchase_bps": purchase * 1e4,
         }
+    return pd.DataFrame(rows).T, dy, wht
+
+
+def _implementation_section() -> list[str]:
+    table, dy, wht = implementation_table()
     return [
         "## Implementation (illustrative, as of 2026-10; not a recommendation)",
         "",
@@ -287,7 +293,7 @@ def _implementation_section() -> list[str]:
         "layer). The one-off cost of the initial purchase is shown separately. Not included: "
         "the SGD-to-USD conversion cost (not published) and any platform or custody fee.",
         "",
-        _table_markdown(pd.DataFrame(rows).T),
+        _table_markdown(table),
         "",
     ]
 

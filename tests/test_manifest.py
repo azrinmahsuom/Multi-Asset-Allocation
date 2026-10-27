@@ -38,3 +38,19 @@ def test_verify_fails_when_file_missing(raw):
 def test_verify_fails_on_empty_manifest(tmp_path):
     with pytest.raises(manifest.DataVerificationError):
         manifest.verify_data(tmp_path / "MANIFEST.yaml", tmp_path)
+
+
+def test_data_status_separates_ok_missing_changed(tmp_path):
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    (raw / "a.csv").write_text("1")
+    (raw / "b.csv").write_text("2")
+    m = tmp_path / "MANIFEST.yaml"
+    manifest.record(raw / "a.csv", {}, m, raw)
+    manifest.record(raw / "b.csv", {}, m, raw)
+    entries = manifest.load(m)
+    entries["c.csv"] = {"sha256": "0"}
+    manifest.save(entries, m)
+    (raw / "b.csv").write_text("changed")
+    status = manifest.data_status(m, raw)
+    assert status == {"ok": ["a.csv"], "missing": ["c.csv"], "changed": ["b.csv"]}

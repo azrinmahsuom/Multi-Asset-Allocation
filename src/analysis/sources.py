@@ -5,7 +5,8 @@ pages are scraped for the current file link where the file URL carries a changin
 tag (Shiller, JST), so a moved file fails loudly rather than being guessed.
 
 A file already on disk is not re-downloaded. If a fresh download differs from the hash in
-the committed manifest, the fetch fails; accept the new version only via fetch_all(refresh=True).
+the committed manifest, it is kept and reported as changed since snapshot (see
+analysis.headline for the drift report); accept the new version only via fetch_all(refresh=True).
 """
 
 import json
@@ -733,7 +734,8 @@ def fetch(raw: RawFile, refresh: bool = False) -> str:
     """Download one file and record it. Returns 'skipped', 'recorded' or 'changed'.
 
     'changed' means a new download differs from the committed manifest hash: the new file is
-    kept on disk, the manifest is left alone, and verify_data() will fail until refreshed.
+    kept on disk and the manifest (the snapshot) is left alone; the pipeline reports it as
+    changed since snapshot until it is accepted with refresh.
 
     Manual files are never downloaded. A missing one raises with the URL to fetch it from; a
     present one is recorded on first sight (or on refresh), dated by the file's save time.
@@ -782,13 +784,14 @@ def fetch(raw: RawFile, refresh: bool = False) -> str:
 
 
 def fetch_all(refresh: bool = False) -> dict[str, str]:
-    """Fetch every registered file; raise if any source changed since the manifest."""
-    results = {raw.path.relative_to(DATA_RAW).as_posix(): fetch(raw, refresh) for raw in REGISTRY}
-    changed = [key for key, status in results.items() if status == "changed"]
-    if changed:
-        raise manifest.DataVerificationError(
-            "These sources changed since data/MANIFEST.yaml was written: "
-            + ", ".join(changed)
-            + ". Review the change, then re-run with refresh to accept it."
-        )
+    """Fetch every registered file. A download that differs from the manifest snapshot is kept
+    and reported as 'changed' (the run continues and the drift report shows its effect on
+    the headline figures); `refresh` accepts the new versions into the manifest."""
+    results = {}
+    for raw in REGISTRY:
+        key = raw.path.relative_to(DATA_RAW).as_posix()
+        try:
+            results[key] = fetch(raw, refresh)
+        except FileNotFoundError as err:  # a manual download not yet saved
+            results[key] = f"manual step needed: {err}"
     return results

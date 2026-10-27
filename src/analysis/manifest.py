@@ -58,6 +58,21 @@ def record(
     return entry
 
 
+def data_status(manifest_path: Path = MANIFEST, raw_root: Path = DATA_RAW) -> dict[str, list]:
+    """Each manifest entry's state: 'ok', 'missing' or 'changed' (the file's hash differs from
+    the snapshot recorded in the manifest, e.g. a live source updated since it was taken)."""
+    status: dict[str, list] = {"ok": [], "missing": [], "changed": []}
+    for key, entry in load(manifest_path).items():
+        path = raw_root / key
+        if not path.exists():
+            status["missing"].append(key)
+        elif sha256(path) != entry["sha256"]:
+            status["changed"].append(key)
+        else:
+            status["ok"].append(key)
+    return status
+
+
 def verify_data(manifest_path: Path = MANIFEST, raw_root: Path = DATA_RAW) -> int:
     """Check every manifest entry against its file; return the count checked.
 
