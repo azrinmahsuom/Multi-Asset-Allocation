@@ -16,6 +16,11 @@ CLAIM_MODULES = [
     "analysis.evidence.claim06_term_premium",
     "analysis.evidence.claim07_credit_premium",
     "analysis.evidence.claim08_inflation_linked",
+    "analysis.evidence.claim09_real_estate",
+    "analysis.evidence.claim10_best_days",
+    "analysis.evidence.claim11_rebalancing",
+    "analysis.evidence.claim12_hedging",
+    "analysis.evidence.claim13_behaviour_gap",
 ]
 
 OUTPUT = ROOT / "docs" / "evidence_review.md"

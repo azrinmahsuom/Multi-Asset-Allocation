@@ -8,3 +8,4 @@ trading_activity_fee,US regulatory (via moomoo SG schedule),0.000195,share,0.01,
 commission,FSMOne (US stocks),0.0008,trade_value,8.80,both,https://theedgemalaysia.com/article/ifast-launches-us-stockbroking-services-fsmone (secondary),2026-10-27,to_verify,Cost data only; not a broker recommendation
 commission,CMC Invest SG (US stocks),0.0003,trade_value,3.00,both,https://www.moneysmart.sg/investments/us-stocks (secondary),2026-10-27,to_verify,Cost data only; after free monthly trades
 fx_conversion,moomoo SG (SGD to USD),,trade_value,,both,https://www.moomoo.com/sg/support/topic5_407,2026-10-27,to_verify,No commission stated; markup inside the quoted rate is not disclosed
+half_spread,IEF,0.00005,trade_value,0,both,https://www.ishares.com/us/products/239456/ishares-710-year-treasury-bond-etf (30-day median bid/ask spread 0.01% as of 2026-10-26; half applied per side),2026-10-27,verified,Point-in-time; historical spreads were wider

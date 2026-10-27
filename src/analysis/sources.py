@@ -8,6 +8,7 @@ A file already on disk is not re-downloaded. If a fresh download differs from th
 the committed manifest, the fetch fails; accept the new version only via fetch_all(refresh=True).
 """
 
+import json
 import re
 import zipfile
 from collections.abc import Callable
@@ -210,6 +211,12 @@ def _describe_nareit(path: Path) -> tuple[int, str, str]:
     return len(dates), dates.iloc[0].strftime("%Y-%m"), dates.iloc[-1].strftime("%Y-%m")
 
 
+def _describe_singstat(path: Path) -> tuple[int, str, str]:
+    columns = json.loads(path.read_text())["Data"]["row"][0]["columns"]
+    months = [pd.to_datetime(c["key"], format="%Y %b") for c in columns]
+    return len(months), min(months).strftime("%Y-%m"), max(months).strftime("%Y-%m")
+
+
 def _describe_fred(path: Path) -> tuple[int, str, str]:
     df = pd.read_csv(path)
     return len(df), str(df.iloc[0, 0])[:7], str(df.iloc[-1, 0])[:7]
@@ -389,6 +396,21 @@ REGISTRY: list[RawFile] = (
             resolve_url=_fixed(MAS_RATES_PAGE),
             describe=_describe_mas,
             download=_download_mas_rates,
+        ),
+        RawFile(
+            source="singstat",
+            filename="M213751_cpi_monthly.json",
+            name="Singapore Department of Statistics, CPI (2024 = 100), monthly",
+            landing_page="https://tablebuilder.singstat.gov.sg/table/TS/M213751",
+            series="M213751, All Items Index (and sub-indices), not seasonally adjusted",
+            licence=(
+                "Singapore Open Data Licence according to SingStat's app terms; the Table "
+                "Builder's own terms not confirmed. Treated as not redistributable until verified."
+            ),
+            redistributable=False,
+            units="Monthly index, 2024 = 100, NSA, SGD.",
+            resolve_url=_fixed("https://tablebuilder.singstat.gov.sg/api/table/tabledata/M213751"),
+            describe=_describe_singstat,
         ),
         RawFile(
             source="nareit",

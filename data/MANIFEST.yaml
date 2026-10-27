@@ -365,6 +365,21 @@ files:
     units: Monthly. S&P Composite price, dividends, earnings (USD nominal), CPI, 10-year
       Treasury yield (% p.a.), plus Shiller's real total-return and bond-return columns.
     sha256: 98a54927942e842ec07ffe73000998e793953708c345b6b27bb363e9ada8366a
+  singstat/M213751_cpi_monthly.json:
+    source: Singapore Department of Statistics, CPI (2024 = 100), monthly
+    url: https://tablebuilder.singstat.gov.sg/api/table/tabledata/M213751
+    landing_page: https://tablebuilder.singstat.gov.sg/table/TS/M213751
+    series: M213751, All Items Index (and sub-indices), not seasonally adjusted
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Singapore Open Data Licence according to SingStat's app terms; the Table
+      Builder's own terms not confirmed. Treated as not redistributable until verified.
+    redistributable: false
+    rows: 789
+    start: 1961-01
+    end: 2026-09
+    units: Monthly index, 2024 = 100, NSA, SGD.
+    sha256: 10eff6ef02690313d6fdc6063732220fe5b2eae37b832badb478b0771a7199db
   yahoo/ACWI.csv:
     source: 'yahoo: ACWI (global equities (developed and emerging), from 2008)'
     url: 'yfinance: Ticker(''ACWI'').history(period=''max'')'

@@ -71,3 +71,12 @@ def test_block_length_rule():
     # 32^(1/5) = 2 exactly; 243^(1/5) = 3.
     assert bootstrap.block_length(32) == 2 and bootstrap.block_length(243) == 3
     assert bootstrap.block_length(1) == 1
+
+
+def test_dollar_weighted_return_equals_time_weighted_for_constant_returns():
+    import numpy as np
+
+    from analysis.evidence import claim13_behaviour_gap as c13
+
+    r = np.full(24, 0.01)
+    assert c13.dollar_weighted_return(r) == pytest.approx(1.01**12 - 1)

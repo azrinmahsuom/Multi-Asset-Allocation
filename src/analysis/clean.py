@@ -7,6 +7,7 @@ Conventions:
 - A period whose data is incomplete or estimated by the source is dropped, never filled.
 """
 
+import json
 import re
 import zipfile
 from pathlib import Path
@@ -206,6 +207,20 @@ def us_treasury_monthly() -> pd.DataFrame:
     return out.iloc[1:]
 
 
+def sg_cpi_monthly(path: Path = DATA_RAW / "singstat" / "M213751_cpi_monthly.json") -> pd.DataFrame:
+    """Singapore CPI all-items index (NSA) and its monthly change."""
+    rows = json.loads(path.read_text())["Data"]["row"]
+    all_items = next(r for r in rows if r["rowText"].strip().lower() == "all items")
+    index = pd.Series(
+        {
+            pd.Period(pd.to_datetime(c["key"], format="%Y %b"), freq="M"): float(c["value"])
+            for c in all_items["columns"]
+        }
+    ).sort_index()
+    index.index.name = "month"
+    return pd.DataFrame({"sg_cpi": index, "sg_inflation_month": index.pct_change()})
+
+
 def mas_tables(path: Path = DATA_RAW / "mas" / "domestic_interest_rates.csv") -> list[pd.DataFrame]:
     """Every table in the MAS CSV as a daily DataFrame of floats ('-' becomes missing).
 
@@ -348,6 +363,7 @@ def run() -> dict[str, pd.DataFrame]:
         "fred_monthly": _save(fred_monthly(), "fred_monthly"),
         "us_treasury_monthly": _save(us_treasury_monthly(), "us_treasury_monthly"),
         "sgd_rf_monthly": _save(sgd_risk_free_monthly(), "sgd_rf_monthly"),
+        "sg_cpi_monthly": _save(sg_cpi_monthly(), "sg_cpi_monthly"),
         "etf_monthly": _save(etf_monthly(), "etf_monthly"),
         "us_reit_nareit": _save(nareit_monthly(), PRIVATE_PREFIX + "us_reit_nareit_monthly"),
     }

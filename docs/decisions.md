@@ -246,3 +246,22 @@ Entry template:
 **Evidence:** Run 2026-10-27: 0 of 20 alternatives changed a verdict (table in docs/evidence_review.md).
 **What would change my mind:** An alternative that flips a verdict; that claim would then report both results.
 **Effect on results:** None on the verdicts; these choices no longer need a citation.
+
+### 2026-10-27 — Phase 1 claim tests (claims 9–13)
+**Context:** These are the remaining claims; each module's docstring has the full rules.
+**Rule:**
+- **Claim 9 (real estate).** Listed REITs and housing are kept separate.
+  - Verdict: the share of 8 REIT ETFs whose total return matched or beat an equity benchmark over the same months. VNQ is compared with the French US market, global and regional REIT ETFs with ACWI, and SGD-listed REIT ETFs with ACWI in SGD.
+  - Diversification is tested by a spanning regression (VNQ excess returns on US equity and Treasury excess returns) and by Sharpe ratios of 60/40 vs 54/36/10, not by correlation alone.
+  - Housing (JST) is reported as total return vs price-only vs equities.
+  - Nareit is compared privately only.
+- **Claim 10 (best days).** A missed day earns T-bills. Verdict on whether missing the best N days lowers the return (N = 10, 20, 50, 100). Clustering is tested by a permutation of distances (2,000 draws) and by high-volatility periods known at the time.
+- **Claim 11 (rebalancing).** A 60/40 US portfolio, with five rules compared against buy-and-hold. Costs come from `analysis.costs` at the USD 25,000 minimum. Verdict: the share of rules with both lower volatility and a smaller drawdown. Data-mining check: a block bootstrap of the best-vs-worst Sharpe difference, before and after costs.
+- **Claim 12 (hedging, SGD).** Hedged = USD return + SGD rate − USD rate (covered interest parity); real returns use Singapore CPI. Verdict: the share of four samples whose hedged-minus-unhedged mean difference is not significant (|HAC t| < 2). Volatility ratios are reported for equities and bonds.
+- **Claim 13 (behaviour gap).** Not testable without fund flows. Headline numbers from the commonly cited studies are not quoted (owner's instruction). The sequence effect is shown with equal monthly contributions over rolling 20-year windows.
+**Evidence:**
+- Spanning tests are the standard mean-variance test for whether an asset improves a frontier; source citation pending.
+- Pfau (Advisor Perspectives, 2017) and DALBAR's response, Dichev (2007, AER 97(1)), Keswani and Stolin (2008, Finance Research Letters), and Morningstar's Mind the Gap methodology page, checked via publisher pages and listings on 2026-10-27.
+- The |t| < 2 threshold is the conventional approximately-5% two-sided level.
+**What would change my mind:** Issuer cross-checks that flag REIT ETF data errors (pending); access to fund-flow data (claim 13).
+**Effect on results:** See docs/evidence_review.md.
