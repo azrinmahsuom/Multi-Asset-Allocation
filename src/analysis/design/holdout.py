@@ -273,6 +273,7 @@ def risk_frontier(step: float = 0.01) -> pd.DataFrame:
       monthly path before 1981 with bonds = a modelled US government bond duration-matched to
       A35 (us_bond_proxy). Annual JST data are not used for drawdowns because annual
       observations hide falls within the year. Drawdowns do not depend on the horizon.
+    - max_drawdown_sgd_nominal: the SGD path's drawdown before inflation. Context only.
     - stress_long_bond_1940_81: drawdown with Shiller's long government bond instead, January
       1940 to December 1981. Reported, not binding.
     - p_loss_holdout: the highest real-loss share across H1, H2 (proxy bonds) and H3.
@@ -287,10 +288,10 @@ def risk_frontier(step: float = 0.01) -> pd.DataFrame:
     rows = []
     for e in np.round(np.arange(0, 1 + 1e-9, step), 2):
         w = np.array([e, 1 - e, 0.0])
-        sgd_real = metrics.real_returns(
-            pd.Series(sgd[allocation.ASSETS].to_numpy() @ w, index=sgd.index), sgd["inflation"]
-        )
+        sgd_nominal = pd.Series(sgd[allocation.ASSETS].to_numpy() @ w, index=sgd.index)
+        sgd_real = metrics.real_returns(sgd_nominal, sgd["inflation"])
         dd_sgd = metrics.max_drawdown(sgd_real)
+        dd_sgd_nominal = metrics.max_drawdown(sgd_nominal)
         dd_us = metrics.max_drawdown(_us_pre1981_real(w, "proxy"))
         dd_long = metrics.max_drawdown(_us_real(w, "long", *LONG_BOND_STRESS))
         g = pd.Series(glob[allocation.ASSETS].to_numpy() @ w)
@@ -304,6 +305,7 @@ def risk_frontier(step: float = 0.01) -> pd.DataFrame:
                     "expected_real_return": float(np.expm1(np.log1p(g).mean())),
                     "max_drawdown": min(dd_sgd, dd_us),
                     "max_drawdown_sgd": dd_sgd,
+                    "max_drawdown_sgd_nominal": dd_sgd_nominal,
                     "max_drawdown_us_pre1981": dd_us,
                     "stress_long_bond_1940_81": dd_long,
                     "p_loss_holdout": max(float((x < 0).mean()) for x in (h1, h2, h3)),

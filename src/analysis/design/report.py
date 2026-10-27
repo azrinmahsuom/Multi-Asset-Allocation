@@ -277,6 +277,7 @@ MENU_COLUMNS = [
     "expected_real_return",
     "max_drawdown",
     "max_drawdown_sgd",
+    "max_drawdown_sgd_nominal",
     "max_drawdown_us_pre1981",
     "stress_long_bond_1940_81",
     "p_loss_holdout",
@@ -347,6 +348,8 @@ def _core_result_section() -> list[str]:
         "drawdowns, because annual observations hide falls within a year. Drawdowns do not "
         "depend on the horizon, so the same mixes appear at every horizon; the horizon "
         "changes the loss measures.",
+        "- Nominal SGD drawdown (max_drawdown_sgd_nominal): the SGD path before inflation, "
+        "shown for context only; it is not binding.",
         "- Stress test, not binding: the drawdown with Shiller's long government bond in place "
         "of the proxy, January 1940 to December 1981 (stress_long_bond_1940_81).",
         "- P(real loss): the highest real-loss share across the three holdout tests (H1 non-US "
