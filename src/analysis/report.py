@@ -140,7 +140,10 @@ def run() -> list[ClaimResult]:
     results = [import_module(name).run() for name in CLAIM_MODULES]
     summary = _table_markdown(
         pd.DataFrame(
-            {"Claim": [r.claim for r in results], "Verdict": [r.verdict for r in results]},
+            {
+                "Claim": [r.claim for r in results],
+                "Verdict": [r.summary_label or r.verdict for r in results],
+            },
             index=pd.Index([r.number for r in results], name="#"),
         )
     )

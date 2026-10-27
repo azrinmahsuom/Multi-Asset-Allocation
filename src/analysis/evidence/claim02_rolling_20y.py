@@ -96,10 +96,12 @@ def run() -> ClaimResult:
         ),
         verdict=HOLDS if us_negative == 0 else FAILS,
         headline=(
-            f"US: {us_negative} negative windows out of {len(us)} (worst {us.min():.1%} a year, "
-            f"ending {us.idxmin()}). Across {n} countries, {n_negative} had at least one negative "
-            f"20-year window; the cross-country version "
-            f"{verdict_from_share(n - n_negative, n).lower()}."
+            f"Across {n} countries, {n_negative} had at least one negative 20-year window; the "
+            f"cross-country version {verdict_from_share(n - n_negative, n).lower()}. US: "
+            f"{us_negative} negative window{'' if us_negative == 1 else 's'} out of {len(us)} "
+            "on Shiller monthly data (worst "
+            f"{us.min():.1%} a year, ending {us.idxmin()}); on JST annual data the US had "
+            f"{int(us_annual['negative_windows'])}, so the US result depends on the data source."
         ),
         data=(
             "US: Robert Shiller online data, monthly, from 1871 (S&P Composite with dividends, "

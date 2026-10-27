@@ -16,6 +16,7 @@ Collected during the evidence review (Phase 1) and completed after the independe
 - **Few independent observations.** Long-horizon statistics (20-year windows) rest on few independent observations.
 - **Splits chosen after seeing the data.** Some subperiod splits (2000, 2022, the 1981 yield peak) were chosen after seeing the data and are labelled as such.
 - **Hedging assumptions.** SGD hedging assumes covered interest parity without the cross-currency basis or hedging fees.
+- **Equity proxy in the index layer.** The index layer (from 1998) uses developed-market equities (French developed-markets returns), while the implementation holds ACWI (ISAC.L), which includes emerging markets. Index-layer results therefore omit emerging-market returns and risk. The ETF layer (from November 2011) uses ISAC.L itself.
 - **Bond proxies.** SGS returns are built from benchmark yields, not a traded index. The US bond used in the risk menu's pre-1981 path is modelled: a par bond at A35's duration, priced from Shiller's long-rate yield with a flat curve. Where yields are too high to reach that duration, the 30-year bond is used.
 - **Expected returns.** The expected real return used to rank mixes is the long-run real return of a GDP-weighted global JST portfolio (1871–2020), not a forecast.
 

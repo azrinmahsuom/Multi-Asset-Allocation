@@ -37,3 +37,4 @@ class ClaimResult:
     caveats: list[str]
     tables: dict[str, pd.DataFrame] = field(default_factory=dict)
     figures: list[Path] = field(default_factory=list)
+    summary_label: str | None = None  # summary-table label when the verdict needs a qualifier

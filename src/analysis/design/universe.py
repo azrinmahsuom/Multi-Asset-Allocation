@@ -9,8 +9,9 @@ Rules (fixed before results were computed):
 - A candidate is included only if it has an economic source of expected return (a claim on
   cash flows: coupons, dividends or rents, or an inflation-indexed accrual) AND passes either
   test below. (The return-source condition was added on 2026-10-27 after the first results,
-  at the owner's direction, because the project spec requires an expected-return source for
-  every asset and the original rule omitted it; see docs/decisions.md.)
+  at the owner's direction: the owner's judgement is that assets without cash flows lack a
+  reliable expected real return, consistent with the long-run annual tests (not significant)
+  and with Erb and Harvey (2013, Financial Analysts Journal); see docs/decisions.md.)
   1. Spanning: regressing its excess return (over the SGD rate) on the core's two excess
      returns gives an alpha with HAC t > 2: it adds return at equal risk.
   2. Inflation role: in months classed high-inflation using only information available then

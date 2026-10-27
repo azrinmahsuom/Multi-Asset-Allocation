@@ -420,6 +420,11 @@ def run() -> ClaimResult:
         number=5,
         claim="Bonds diversify equities.",
         verdict=verdict_from_share(n_neg_blocks, n_blocks),
+        summary_label=(
+            "Fails as a hedge; diversifies outside high-inflation regimes (60/40 volatility "
+            f"{full['vol_60_40']:.1%} vs {full['vol_equity']:.1%} for equities; maximum drawdown "
+            f"{dd_port:.0%} vs {dd_equity:.0%})"
+        ),
         headline=(
             "It depends on inflation. In months classed low-inflation using only data known at "
             f"the time, the US stock–bond correlation was {low['correlation']:.2f} (95% CI "

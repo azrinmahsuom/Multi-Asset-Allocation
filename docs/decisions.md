@@ -306,11 +306,11 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 **Effect on results:** The universe is global equities, SGS, cash and gold. Gold's weight is set by the allocation methods; confidence is medium.
 
 ### 2026-10-27 — Correction: inclusion requires a source of expected return (gold excluded)
-**Context:** Gold passed the spanning test (t = 2.7) on 2008–2026 data. The owner questioned how a speculative asset was included. The project spec requires every candidate to state its role, *expected-return source* and evidence, but the original inclusion rule tested only statistics.
+**Context:** Gold passed the spanning test (t = 2.7) on 2008–2026 data. The owner questioned how a speculative asset was included. The original inclusion rule tested only statistics.
 **Options considered:** Require a return source (chosen by the owner); hold gold at its market-cap weight only; keep the rule's result.
 **Rule:** A candidate is included only if it has an economic source of expected return (a claim on cash flows such as coupons, dividends or rents, or an inflation-indexed accrual) **and** passes the spanning or inflation-role test. Gold and commodities have no such source and are excluded.
-**Evidence:** The project spec's requirement. Gold's monthly spanning result came from a sample with a long gold rally; its annual results from 1928 and from 1972 were not significant.
-**What would change my mind:** Not applicable; this restores a requirement of the spec.
+**Evidence:** The owner's judgement that assets without cash flows lack a reliable expected real return. This is consistent with the long-run annual tests: gold's annual results from 1928 and from 1972 were not significant, and its monthly spanning result came from a sample with a long gold rally. It is also consistent with Erb, C. B. and Harvey, C. R. (2013), "The Golden Dilemma", *Financial Analysts Journal* 69(4), 10–42 (citation verified 2026-10-27 against RePEc and the author's publication list; also NBER Working Paper 18706, doi:10.3386/w18706).
+**What would change my mind:** Evidence of a reliable expected real return for an asset without cash flows.
 **Effect on results:** Universe = global equities, SGS and cash. **This change was made after the first results were seen**, and is disclosed as such. The allocation results were computed only after this change.
 
 ### 2026-10-27 — Risk-capacity limits tested on SGD history; JST as stress scenarios

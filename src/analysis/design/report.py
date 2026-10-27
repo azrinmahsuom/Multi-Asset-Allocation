@@ -27,7 +27,11 @@ def _profiles_section() -> list[str]:
         "## Investor framing and horizon profiles",
         "",
         "Spending money for near-term needs sits outside the strategy; its size is left to the "
-        "investor. Minimum allocation USD 25,000; daily-tradable ETFs only. Profiles are defined "
+        "investor. This separation of near-term spending money from long-horizon capital, and "
+        "setting risk by the investor's capacity for each goal, follows the goals-based "
+        "framing of Chhabra (2005, 'Beyond Markowitz', Journal of Wealth Management 7(4), "
+        "8–34) and Brunel (2015, Goals-Based Wealth Management, Wiley). Minimum allocation "
+        "USD 25,000; daily-tradable ETFs only. Profiles are defined "
         "by risk capacity and tested on real SGD monthly returns from 1998; a GDP-weighted "
         "global JST portfolio (1871–2020) is a stress scenario.",
         "",
@@ -145,7 +149,9 @@ def _universe_section(u: dict) -> list[str]:
         "- Cash (SGD one-month rate): liquidity; the short profile's anchor.",
         "- Gold: excluded. It passed the spanning test, but has no economic source of expected "
         "return (no cash flows); the return-source condition was added after the first results, "
-        "at the owner's direction, because the spec requires it (docs/decisions.md).",
+        "at the owner's direction: the owner's judgement is that assets without cash flows "
+        "lack a reliable expected real return, consistent with the long-run annual tests (not "
+        "significant) and with Erb and Harvey (2013) (docs/decisions.md).",
         "- Excluded classes and the evidence: investment-grade credit (claim 7: equity-like risk, "
         "premium not reliable after defaults), inflation-linked bonds (claim 8: real-yield moves "
         "dominate over one-year horizons), REITs (claim 9: no return added at equal risk), "
