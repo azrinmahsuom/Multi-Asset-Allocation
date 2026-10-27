@@ -160,7 +160,7 @@ Rules fixed before computing (`analysis.design.bond_options`): three options at 
 
 **Decision (owner, 2026-10-27): follow the rule; the bond sleeve is SGS, logged as low confidence.** Phase 3 also backtests the global-unhedged sleeve to show how much the choice matters.
 
-Caveats: the main layer is about seven years and includes 2022; the global fund's duration is a current published figure (status to_verify in `reference/bond_durations.csv`); SGS returns are built from benchmark yields, not a traded index; hedges assume covered interest parity; the long layer uses US Treasuries, not global bonds.
+Caveats: the main layer is about seven years and includes 2022; the global fund's duration is a current published figure applied to the whole period (verified from the factsheet; `reference/bond_durations.csv`); SGS returns are built from benchmark yields, not a traded index; hedges assume covered interest parity; the long layer uses US Treasuries, not global bonds.
 
 ## Asset universe
 

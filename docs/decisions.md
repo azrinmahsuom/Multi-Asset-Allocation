@@ -620,3 +620,22 @@ Defined and committed before any code computed it.
 The owner accepted the band-rule test as run. The following are the owner's judgement calls, not choices derived from data:
 - the decision margins (0.05 percentage points a year of net real return; 1 percentage point of maximum drawdown);
 - the contribution assumptions (0%, 5% and 10% of the starting value a year, paid each December).
+
+### 2026-10-27: IBKR added as the verified low-cost LSE schedule; size, ranking and rebalancing tests rerun
+**Rule:** The IBKR row joins `reference/trading_costs.csv` as the low-cost case, and OCBC stays as the high-cost case. The row covers United Kingdom, USD-denominated, Fixed (IB SmartRouting): 0.05% of trade value, minimum USD 4.00, no maximum, exchange and clearing fees included. The PTM levy is still charged from the LSE levies row. Singapore GST is applied, which is conservative because the schedule doesn't state it. The backtest's headline tables stay on OCBC.
+
+**Evidence:** The owner supplied the IBKR pricing page (https://www.interactivebrokers.com/en/pricing/commissions-stocks.php?region=europe), checked 2026-10-27. Its example confirms the minimum: "250 Shares @ USD 32 Share Price = USD 4.00".
+
+**Result:**
+- **Cost per year for the menu mix (59% equity, index layer):**
+
+  | Broker | USD 25,000 | USD 100,000 | USD 500,000 |
+  |---|---|---|---|
+  | IBKR | 3.2 bps | 1.3 bps | 1.0 bps |
+  | OCBC | 33.9 bps | 9.0 bps | 2.6 bps |
+
+- **Ranking:** with IBKR, costs never change the frontier ranking at any size. No menu pick changes under either broker.
+- **±5-point band test:** the incumbent rule stays for the menu mix in all six broker-and-size cases. With IBKR, the band rule loses on average at every size and contribution level.
+- **Update to the earlier OCBC result:** at USD 25,000 with no contributions, 5 of 10 targets now favour the band rule (previously 4). The likely cause is the later change to the withholding-tax drag, though this wasn't isolated. The menu-mix decision is unchanged.
+
+Methodology is now frozen (owner instruction, 2026-10-27).

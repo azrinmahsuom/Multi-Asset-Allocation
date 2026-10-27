@@ -91,15 +91,16 @@ def _drawdown_figure(sims: dict, layer: pd.DataFrame) -> "charts.Path":
 
 def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> list[str]:
     """Per-side cost by trade size, and cost per year under the spread sensitivity."""
-    fn = engine.cost_fraction()
     sizes = [1_000, 2_500, 5_000, 10_000, 25_000]
-    by_size = pd.DataFrame(
-        {
-            f"{a} ({t}, {m})": {f"USD {v:,}": fn(a, v, "buy") for v in sizes}
-            for a, (t, m, _) in engine.INSTRUMENTS.items()
-            if a != "global_unhedged"
-        }
-    ).T
+    by_size = {}
+    for broker in engine.lse_brokers():
+        fn = engine.cost_fraction(None, broker)
+        for a, (t, m, b) in engine.INSTRUMENTS.items():
+            if a == "global_unhedged" or (m != "LSE" and broker != engine.BASE_LSE_BROKER):
+                continue
+            label = f"{a} ({t}, {m}, {broker if m == 'LSE' else b})"
+            by_size[label] = {f"USD {v:,}": fn(a, v, "buy") for v in sizes}
+    by_size = pd.DataFrame(by_size).T
     rows = {}
     for name, w in weights.items():
         row = {"base_case": engine.summarise(idx_sims[name], index_layer)["cost_per_year"]}
@@ -125,7 +126,9 @@ def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> l
         "conversion cost for LSE trades is not published and is excluded. The schedules are "
         "cost data only, not broker recommendations.",
         "",
-        "Cost of one buy order, as a fraction of the order, by order size:",
+        "Cost of one buy order, as a fraction of the order, by order size and LSE broker "
+        f"schedule (IBKR is the low-cost case, OCBC the high-cost case; the tables above use "
+        f"{engine.BASE_LSE_BROKER}):",
         "",
         _table_markdown(by_size),
         "",
@@ -160,6 +163,20 @@ def _frontier_turnover(layer: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
+def _menu_by_size(index_layer: pd.DataFrame) -> pd.DataFrame:
+    rows = {}
+    for name, w in engine.strategy_weights().items():
+        for broker in engine.lse_brokers():
+            for size in engine.PORTFOLIO_SIZES:
+                sim = engine.simulate(index_layer, w, portfolio_value=size, lse_broker=broker)
+                s = engine.summarise(sim, index_layer)
+                rows[f"{name}, {broker}, USD {size:,.0f}"] = {
+                    "real_annual_return": s["real_annual_return"],
+                    "cost_per_year_bps": s["cost_per_year"] * 1e4,
+                }
+    return pd.DataFrame(rows).T
+
+
 def _size_section(index_layer: pd.DataFrame) -> list[str]:
     r = robustness.cost_ranking(index_layer, engine.risk_frontier())
     shown = r["costs"].loc[[e / 10 for e in range(11)]]
@@ -173,6 +190,11 @@ def _size_section(index_layer: pd.DataFrame) -> list[str]:
         "the high-cost case):",
         "",
         _table_markdown(shown),
+        "",
+        "Menu mixes by LSE broker schedule and portfolio size (index layer, real SGD, net of "
+        "costs):",
+        "",
+        _table_markdown(_menu_by_size(index_layer)),
         "",
         "Does the cost model change the frontier ranking? Mixes ranked by expected real return "
         "net of cost per year, against the gross ranking; menu picks re-run on net returns:",

@@ -46,13 +46,15 @@ Menu mixes against their drawdown tolerance on this layer's real SGD path:
 
 Cost per side = half the bid-ask spread from a dated snapshot (`reference/spread_snapshot.csv`) + published broker and exchange fees (`reference/trading_costs.csv`), with 9% GST on Singapore-charged fees; fee minimums converted at the FX rates in `reference/fx_rates.csv`. Snapshot half-spreads: ISAC.L 0.8 bps; A35.SI 9.0 bps; IGLO.L 7.0 bps. Spread rows still to verify against an exchange or issuer quote: ISAC.L, IGLO.L; results that use them depend on that check. The SGD-to-USD conversion cost for LSE trades is not published and is excluded. The schedules are cost data only, not broker recommendations.
 
-Cost of one buy order, as a fraction of the order, by order size:
+Cost of one buy order, as a fraction of the order, by order size and LSE broker schedule (IBKR is the low-cost case, OCBC the high-cost case; the tables above use OCBC):
 
 |  | USD 1,000 | USD 2,500 | USD 5,000 | USD 10,000 | USD 25,000 |
 |---|---|---|---|---|---|
-| equity (ISAC.L, LSE) | 8.0% | 3.2% | 1.6% | 0.8% | 0.3% |
-| bonds (A35.SI, SGX) | 0.3% | 0.2% | 0.2% | 0.2% | 0.2% |
-| global_bonds (IGLO.L, LSE) | 8.1% | 3.3% | 1.7% | 0.9% | 0.4% |
+| equity (ISAC.L, LSE, IBKR) | 0.4% | 0.2% | 0.1% | 0.1% | 0.1% |
+| global_bonds (IGLO.L, LSE, IBKR) | 0.5% | 0.2% | 0.2% | 0.1% | 0.1% |
+| equity (ISAC.L, LSE, OCBC) | 8.0% | 3.2% | 1.6% | 0.8% | 0.3% |
+| bonds (A35.SI, SGX, moomoo SG) | 0.3% | 0.2% | 0.2% | 0.2% | 0.2% |
+| global_bonds (IGLO.L, LSE, OCBC) | 8.1% | 3.3% | 1.7% | 0.9% | 0.4% |
 
 Trading cost per year (index layer), base case and with every spread replaced by 5, 15 or 30 bps per side (fees unchanged):
 
@@ -67,26 +69,40 @@ Rebalancing trades are sized from the USD 25,000 minimum, not the grown portfoli
 
 ## Portfolio size, broker schedule and the frontier ranking
 
-Trading cost per year (index layer) for each equity/SGS mix, by portfolio size and LSE broker schedule (verified LSE schedules: OCBC; OCBC is the high-cost case):
+Trading cost per year (index layer) for each equity/SGS mix, by portfolio size and LSE broker schedule (verified LSE schedules: IBKR, OCBC; OCBC is the high-cost case):
 
-|  | OCBC, USD 25,000 | OCBC, USD 100,000 | OCBC, USD 500,000 |
-|---|---|---|---|
-| 0% equity | 0.0% | 0.0% | 0.0% |
-| 10% equity | 0.3% | 0.1% | 0.0% |
-| 20% equity | 0.3% | 0.1% | 0.0% |
-| 30% equity | 0.3% | 0.1% | 0.0% |
-| 40% equity | 0.3% | 0.1% | 0.0% |
-| 50% equity | 0.3% | 0.1% | 0.0% |
-| 60% equity | 0.3% | 0.1% | 0.0% |
-| 70% equity | 0.3% | 0.1% | 0.0% |
-| 80% equity | 0.3% | 0.1% | 0.0% |
-| 90% equity | 0.3% | 0.1% | 0.0% |
-| 100% equity | 0.0% | 0.0% | 0.0% |
+|  | IBKR, USD 25,000 | IBKR, USD 100,000 | IBKR, USD 500,000 | OCBC, USD 25,000 | OCBC, USD 100,000 | OCBC, USD 500,000 |
+|---|---|---|---|---|---|---|
+| 0% equity | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| 10% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 20% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 30% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 40% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 50% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 60% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 70% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 80% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 90% equity | 0.0% | 0.0% | 0.0% | 0.3% | 0.1% | 0.0% |
+| 100% equity | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+
+Menu mixes by LSE broker schedule and portfolio size (index layer, real SGD, net of costs):
+
+|  | real_annual_return | cost_per_year_bps |
+|---|---|---|
+| Menu: 59% equity (drawdown -50%), IBKR, USD 25,000 | 3.7% | 3.16 |
+| Menu: 59% equity (drawdown -50%), IBKR, USD 100,000 | 3.8% | 1.28 |
+| Menu: 59% equity (drawdown -50%), IBKR, USD 500,000 | 3.8% | 1.00 |
+| Menu: 59% equity (drawdown -50%), OCBC, USD 25,000 | 3.4% | 33.93 |
+| Menu: 59% equity (drawdown -50%), OCBC, USD 100,000 | 3.7% | 8.96 |
+| Menu: 59% equity (drawdown -50%), OCBC, USD 500,000 | 3.7% | 2.64 |
 
 Does the cost model change the frontier ranking? Mixes ranked by expected real return net of cost per year, against the gross ranking; menu picks re-run on net returns:
 
 |  | max_cost_per_year | order_unchanged | mixes_changing_rank | net_return_peak_equity | menu_picks_changed |
 |---|---|---|---|---|---|
+| ('IBKR', 25000.0) | 0.0% | True | 0 | 100.0% | none |
+| ('IBKR', 100000.0) | 0.0% | True | 0 | 100.0% | none |
+| ('IBKR', 500000.0) | 0.0% | True | 0 | 100.0% | none |
 | ('OCBC', 25000.0) | 0.3% | False | 9 | 100.0% | none |
 | ('OCBC', 100000.0) | 0.1% | False | 2 | 100.0% | none |
 | ('OCBC', 500000.0) | 0.0% | True | 0 | 100.0% | none |
@@ -95,12 +111,42 @@ Does the cost model change the frontier ranking? Mixes ranked by expected real r
 
 Rule, comparison and decision criterion were logged in `docs/decisions.md` before this was run. The value is tracked from each portfolio size; contributions arrive each December and buy the underweight sleeves; orders pay costs at their actual size. The band rule is preferred only if its net real return is higher by more than 0.05% a year with no contribution and its maximum real drawdown is no more than 1% point worse.
 
-Menu mix: OCBC, USD 25,000: incumbent stays; OCBC, USD 100,000: incumbent stays; OCBC, USD 500,000: incumbent stays.
+Menu mix: IBKR, USD 25,000: incumbent stays; IBKR, USD 100,000: incumbent stays; IBKR, USD 500,000: incumbent stays; OCBC, USD 25,000: incumbent stays; OCBC, USD 100,000: incumbent stays; OCBC, USD 500,000: incumbent stays.
 
 No contributions, by target mix:
 
 |  | incumbent_real_return | band_5_real_return | return_gain_bps | incumbent_cost_per_year | band_5_cost_per_year | incumbent_orders_per_year | band_5_orders_per_year | drawdown_change_bps | band_5_preferred |
 |---|---|---|---|---|---|---|---|---|---|
+| ('IBKR', 25000.0, 'Menu: 59% equity (drawdown -50%)') | 3.8% | 3.7% | -3.89 | 0.0% | 0.0% | 2.03 | 1.19 | -69.13 | False |
+| ('IBKR', 25000.0, '10% equity') | 1.5% | 1.4% | -7.58 | 0.0% | 0.0% | 1.96 | 0.14 | -11.80 | False |
+| ('IBKR', 25000.0, '20% equity') | 2.0% | 2.1% | 6.01 | 0.0% | 0.0% | 1.96 | 0.70 | -35.30 | True |
+| ('IBKR', 25000.0, '30% equity') | 2.5% | 2.4% | -5.97 | 0.0% | 0.0% | 2.03 | 0.77 | -34.20 | False |
+| ('IBKR', 25000.0, '40% equity') | 3.0% | 2.8% | -10.84 | 0.0% | 0.0% | 2.03 | 0.98 | -80.68 | False |
+| ('IBKR', 25000.0, '50% equity') | 3.4% | 3.3% | -8.26 | 0.0% | 0.0% | 2.03 | 1.26 | -114.17 | False |
+| ('IBKR', 25000.0, '60% equity') | 3.8% | 3.8% | -3.88 | 0.0% | 0.0% | 2.03 | 1.19 | -68.42 | False |
+| ('IBKR', 25000.0, '70% equity') | 4.2% | 4.2% | 1.79 | 0.0% | 0.0% | 2.03 | 0.98 | -20.87 | False |
+| ('IBKR', 25000.0, '80% equity') | 4.5% | 4.4% | -7.08 | 0.0% | 0.0% | 2.03 | 0.49 | -136.35 | False |
+| ('IBKR', 25000.0, '90% equity') | 4.8% | 4.8% | 1.24 | 0.0% | 0.0% | 1.96 | 0.21 | -53.98 | False |
+| ('IBKR', 100000.0, 'Menu: 59% equity (drawdown -50%)') | 3.8% | 3.7% | -4.27 | 0.0% | 0.0% | 2.03 | 1.19 | -68.82 | False |
+| ('IBKR', 100000.0, '10% equity') | 1.5% | 1.4% | -8.69 | 0.0% | 0.0% | 1.96 | 0.14 | -12.45 | False |
+| ('IBKR', 100000.0, '20% equity') | 2.0% | 2.1% | 5.28 | 0.0% | 0.0% | 1.96 | 0.70 | -35.73 | True |
+| ('IBKR', 100000.0, '30% equity') | 2.5% | 2.5% | -6.63 | 0.0% | 0.0% | 2.03 | 0.77 | -34.42 | False |
+| ('IBKR', 100000.0, '40% equity') | 3.0% | 2.8% | -11.37 | 0.0% | 0.0% | 2.03 | 0.98 | -81.40 | False |
+| ('IBKR', 100000.0, '50% equity') | 3.4% | 3.3% | -8.60 | 0.0% | 0.0% | 2.03 | 1.26 | -113.77 | False |
+| ('IBKR', 100000.0, '60% equity') | 3.8% | 3.8% | -4.26 | 0.0% | 0.0% | 2.03 | 1.19 | -68.10 | False |
+| ('IBKR', 100000.0, '70% equity') | 4.2% | 4.2% | 1.24 | 0.0% | 0.0% | 2.03 | 0.98 | -20.74 | False |
+| ('IBKR', 100000.0, '80% equity') | 4.5% | 4.4% | -7.92 | 0.0% | 0.0% | 2.03 | 0.49 | -137.55 | False |
+| ('IBKR', 100000.0, '90% equity') | 4.8% | 4.8% | 0.25 | 0.0% | 0.0% | 1.96 | 0.21 | -54.41 | False |
+| ('IBKR', 500000.0, 'Menu: 59% equity (drawdown -50%)') | 3.8% | 3.7% | -4.36 | 0.0% | 0.0% | 2.03 | 1.19 | -69.18 | False |
+| ('IBKR', 500000.0, '10% equity') | 1.5% | 1.4% | -8.91 | 0.0% | 0.0% | 1.96 | 0.14 | -12.49 | False |
+| ('IBKR', 500000.0, '20% equity') | 2.0% | 2.1% | 5.15 | 0.0% | 0.0% | 1.96 | 0.70 | -35.71 | True |
+| ('IBKR', 500000.0, '30% equity') | 2.5% | 2.5% | -6.75 | 0.0% | 0.0% | 2.03 | 0.77 | -34.46 | False |
+| ('IBKR', 500000.0, '40% equity') | 3.0% | 2.8% | -11.46 | 0.0% | 0.0% | 2.03 | 0.98 | -81.85 | False |
+| ('IBKR', 500000.0, '50% equity') | 3.4% | 3.3% | -8.69 | 0.0% | 0.0% | 2.03 | 1.26 | -114.16 | False |
+| ('IBKR', 500000.0, '60% equity') | 3.8% | 3.8% | -4.36 | 0.0% | 0.0% | 2.03 | 1.19 | -68.46 | False |
+| ('IBKR', 500000.0, '70% equity') | 4.2% | 4.2% | 1.14 | 0.0% | 0.0% | 2.03 | 0.98 | -21.10 | False |
+| ('IBKR', 500000.0, '80% equity') | 4.5% | 4.4% | -8.05 | 0.0% | 0.0% | 2.03 | 0.49 | -137.90 | False |
+| ('IBKR', 500000.0, '90% equity') | 4.8% | 4.8% | 0.06 | 0.0% | 0.0% | 1.96 | 0.21 | -54.50 | False |
 | ('OCBC', 25000.0, 'Menu: 59% equity (drawdown -50%)') | 3.6% | 3.6% | 2.54 | 0.2% | 0.1% | 2.03 | 1.19 | -72.07 | False |
 | ('OCBC', 25000.0, '10% equity') | 1.3% | 1.4% | 10.17 | 0.2% | 0.0% | 1.96 | 0.14 | -0.42 | True |
 | ('OCBC', 25000.0, '20% equity') | 1.8% | 2.0% | 17.31 | 0.2% | 0.1% | 1.96 | 0.70 | -25.14 | True |
@@ -136,6 +182,15 @@ With contributions (0%, 5% or 10% of the starting value a year), averaged over t
 
 |  | mean_return_gain_bps | mean_drawdown_change_bps | targets_preferring_band_5 | targets |
 |---|---|---|---|---|
+| ('IBKR', 25000.0, 0.0) | -3.85 | -62.49 | 1 | 10 |
+| ('IBKR', 25000.0, 0.05) | -4.12 | -59.74 | 1 | 10 |
+| ('IBKR', 25000.0, 0.1) | -3.91 | -61.69 | 0 | 10 |
+| ('IBKR', 100000.0, 0.0) | -4.50 | -62.74 | 1 | 10 |
+| ('IBKR', 100000.0, 0.05) | -4.16 | -59.52 | 1 | 10 |
+| ('IBKR', 100000.0, 0.1) | -3.93 | -61.44 | 0 | 10 |
+| ('IBKR', 500000.0, 0.0) | -4.62 | -62.98 | 1 | 10 |
+| ('IBKR', 500000.0, 0.05) | -4.18 | -59.56 | 1 | 10 |
+| ('IBKR', 500000.0, 0.1) | -3.95 | -61.44 | 0 | 10 |
 | ('OCBC', 25000.0, 0.0) | 6.78 | -55.74 | 5 | 10 |
 | ('OCBC', 25000.0, 0.05) | -1.25 | -62.79 | 2 | 10 |
 | ('OCBC', 25000.0, 0.1) | -2.46 | -65.76 | 1 | 10 |

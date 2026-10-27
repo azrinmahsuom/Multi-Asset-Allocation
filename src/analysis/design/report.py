@@ -95,10 +95,10 @@ def _bond_section(r: dict) -> list[str]:
         "choice matters.",
         "",
         "Caveats: the main layer is about seven years and includes 2022; the global fund's "
-        "duration is a current published figure (status to_verify in "
-        "`reference/bond_durations.csv`); SGS returns are built from benchmark yields, not a "
-        "traded index; hedges assume covered interest parity; the long layer uses US Treasuries, "
-        "not global bonds.",
+        "duration is a current published figure applied to the whole period (verified from "
+        "the factsheet; `reference/bond_durations.csv`); SGS returns are built from benchmark "
+        "yields, not a traded index; hedges assume covered interest parity; the long layer uses "
+        "US Treasuries, not global bonds.",
         "",
     ]
 

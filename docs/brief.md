@@ -121,9 +121,8 @@ Not applicable: no hypothesis (see §5).
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
 - Rebalancing band of 10 percentage points: an economic choice to limit drift; Evidence: pending.
 - Trading costs: the ISAC.L and IGLO.L spread quotes come from Yahoo (LSE and Deutsche Börse pages refuse automated requests); to check against an exchange or issuer quote (to_verify).
-- Trading costs: the only LSE broker schedule verified so far has a GBP 55 minimum commission, which dominates rebalancing costs at USD 25,000 (about 0.3% a year from the December rebalance alone). A lower-cost published LSE schedule has not been verified.
+- Trading costs: whether Singapore GST applies to the IBKR commission is not stated on its schedule; GST is applied (conservative).
 - Withholding tax and US estate tax (`reference/withholding_tax.csv`, `reference/fund_withholding.csv`): every row now cites a hashed primary document; awaiting the owner's review.
-- Trading costs: the IBKR LSE schedule (to be pasted by the owner) is not yet in `reference/trading_costs.csv`; the size, ranking and rebalancing tests run on OCBC only until then.
 - Risk menu: the drawdown tolerances (−20/−30/−40/−50%) and the CVaR level (5%) are owner preferences (Evidence: pending); under the fixed drawdown basis only −50% has a mix.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.
