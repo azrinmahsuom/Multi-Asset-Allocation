@@ -163,3 +163,9 @@ def test_constant_duration_returns_caps_at_30_years():
     out = metrics.constant_duration_returns(pd.Series([0.20, 0.20], index=idx), 8.0)
     assert metrics.par_bond_duration(0.20, 30.0) < 8.0
     assert out.iloc[0] == pytest.approx(0.20 / 12)
+
+
+def test_annualised_volatility_scales_sample_std():
+    r = pd.Series([0.01, -0.01, 0.01, -0.01])
+    # Sample std (ddof=1) of +/-1% alternating = sqrt(4 * 0.0001 / 3) = 0.011547; x sqrt(12).
+    assert metrics.annualised_volatility(r, 12) == pytest.approx(0.011547005 * np.sqrt(12))

@@ -50,10 +50,10 @@ One source per line, with whether results derived from it can be published. Upda
 | Treasury yields (TB3MS, GS1, GS5, GS10, GS30), TIPS (FII10), CPI (CPIAUCSL), SGD per USD (EXSIUS) | FRED | `analysis.sources` | 2026-10-26 | Yes, public domain with citation |
 | Moody's Baa and Aaa corporate yields (BAA, AAA) | FRED | `analysis.sources` | 2026-10-26 | Derived results only; copyrighted |
 | SGD interbank overnight and 3-month (daily, Jul 1987 to Dec 2013); SORA, SORA Index, 3-month compounded SORA (daily, 2005 onwards) | MAS Domestic Interest Rates (eservices.mas.gov.sg) | `analysis.sources` | 2026-10-27 | Yes, MAS dataset terms with attribution |
-| SG CPI, SGS yields | SingStat / MAS | Phase 1 | TBD | TBD (verify terms) |
+| SG CPI (SingStat M213751); SGS benchmark yields (MAS, from 1998) | SingStat API; MAS | `analysis.sources` | 2026-10-26 | SingStat terms still to be confirmed; MAS: free to use with attribution |
 | US equity REIT total return: All Equity REITs (monthly, 1971-12 to 2026-09) | Nareit, MonthlyHistoricalReturns.xls | Manual download, recorded by `analysis.sources` | 2026-10-27 | **No.** Private validation only (owner's decision, 2026-10-27); its terms (s.4) prohibit public display and derivative works |
 | REIT ETF daily prices and distributions: VNQ, VNQI, RWO, REET, IDWP.L, CLR.SI, CFA.SI, SRT.SI | Yahoo Finance via `yfinance` 1.7.0 (pinned) | `analysis.prices` / `analysis.sources` | 2026-10-27 | Derived results only; Yahoo terms |
-| Issuer-published ETF annual returns (cross-check) | Issuer websites | Hand-entered in `reference/etf_annual_returns.csv` | TBD | Cited, not redistributed |
+| Issuer-published ETF returns (cross-check) | ISAC and IGLO factsheets; A35 reports (hashed documents) | Extracted by `analysis.documents.issuer_period_returns` | 2026-10-27 | Cited, not redistributed |
 | Fund documents: ISAC and IGLO factsheets, A35 factsheet and audited annual report (TER, duration, domicile, income use, fund tax) | Issuer sites (iShares UK, Amova AM) | `analysis.sources` (FUND_DOCUMENTS) | 2026-10-27 | Extracted figures only; documents not redistributed |
 | Tax documents: US–Ireland treaty, IRS Publications 515 and 901, Form 706-NA instructions, Irish Revenue Tax and Duty Manual 27-01A-03 | irs.gov, revenue.ie | `analysis.sources` (TAX_DOCUMENTS) | 2026-10-27 | Extracted facts with citations |
 | Fund tax documents: iShares V plc (FY to 30 Nov 2025) and iShares III plc (FY to 30 Jun 2025) audited annual reports; iShares V and III prospectuses; A35 prospectus; IRAS 'Income received from overseas' page (HTML) | blackrock.com, ishares.com, sg.amova-am.com, iras.gov.sg | `analysis.sources` (FUND_DOCUMENTS and the IRAS entry) | 2026-10-27 | Extracted facts with citations |
@@ -89,7 +89,7 @@ Each threshold or default cites its evidence, or says `Evidence: pending` (and i
 - Survivorship: multi-country data excludes markets that were wiped out; this is disclosed wherever it matters.
 - Every claim, including textbook ones and the owner's own, is a hypothesis to test.
 - Horizon profiles and risk-capacity limits: see docs/strategy_design.md (set by the owner, 2026-10-27; short profile loosened to -15% the same day). Limits bind on real SGD history from 1998; a GDP-weighted global JST portfolio (1871–2020) is reported as a stress scenario.
-- Minimum allocation to the strategy: USD 25,000 (owner's constraint, 2026-10-27). Trading costs, the number of ETFs per profile and rebalancing trade sizes are computed at this amount.
+- Minimum allocation to the strategy: USD 25,000 (owner's constraint, 2026-10-27). The headline cost case is USD 100,000 with the IBKR LSE schedule (owner, 2026-10-27, chosen after the USD 25,000 results); USD 25,000 and 500,000 and the OCBC schedule are reported as sensitivities.
 - Naming rules: ETF issuer names and tickers are allowed as product identifiers only. Never name the owner's employer or its strategy names. Never reproduce the structure, specific weights, screening thresholds or ranking weights from any firm's internal or published materials. No custodian or broker recommendations. Language stays neutral, with no endorsement wording. Every ETF selection is dated ("as of YYYY-MM") and labelled illustrative, not investment advice.
 - Public academic and data sources only.
 - Figures that can't be reproduced (e.g. commercial yearbooks) are labelled "cited but not independently verified".
@@ -116,6 +116,7 @@ Not applicable: no hypothesis (see §5).
 - Trading costs: the SGD→USD conversion markup is undisclosed (Evidence: pending); more primary broker fee schedules are needed for a median.
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
 - SingStat Table Builder's own licence terms are still to be confirmed.
+- Issuer return cross-check tolerance of 0.5 pp a year (owner rule): Evidence: pending.
 - Issuer return cross-check: done for ISAC, IGLO and A35 (docs/backtest_results.md); two single-year gaps above 0.5pp logged. The REIT ETF cross-check in `reference/etf_annual_returns.csv` is not done (REITs are outside the final universe).
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.

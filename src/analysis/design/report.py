@@ -35,8 +35,12 @@ def _profiles_section() -> list[str]:
         "measures are on real SGD returns over rolling windows of the profile's horizon. The "
         "short profile keeps a drawdown cap; medium and long use horizon measures (chance of a "
         "real loss, worst rolling real return) instead of peak-to-trough caps. Limits loosen "
-        "with horizon in cumulative terms; the per-year floors tighten (-3.2%, -2.2%, -1.4% a "
-        "year), which the owner accepted.",
+        "with horizon in cumulative terms; the per-year floors tighten ("
+        + ", ".join(
+            f"{(1 + p.worst_window_floor) ** (1 / p.window_years) - 1:.1%}"
+            for p in profiles.PROFILES
+        )
+        + " a year), which the owner accepted.",
         "",
         _table_markdown(_profiles_table(profiles.PROFILES)),
         "",
@@ -182,7 +186,8 @@ def _allocation_section(al: dict) -> list[str]:
         "expected real return wins. Estimated methods use "
         f"monthly SGD data ({al['monthly_period']}).",
         "",
-        "**Selected:** " + "; ".join(f"{k}: {v}" for k, v in sel.items()) + ".",
+        "**Selected under the earlier rule (superseded by the risk menu; docs/decisions.md, "
+        "2026-10-27):** " + "; ".join(f"{k}: {v}" for k, v in sel.items()) + ".",
         "",
         _table_markdown(t[cols].set_index("profile")),
         "",
@@ -203,8 +208,7 @@ def _allocation_section(al: dict) -> list[str]:
         "SGD history is about 28 years without an SGD inflation crisis. The global stress "
         "columns show the same allocations on 1871–2020: every allocation, cash included, fails "
         "the limits there because of the First World War and 1940s inflation (global bonds "
-        "-43% real over the five years to 1920). Mean-variance weights are unstable across "
-        "resamples.",
+        f"{_worst_bond_window()}). Mean-variance weights are unstable across resamples.",
         "",
     ]
     return lines
@@ -324,6 +328,36 @@ def _worst_window_note(f: pd.DataFrame) -> list[str]:
     ]
 
 
+def _worst_bond_window() -> str:
+    """Worst 5-year cumulative real return of the global portfolio's bond sleeve."""
+    from analysis import metrics
+
+    glob = allocation.global_portfolio_real()
+    cum = (1 + metrics.rolling_annualised(glob["bonds"], 5, 1)) ** 5 - 1
+    return f"{cum.min():.0%} real over the five years to {int(cum.idxmin())}"
+
+
+def _pre1940_note() -> str:
+    troughs = [
+        int(holdout.us_drawdown_episode(np.array([e / 10, 1 - e / 10, 0.0]))[1][:4])
+        for e in range(1, 11)
+    ]
+    if max(troughs) < 1940:
+        return (
+            "For every mix with at least 10% equities the worst US episode ends before 1940, "
+            "so the 1940–81 bond losses (stress column) do not bind. "
+        )
+    return "Some binding episodes fall in 1940–81. "
+
+
+def _lowest_loss(f: pd.DataFrame) -> list:
+    out = []
+    for p in profiles.PROFILES:
+        g = f[f["profile"] == p.name]
+        out.append((p, g.loc[g["p_loss_holdout"].idxmin()]))
+    return out
+
+
 def _core_result_section() -> list[str]:
     f = holdout.risk_frontier()
     menu = holdout.risk_menu(f)
@@ -389,12 +423,17 @@ def _core_result_section() -> list[str]:
         "### Reading",
         "",
         f"No mix keeps the US 1871–1980 real drawdown better than {dd_us_floor:.1%} (the best "
-        f"is at {dd_us_at:.0%} equities). The binding episodes: " + "; ".join(episodes) + ". "
-        "Balanced mixes are bound by the First World War inflation and equity-heavy mixes by "
-        "1929–32, not by the 1940–81 bond losses, so matching the bond proxy to A35's "
-        "duration does not change the menu. Tolerances tighter than that floor have no mix. "
-        "The short horizon remains outside the strategy on the loss measures (its lowest "
-        "P(real loss) over 5 years is above 20% for every mix).",
+        f"is at {dd_us_at:.0%} equities). The binding episodes: "
+        + "; ".join(episodes)
+        + ". "
+        + _pre1940_note()
+        + "Tolerances tighter than that floor have no mix. Lowest P(real loss) over the "
+        "horizon across all mixes (1-point steps): "
+        + "; ".join(
+            f"{p.name.lower()} {r['p_loss_holdout']:.1%} at {r['equity_share']:.0%} equities"
+            for p, r in _lowest_loss(f)
+        )
+        + ". The short horizon remains outside the strategy on the loss measures.",
         "",
         *_worst_window_note(f),
         "Sensitivity, not a selection: the largest equity share meeting each tolerance if "
@@ -450,7 +489,8 @@ def _holdout_section(h: dict) -> list[str]:
         "",
         _table_markdown(t) if len(t) else "No candidate met the limits in-sample.",
         "",
-        "**Result:** " + "; ".join(f"{k}: {v}" for k, v in sel.items()) + ".",
+        "**Result under the v2 rule (superseded by the risk menu; docs/decisions.md, "
+        "2026-10-27):** " + "; ".join(f"{k}: {v}" for k, v in sel.items()) + ".",
         "",
         (
             "Infeasible profiles: " + ", ".join(infeasible) + ". The table below shows every "

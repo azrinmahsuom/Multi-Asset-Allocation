@@ -8,18 +8,17 @@
 
 - **Problem:** which long-horizon mix of low-cost ETFs is best supported by evidence for an investor who spends Singapore dollars? And which popular allocation claims survive testing?
 - **What I built:** a reproducible Python research pipeline. One command (`make all`) does the full run:
-  - downloads 63 raw files from public sources and verifies each against a SHA-256 manifest;
+  - fetches 63 raw files from public sources (one, Nareit, saved by hand) and verifies each against a SHA-256 manifest;
   - tests 13 textbook claims;
   - designs and stress-tests allocations on held-out data;
   - backtests them in SGD after fund fees, withholding tax, FX and trading costs from published broker and exchange schedules.
 - **How I worked:**
-  - Every methodology choice is a written rule, logged with its evidence before the result was computed ([decision log](docs/decisions.md)).
-  - Rule changes made after seeing holdout results are labelled as such.
+  - Every methodology choice is a written rule in the [decision log](docs/decisions.md). Most were fixed before results were computed. Those made after seeing results are labelled post-holdout, and those without supporting evidence are marked Evidence: pending.
   - Tax rates and fund costs are read from audited reports, treaty texts and prospectuses, and the code checks them against the documents.
 - **Main result:**
   - Over 5 years, every mix has a 21% or higher historical chance of losing money in real terms, so short-horizon money sits outside the strategy.
   - Over 10–20 years, the binding risk is drawdown depth. How deep a drawdown each history shows is set out in the [risk menu](#the-risk-menu-sgd-era-vs-us-century).
-- **Skills shown:** asset allocation, portfolio construction and backtesting, robust statistics (block bootstrap, HAC errors, shrinkage), fixed-income modelling from yields, fund tax analysis, data engineering and testing (pytest, ruff, CI).
+- **Skills:** asset allocation, backtesting, robust statistics, fixed-income modelling, fund tax analysis, tested Python data pipelines.
 
 | | |
 |---|---|
@@ -27,19 +26,22 @@
 | **Data** | Public sources only: Jordà-Schularick-Taylor (16 countries, 1871–2020), Shiller (US, 1871 onwards), French, Damodaran, FRED, MAS, SingStat, ETF prices, and fund and tax documents. |
 | **Base currency** | SGD. Returns are total returns, in real terms after Singapore CPI unless stated. The risk-free rate is the SGD one-month rate (SORA Index from August 2005, compounded interbank overnight rate before; MAS). |
 | **Benchmarks** | 100% global equity; global 60/40; global market-cap multi-asset. |
-| **Status** | Evidence review, strategy design and backtest are complete. ETF implementation tables and an independent review are still to come. |
+| **Status** | Complete: evidence review, strategy design, backtest, a minimal implementation table and an independent review (findings addressed or logged in the [decision log](docs/decisions.md)). |
 
 ## Key findings
 
 1. **The risk menu is the core result.** For each horizon, the menu shows the highest-return mix of global equities and Singapore government bonds (SGS) that stays within a drawdown limit. It also shows each mix's chance of a real loss, its worst historical outcome and the average of its worst 5% of outcomes. There is no single recommended portfolio. [Details](#the-risk-menu-sgd-era-vs-us-century).
 2. **Of the 13 textbook claims, 4 hold, 4 hold partly, 4 fail and 1 can't be tested with public data.** For example:
    - The US stock–bond correlation depends on inflation: −0.17 in low-inflation months (the 95% interval includes zero) and +0.29 in high-inflation months.
-   - Long-run mean reversion in equities isn't statistically supported in any of 16 countries.
+   - Mean reversion in equities isn't statistically supported at a 20-year horizon in any of 16 countries.
    - Listed REITs didn't match equities in any of 8 cases.
    - [Full evidence review](docs/evidence_review.md).
 3. **The US century is the binding constraint.** No equity/SGS mix keeps the US 1871–1980 real drawdown better than −43.7%. Balanced mixes are bound by the First World War inflation (1915–20), and equity-heavy mixes by 1929–32.
 4. **Short-horizon money doesn't belong in the strategy.** Over 5 years, every mix lost money in real terms in at least 21.5% of held-out historical windows (the lowest is at 48% equities).
-5. **The broker schedule matters more than spreads at small sizes.** Holding the 59% equity mix at USD 25,000 costs 3.2 bps a year in trading with the low-cost published LSE schedule, against 33.9 bps with the high-cost one. Costs never change which mix the menu picks.
+5. **Costs are small with a low-cost broker, and the broker matters more than spreads at small sizes.**
+   - Headline case (IBKR at USD 100,000): the 59% equity mix costs about 33 bps a year all-in, of which 1.3 bps is trading. The rest is fund fees and withholding tax inside the funds.
+   - With the high-cost published LSE schedule at USD 25,000, trading alone costs 33.9 bps a year.
+   - Costs never change which mix the menu picks.
 6. **Fund domicile matters for tax.**
    - An Irish-domiciled global equity fund lost 12.0% of its dividends to withholding tax (its audited 2025 report).
    - A US-domiciled fund distributing to a Singapore resident would lose 30%.
@@ -74,35 +76,42 @@ Full menus, frontiers and definitions are in [docs/strategy_design.md](docs/stra
 
 ## Backtest
 
-Results in SGD, net of fund fees, withholding tax and trading costs. The index layer uses the high-cost broker schedule at USD 25,000. Rebalancing happens every December, or sooner when a weight drifts more than 10 points. A ±5-point band with cash-flow rebalancing was tested against this rule and not adopted.
+Results in SGD, net of fund fees, withholding tax and trading costs.
+- **Headline cost case:** IBKR's published LSE schedule at a USD 100,000 portfolio. Singapore GST on its commission is assumed. The OCBC schedule and USD 25,000 and 500,000 portfolios are sensitivities.
+- **Rebalancing:** every December, or sooner when a weight drifts more than 10 points. A ±5-point band with cash-flow rebalancing was tested against this rule and not adopted.
 
 | Index layer, 1998-02 to 2026-08 | Real return a year | Volatility | Max drawdown (nominal) | Worst 5 years (a year) |
 |---|---|---|---|---|
-| Menu mix: 59% equities, 41% SGS | 3.4% | 7.9% | −29.8% | −2.4% |
+| Menu mix: 59% equities, 41% SGS | 3.8% | 7.9% | −29.1% | −2.0% |
 | 100% global equity | 5.0% | 13.5% | −51.2% | −7.1% |
-| Global 60/40 | 3.2% | 7.8% | −29.5% | −2.0% |
-| Global market cap | 2.8% | 6.8% | −22.8% | −0.8% |
+| Global 60/40 | 3.9% | 7.8% | −28.1% | −1.2% |
+| Global market cap | 3.5% | 6.7% | −21.3% | −0.1% |
 
 | ETF layer, 2011-11 to 2026-08 | Real return a year | Volatility | Max drawdown (nominal) |
 |---|---|---|---|
-| Menu mix: 59% equities, 41% SGS | 5.4% | 7.1% | −16.1% |
+| Menu mix: 59% equities, 41% SGS | 5.7% | 7.1% | −16.1% |
 | 100% global equity | 9.4% | 11.3% | −19.6% |
-| Global 60/40 | 4.7% | 7.1% | −17.0% |
-| Global market cap | 3.6% | 6.2% | −16.4% |
+| Global 60/40 | 5.4% | 7.0% | −16.6% |
+| Global market cap | 4.3% | 6.1% | −15.8% |
 
 ![Growth of SGD 1 in real terms](reports/figures/backtest_growth_index_layer.png)
 
-The menu mix is not out of sample here: its drawdown test uses SGD history that overlaps the backtest. The full tables, robustness checks, cost sensitivity and the rebalancing test are in [docs/backtest_results.md](docs/backtest_results.md).
+The menu mix's results sit close to the global 60/40's: slightly behind it in the index layer and slightly ahead in the ETF layer. These results are not out of sample, because the menu's drawdown test, the bond-sleeve choice and the asset-universe tests all use SGD-era data that overlaps the backtest. The full tables, robustness checks, cost sensitivities, issuer cross-check and rebalancing test are in [docs/backtest_results.md](docs/backtest_results.md).
 
 **Illustrative instruments, as of 2026-10.** These are not recommendations:
 - iShares MSCI ACWI UCITS ETF (ISAC, LSE; Irish-domiciled, accumulating; TER 0.20%);
 - ABF Singapore Bond Index Fund (A35, SGX; total expense ratio 0.24%).
 
-The SGS sleeve was chosen over global bonds by a pre-set rule, and the choice is logged as low confidence.
+The SGS sleeve was chosen over global bonds by a pre-set rule, and the choice is logged as low confidence. At USD 100,000 with the headline schedule, the 59% mix costs about 33 bps a year all-in (TER, withholding tax inside the fund and rebalancing), plus about 12 bps once for the initial purchase. Excluded: the SGD→USD conversion cost and any platform or custody fee. The implementation table is in [docs/backtest_results.md](docs/backtest_results.md).
 
 ## Limitations
 
-- **Post-holdout changes.** The decision rule changed twice after holdout results were seen (loss budgets, then the drawdown menu), and the US bond proxy was corrected afterwards. Each change is logged, but the holdout is no longer a clean test.
+- **Changes made after seeing results.** Each is logged in the [decision log](docs/decisions.md). Together they mean the holdout is no longer a clean test.
+  - The v2 risk limits were set after the v1 holdout.
+  - The gold return-source condition was added after the first universe results.
+  - The decision rule changed twice: to loss budgets, then to the drawdown menu.
+  - The US bond proxy was matched to the bond fund's duration.
+  - The headline cost case (IBKR at USD 100,000) was chosen after the USD 25,000 results. It moves the menu mix from just ahead of the global 60/40 in the index layer to just behind it.
 - **Survivorship.** The multi-country data cover developed markets that survived. Markets that were wiped out, such as Russia after 1917 and China after 1949, are absent, so equity returns across countries are biased upward.
 - **Short SGD history.** About 28 years of SGD data, with the ETF layer starting in November 2011. SGD-era results are in-sample.
 - **Modelled series.**
@@ -112,9 +121,11 @@ The SGS sleeve was chosen over global bonds by a pre-set rule, and the choice is
 - **Costs and tax.**
   - Spreads are a single dated snapshot. Two of the three quotes come from a secondary source and are marked to_verify; a 5/15/30 bps sensitivity covers this.
   - The SGD→USD conversion cost isn't published and is excluded.
+  - Singapore GST on the low-cost broker's commission is assumed.
   - The fund's latest withholding rate is applied to the whole history.
-- **Owner judgement.** The drawdown limits, the 5% tail level, the horizon profiles and the rebalancing-test margins are the owner's judgement calls, not results derived from data.
-- **Not yet done.** The issuer annual-return cross-check for ETFs, ETF implementation tables per profile, and an independent methodology review.
+- **Owner judgement.** These are the owner's judgement calls, not results derived from data: the drawdown limits, the 5% tail level, the horizon profiles, the rebalancing-test margins and the 0.5 pp cross-check tolerance.
+- **Issuer cross-check.** Our price-based ETF returns match the issuers' NAV returns within 0.5 pp a year in 27 of 29 periods. The two exceptions are ISAC in 2019 (−0.62 pp) and IGLO in 2025 (+0.69 pp). They are logged, with the likely cause (price vs NAV basis) unconfirmed.
+- **More detail:** [docs/limitations.md](docs/limitations.md).
 
 ## Before you start
 
@@ -133,7 +144,7 @@ uv run pytest            # check everything works
 make all                 # download data, verify hashes, run the analysis end to end
 ```
 
-`make all` regenerates [docs/evidence_review.md](docs/evidence_review.md), [docs/strategy_design.md](docs/strategy_design.md), [docs/backtest_results.md](docs/backtest_results.md) and every figure. Every number in this README comes from those generated files.
+`make all` regenerates [docs/evidence_review.md](docs/evidence_review.md), [docs/strategy_design.md](docs/strategy_design.md), [docs/backtest_results.md](docs/backtest_results.md) and every figure. Every number in this README comes from those generated files or from the cited, hand-checked inputs in [reference/](reference/) (for example fund fees and tax rates).
 
 **One manual step.** Nareit's site blocks scripted downloads, so its file must be saved by hand before `make all`:
 

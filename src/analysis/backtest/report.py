@@ -17,6 +17,18 @@ SOURCES = {"french", "mas", "fred", "singstat", "yahoo", "shiller"}
 BENCHMARKS = ["100% global equity", "Global 60/40", "Global market cap"]
 
 
+def _costs_in_bps(df: pd.DataFrame) -> pd.DataFrame:
+    """Show cost columns in basis points (they round to 0.0% as percentages)."""
+    out = df.copy()
+    for c in df.columns:
+        if "cost" in str(c) and not str(c).endswith("_bps"):
+            values = pd.to_numeric(df[c], errors="coerce")
+            if values.notna().any():
+                out[c] = values * 1e4
+                out = out.rename(columns={c: f"{c}_bps"})
+    return out
+
+
 def _plotted(sims: dict) -> list[str]:
     """Strategies not identical to a benchmark, then the benchmarks (at most 5 lines)."""
     weights = {**engine.strategy_weights(), **engine.benchmark_weights()}
@@ -103,10 +115,12 @@ def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> l
     by_size = pd.DataFrame(by_size).T
     rows = {}
     for name, w in weights.items():
-        row = {"base_case": engine.summarise(idx_sims[name], index_layer)["cost_per_year"]}
+        row = {"cost_base_case": engine.summarise(idx_sims[name], index_layer)["cost_per_year"]}
         for bps in engine.SPREAD_SENSITIVITY:
             sim = engine.simulate(index_layer, w, engine.RULE, bps)
-            row[f"spread_{bps * 1e4:.0f}bps"] = engine.summarise(sim, index_layer)["cost_per_year"]
+            row[f"cost_spread_{bps * 1e4:.0f}"] = engine.summarise(sim, index_layer)[
+                "cost_per_year"
+            ]
         rows[name] = row
     snap = costs.spread_snapshot()
     unverified = ", ".join(snap.index[snap["status"] != "verified"])
@@ -134,7 +148,7 @@ def _cost_section(idx_sims: dict, index_layer: pd.DataFrame, weights: dict) -> l
         "Trading cost per year (index layer), base case and with every spread replaced by 5, "
         "15 or 30 bps per side (fees unchanged):",
         "",
-        _table_markdown(pd.DataFrame(rows).T),
+        _table_markdown(_costs_in_bps(pd.DataFrame(rows).T)),
         "",
         f"Rebalancing trades are sized from the headline value, USD {engine.HEADLINE_VALUE:,.0f}, "
         "not the grown portfolio; other sizes are in the sensitivity below.",
@@ -290,7 +304,7 @@ def _size_section(index_layer: pd.DataFrame) -> list[str]:
         f"broker schedule (verified LSE schedules: {', '.join(engine.lse_brokers())}; OCBC is "
         "the high-cost case):",
         "",
-        _table_markdown(shown),
+        _table_markdown(_costs_in_bps(shown.add_prefix("cost "))),
         "",
         "Menu mixes by LSE broker schedule and portfolio size (index layer, real SGD, net of "
         "costs):",
@@ -300,7 +314,7 @@ def _size_section(index_layer: pd.DataFrame) -> list[str]:
         "Does the cost model change the frontier ranking? Mixes ranked by expected real return "
         "net of cost per year, against the gross ranking; menu picks re-run on net returns:",
         "",
-        _table_markdown(r["table"]),
+        _table_markdown(_costs_in_bps(r["table"])),
         "",
     ]
 
@@ -347,7 +361,7 @@ def _rebalancing_test_section(index_layer: pd.DataFrame) -> list[str]:
         "",
         "No contributions, by target mix:",
         "",
-        _table_markdown(zero[cols]),
+        _table_markdown(_costs_in_bps(zero[cols])),
         "",
         "With contributions (0%, 5% or 10% of the starting value a year), averaged over the "
         "target mixes:",
@@ -366,7 +380,7 @@ def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list
     lines = [
         f"## {title} ({layer.index[0]} to {layer.index[-1]})",
         "",
-        _table_markdown(table),
+        _table_markdown(_costs_in_bps(table)),
         "",
         "Menu mixes against their drawdown tolerance on this layer's real SGD path:",
         "",
@@ -429,9 +443,9 @@ def run() -> dict:
             + "; ".join(strategies)
             + ". This result is not final.",
             "",
-            "**In-sample caveat:** the menu's drawdown test uses SGD history that overlaps this "
-            "backtest (alongside US history before 1981), so these results are not out of "
-            "sample.",
+            "**In-sample caveat:** the menu's drawdown test, the bond-sleeve choice (2019–2026) "
+            "and the asset-universe tests (2008–2026) all use SGD-era data that overlaps this "
+            "backtest, so these results are not out of sample.",
             "",
             f"Withholding-tax drag on equities in the index layer averaged {wht:.2%} a year "
             f"(trailing dividend yield x {engine.effective_wht('ISAC.L'):.1%}, ISAC's "
@@ -459,9 +473,9 @@ def run() -> dict:
             "",
             "Turnover and trading cost per year for every equity/SGS mix on the frontier "
             "(index layer; 0% and 100% equity never rebalance). These apply to whichever mix a "
-            "horizon's loss budget selects in `docs/strategy_design.md`:",
+            "horizon's risk menu shows in `docs/strategy_design.md`:",
             "",
-            _table_markdown(_frontier_turnover(index_layer)),
+            _table_markdown(_costs_in_bps(_frontier_turnover(index_layer))),
             "",
             "## Subperiods (index layer)",
             "",
@@ -481,7 +495,7 @@ def run() -> dict:
             "",
             "## Parameter grid (index layer, each menu mix against its drawdown tolerance)",
             "",
-            _table_markdown(grid) if len(grid) else "No menu mix.",
+            _table_markdown(_costs_in_bps(grid)) if len(grid) else "No menu mix.",
             "",
             "Variants that fail: "
             + ("; ".join(f"{p} – {v}" for p, v in fails.index) or "none")

@@ -185,6 +185,7 @@ Entry template:
 **Effect on results:** Claim 8 now uses 22 complete calendar years instead of 20. Claim 5's inflation regimes cover the months around October 2025.
 
 ### 2026-10-27 — ETF cross-check flags outliers by modified z-score (replaces the 0.5 pp tolerance)
+*(For ISAC, IGLO and A35, a later owner rule reinstates a fixed 0.5 pp tolerance against issuer NAV returns. See "Issuer return cross-check" and "Independent review" below. This modified-z-score rule still applies to the REIT ETF cross-check, which has not been run.)*
 **Context:** The owner asked for a tolerance that can be backed up. The 0.5 percentage point figure had no source.
 **Options considered:** A fixed tolerance (rejected: no evidence for any particular number); a published, data-driven outlier rule (kept).
 **Rule:** `prices.cross_check` compares our calendar-year total returns with issuer-published *market-price* returns. NAV returns aren't compared, because our returns use closing prices. The gaps are pooled across all ETF-years, and a gap is flagged when its modified z-score, 0.6745 × (gap − median) / MAD, exceeds 3.5 in absolute value. The MAD is floored at 0.01 percentage points, the precision to which issuers publish returns.
@@ -521,7 +522,7 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 
 **Result:**
 - Only the −50% tolerance has a mix: 59% equity, at every horizon.
-- No mix keeps the US 1871–1980 real drawdown better than about −44%, because long US government bonds lost about half their real value between the 1940s and 1981.
+- No mix keeps the US 1871–1980 real drawdown better than about −44%, because long US government bonds lost about half their real value between the 1940s and 1981. *(Corrected later the same day: the binding US episodes end before 1940 (1915–20 and 1929–32), not in 1940–81. See "Correction of a proxy mismatch".)*
 - An SGD-only drawdown basis is shown as a sensitivity, not a selection.
 
 **What would change my mind:** If the owner prefers an SGD-only or JST-based drawdown basis, that is a further rule change and would be logged as such.
@@ -682,3 +683,30 @@ Methodology is now frozen (owner instruction, 2026-10-27).
 - **Not included:** SGD→USD conversion and platform or custody fees.
 
 No further Phase 4 scope (owner instruction).
+
+
+### 2026-10-27: Independent review (Phase 5) and corrections
+**Context:** A fresh agent with no prior involvement reviewed the repository read-only against the owner's definition of done and the brief. It reported 13 findings. Corrections that don't change methodology were made. The results are below.
+
+**Fixed:**
+- README backtest tables updated to the IBKR USD 100,000 headline case, with the case stated.
+- README status, post-holdout list and "every number" wording corrected.
+- Superseded selections in `docs/strategy_design.md` labelled as superseded.
+- Hand-typed numbers in generated text are now computed (per-year floors; worst global-bond window; lowest P(real loss) at 1-point steps; whether binding episodes predate 1940).
+- Costs shown in basis points.
+- The in-sample caveat now also covers the bond-sleeve and asset-universe tests.
+- `docs/limitations.md` brought up to date.
+- Stale brief §8 rows updated.
+- A direct test added for `metrics.annualised_volatility`.
+
+**Disclosures added:**
+- **The headline cost case (IBKR at USD 100,000) was chosen after the OCBC USD 25,000 results were known.** It changes the index-layer comparison with the global 60/40:
+  - under OCBC at USD 25,000, the menu mix's 3.4% real a year was above 60/40's 3.2%;
+  - under IBKR at USD 100,000, 3.8% is below 60/40's 3.9%.
+
+  Both cases remain in the sensitivity table. The USD 25,000 minimum allocation in brief §12 is unchanged.
+- **0.5 pp cross-check tolerance:** an owner rule. Evidence: pending (no source found for the specific figure). Added to the brief's Open questions.
+
+**Not changed (methodology frozen):**
+- The review's "justified against at least four alternatives" item is answered by the menu design. The 59% mix sits beside an 11-mix frontier, three benchmarks and five allocation methods. There is deliberately no single recommended portfolio.
+- The full `make all` with fresh downloads was not rerun in the review. The offline stages rebuilt every generated doc and figure byte-identically.

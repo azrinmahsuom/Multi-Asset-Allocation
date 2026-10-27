@@ -121,7 +121,7 @@ Frontier (10-point steps):
 
 ### Reading
 
-No mix keeps the US 1871–1980 real drawdown better than -43.7% (the best is at 51% equities). The binding episodes: 0% equity: -57%, 1940-11 to 1980-03; 30% equity: -44%, 1915-12 to 1920-06; 51% equity: -44%, 1915-12 to 1920-06; 100% equity: -77%, 1929-09 to 1932-06. Balanced mixes are bound by the First World War inflation and equity-heavy mixes by 1929–32, not by the 1940–81 bond losses, so matching the bond proxy to A35's duration does not change the menu. Tolerances tighter than that floor have no mix. The short horizon remains outside the strategy on the loss measures (its lowest P(real loss) over 5 years is above 20% for every mix).
+No mix keeps the US 1871–1980 real drawdown better than -43.7% (the best is at 51% equities). The binding episodes: 0% equity: -57%, 1940-11 to 1980-03; 30% equity: -44%, 1915-12 to 1920-06; 51% equity: -44%, 1915-12 to 1920-06; 100% equity: -77%, 1929-09 to 1932-06. For every mix with at least 10% equities the worst US episode ends before 1940, so the 1940–81 bond losses (stress column) do not bind. Tolerances tighter than that floor have no mix. Lowest P(real loss) over the horizon across all mixes (1-point steps): short 21.5% at 48% equities; medium 16.3% at 62% equities; long 14.6% at 86% equities. The short horizon remains outside the strategy on the loss measures.
 
 The worst horizon real returns come from the non-US JST histories, which include wars and hyperinflations. Worst windows: short, 0% equity: Germany to 1922 (-97%); short, 50% equity: Japan to 1945 (-92%); short, 100% equity: Portugal to 1978 (-97%); medium, 0% equity: Germany to 1922 (-98%); medium, 50% equity: France to 1951 (-94%); medium, 100% equity: Portugal to 1983 (-98%); long, 0% equity: Germany to 1922 (-98%); long, 50% equity: France to 1950 (-92%); long, 100% equity: Portugal to 1993 (-95%).
 
@@ -192,7 +192,7 @@ Roles and sources of expected return:
 
 Rules fixed before computing (`analysis.design.allocation`): five methods give risky weights over global equities and SGS; each profile holds the largest share of that mix (rest in SGD cash) that meets its limits on real SGD history (1998-02 to 2026-08); expected real return is the long-run real return of a GDP-weighted global portfolio of the JST countries (1871–2020, real USD, bonds hedged), which is also reported as a stress scenario; per profile the highest expected real return wins. Estimated methods use monthly SGD data (2008-06 to 2026-08).
 
-**Selected:** Short: none feasible; Medium: Market cap; Long: Market cap.
+**Selected under the earlier rule (superseded by the risk menu; docs/decisions.md, 2026-10-27):** Short: none feasible; Medium: Market cap; Long: Market cap.
 
 | profile | method | share_in_risky_mix | w_equity | w_bonds | w_cash | expected_real_return | worst_window_sgd | max_drawdown_sgd | sgd_real_return | sgd_volatility | meets_limits | worst_window_global | max_drawdown_global | global_stress_passes |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -280,7 +280,7 @@ The in-sample selection uses SGD history that overlaps the backtest. Each candid
 | Long | Risk parity | 25.4% | 74.6% | 0.0% | 20.0% | 22.2% | 4.6% | 3.0% | False | 4.4% |
 | Long | Maximum equity meeting limits (post-backtest) | 100.0% | 0.0% | 0.0% | 20.0% | 14.8% | 0.1% | 7.0% | True | 6.3% |
 
-**Result:** Short: infeasible; Medium: infeasible; Long: Maximum equity meeting limits (post-backtest).
+**Result under the v2 rule (superseded by the risk menu; docs/decisions.md, 2026-10-27):** Short: infeasible; Medium: infeasible; Long: Maximum equity meeting limits (post-backtest).
 
 Infeasible profiles: Short, Medium. The table below shows every measure for equity/SGS mixes in 10-point steps, so the binding limit is visible.
 
