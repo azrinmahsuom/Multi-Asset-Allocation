@@ -56,6 +56,7 @@ One source per line, with whether results derived from it can be published. Upda
 | Issuer-published ETF annual returns (cross-check) | Issuer websites | Hand-entered in `reference/etf_annual_returns.csv` | TBD | Cited, not redistributed |
 | Fund documents: ISAC and IGLO factsheets, A35 factsheet and audited annual report (TER, duration, domicile, income use, fund tax) | Issuer sites (iShares UK, Amova AM) | `analysis.sources` (FUND_DOCUMENTS) | 2026-10-27 | Extracted figures only; documents not redistributed |
 | Tax documents: US–Ireland treaty, IRS Publications 515 and 901, Form 706-NA instructions, Irish Revenue Tax and Duty Manual 27-01A-03 | irs.gov, revenue.ie | `analysis.sources` (TAX_DOCUMENTS) | 2026-10-27 | Extracted facts with citations |
+| Fund tax documents: iShares V plc (FY to 30 Nov 2025) and iShares III plc (FY to 30 Jun 2025) audited annual reports; iShares V and III prospectuses; A35 prospectus; IRAS 'Income received from overseas' page (HTML) | blackrock.com, ishares.com, sg.amova-am.com, iras.gov.sg | `analysis.sources` (FUND_DOCUMENTS and the IRAS entry) | 2026-10-27 | Extracted facts with citations |
 | ETF prices and distributions | Yahoo Finance via yfinance 1.7.0 | `analysis.prices` | 2026-10-26 | Derived results only |
 
 ## 9. Processing steps
@@ -119,9 +120,10 @@ Not applicable: no hypothesis (see §5).
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
 - Rebalancing band of 10 percentage points: an economic choice to limit drift; Evidence: pending.
-- Withholding-tax drag applies the 15% US–Ireland treaty rate to the whole dividend yield; non-US treaty rates not yet sourced.
 - Trading costs: the ISAC.L and IGLO.L spread quotes come from Yahoo (LSE and Deutsche Börse pages refuse automated requests); to check against an exchange or issuer quote (to_verify).
 - Trading costs: the only LSE broker schedule verified so far has a GBP 55 minimum commission, which dominates rebalancing costs at USD 25,000 (about 0.3% a year from the December rebalance alone). A lower-cost published LSE schedule has not been verified.
-- Withholding tax and US estate tax (`reference/withholding_tax.csv`): awaiting the owner's review. Distributions to individuals from A35.SI (a Designated Unit Trust) and from distributing Irish ETFs are still to_verify.
+- Withholding tax and US estate tax (`reference/withholding_tax.csv`, `reference/fund_withholding.csv`): every row now cites a hashed primary document; awaiting the owner's review.
+- Trading costs: the IBKR LSE schedule (to be pasted by the owner) is not yet in `reference/trading_costs.csv`; the size, ranking and rebalancing tests run on OCBC only until then.
+- Risk menu: the drawdown tolerances (−20/−30/−40/−50%) and the CVaR level (5%) are owner preferences (Evidence: pending); under the fixed drawdown basis only −50% has a mix.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.

@@ -98,6 +98,98 @@ EXPECTED_TAX_FACTS = {
 }
 
 
+def parse_amount(token: str) -> float:
+    """'357,634' -> 357634; '(42,853)' -> -42853; '-' -> 0."""
+    if token.strip("–-") == "":
+        return 0.0
+    negative = token.startswith("(")
+    value = float(token.strip("()").replace(",", ""))
+    return -value if negative else value
+
+
+def statement_value(
+    page_text: str, label: str, index: int, after: str | None = None, skip: int = 0
+) -> float:
+    """The index-th amount on the first line starting with `label` (after the text `after`,
+    if given), skipping `skip` leading tokens such as a note number."""
+    text = re.sub(r"\s+", " ", page_text)
+    start = text.find(after) if after else 0
+    if start < 0:
+        raise ValueError(f"'{after}' not found")
+    m = re.search(re.escape(label) + r"((?: (?:\(?[0-9][0-9,]*\)?|-))+)", text[start:])
+    if m is None:
+        raise ValueError(f"'{label}' not found")
+    tokens = m.group(1).split()[skip:]
+    return abs(parse_amount(tokens[index]))
+
+
+def _page_text(document: str, page: int) -> str:
+    from pypdf import PdfReader
+
+    return PdfReader(DOCS / document).pages[page - 1].extract_text() or ""
+
+
+def fund_withholding() -> pd.DataFrame:
+    """Income and fund-level tax read from each fund's audited annual report at the cited page
+    and column, with the effective rate (tax / income)."""
+    ref = pd.read_csv(REFERENCE / "fund_withholding.csv")
+    rows = {}
+    for r in ref.to_dict("records"):
+        get = {}
+        for part in ("income", "tax"):
+            after = r[f"{part}_after"] if isinstance(r[f"{part}_after"], str) else None
+            get[part] = statement_value(
+                _page_text(r["document"], int(r[f"{part}_page"])),
+                r[f"{part}_label"],
+                int(r[f"{part}_index"]),
+                after,
+                int(r[f"{part}_skip"]),
+            )
+        rows[r["ticker"]] = {
+            "income_reference": float(r["income"]),
+            "income_document": get["income"],
+            "tax_reference": float(r["tax"]),
+            "tax_document": get["tax"],
+            "effective_rate": get["tax"] / get["income"],
+        }
+    return pd.DataFrame(rows).T
+
+
+def iras_overseas_not_taxable() -> bool:
+    import html
+
+    raw = (DOCS / "IRAS_income_from_overseas.html").read_text(errors="ignore")
+    raw = re.sub(r"(?s)<script.*?</script>|<style.*?</style>", "", raw)
+    page = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", raw)))
+    return (
+        "Generally, overseas income received in Singapore, including overseas income deposited "
+        "into a Singapore bank account is not taxable" in page
+    )
+
+
+IRISH_NON_RESIDENT = (
+    "will not have to self-account for tax on the occasion of a taxable event if (a) the "
+    "holder of Shares is neither Irish Resident nor Irish Ordinary Resident"
+)
+A35_INDIVIDUALS = (
+    "Individuals (whether resident in Singapore or not) are exempt from Singapore income tax "
+    "on distributions"
+)
+
+
+def prospectus_facts() -> dict[str, bool]:
+    def has(document: str, phrase: str) -> bool:
+        squash = lambda s: re.sub(r"\s*-\s*", "-", s)  # noqa: E731
+        return squash(phrase) in squash(text(DOCS / document))
+
+    return {
+        "iShares V non-residents untaxed": has("iShares_V_prospectus.pdf", IRISH_NON_RESIDENT),
+        "iShares III non-residents untaxed": has("iShares_III_prospectus.pdf", IRISH_NON_RESIDENT),
+        "A35 individuals exempt": has("A35_prospectus.pdf", A35_INDIVIDUALS),
+        "IRAS overseas income not taxable": iras_overseas_not_taxable(),
+    }
+
+
 def extracted() -> dict[str, float]:
     isac, iglo = text(DOCS / "ISAC_factsheet.pdf"), text(DOCS / "IGLO_factsheet.pdf")
     a35 = text(DOCS / "A35_annual_report.pdf")
@@ -129,6 +221,13 @@ def verify_reference() -> dict[str, float]:
         "US statutory rate": float(rate["IRS_p515.pdf; IRS_p901.pdf; IRS_i706na.pdf"]),
     }
     bad |= {k: (v, tax[k]) for k, v in expected.items() if tax[k] != v}
+    fw = fund_withholding()
+    for t, r in fw.iterrows():
+        for part in ("income", "tax"):
+            if abs(r[f"{part}_reference"] - r[f"{part}_document"]) > 1e-9:
+                bad[f"{t} {part}"] = (r[f"{part}_reference"], r[f"{part}_document"])
+    prospectus = prospectus_facts()
+    bad |= {k: (True, v) for k, v in prospectus.items() if not v}
     if bad:
         raise ValueError(f"reference/ differs from source documents (reference, document): {bad}")
-    return {**got, **tax}
+    return {**got, **tax, **prospectus, **fw["effective_rate"].add_prefix("WHT ").to_dict()}

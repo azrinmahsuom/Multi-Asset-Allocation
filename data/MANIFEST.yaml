@@ -44,6 +44,20 @@ files:
     end: 30 September 2026
     units: PDF; figures extracted by analysis.documents and checked against reference/.
     sha256: d0719d7ee2578381a667a9df425012a0145e5460c66bd42dcecf685bdd42c67b
+  documents/A35_prospectus.pdf:
+    source: ABF Singapore Bond Index Fund, prospectus
+    url: https://sg.amova-am.com/docs/default-source/sg-library/fund/prospectus/PROSPECTUS_ABF2.pdf?sfvrsn=5300b9e_4
+    landing_page: https://sg.amova-am.com/general/funds/detail/abf-singapore-bond-index-fund
+    series: 'Fund document (PDF): prospectus (taxation of distributions)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 88
+    start: unknown
+    end: unknown
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: 63d823fc2227ba4cff704ade77b93a0e933435075e4de1d7842bddd9a2963d0f
   documents/IGLO_factsheet.pdf:
     source: iShares Global Govt Bond UCITS ETF USD (Dist), factsheet
     url: https://www.ishares.com/uk/individual/en/literature/fact-sheet/iglo-ishares-global-govt-bond-ucits-etf-fund-fact-sheet-en-gb.pdf
@@ -58,6 +72,20 @@ files:
     end: 05-Oct-2026
     units: PDF; figures extracted by analysis.documents and checked against reference/.
     sha256: b9a61730af4a574a41b0978b62ed7441926c83925096e06d6f0e399ab5d178fe
+  documents/IRAS_income_from_overseas.html:
+    source: IRAS, Income received from overseas (web page)
+    url: https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/income-received-from-overseas
+    landing_page: https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/what-is-taxable-what-is-not/income-received-from-overseas
+    series: 'Tax document (HTML): Singapore tax on overseas income of individuals'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Government publication; downloaded for citation only.
+    redistributable: false
+    rows: 266043
+    start: n/a
+    end: n/a
+    units: HTML; facts extracted by analysis.documents and checked against reference/.
+    sha256: e6fbfb04dfec03cd1074c86cc7945829f195a6bbd0c21a6e1a903b65dd571ab2
   documents/IRS_i706na.pdf:
     source: Instructions for Form 706-NA (estate of a nonresident not a US citizen)
     url: https://www.irs.gov/pub/irs-pdf/i706na.pdf
@@ -146,6 +174,66 @@ files:
     end: unknown
     units: PDF; facts extracted by analysis.documents and checked against reference/.
     sha256: 1396fb82bdcb5ab3c6da7c607c39bf0b8d4a616d1ddcdfb210ca2f44d58f1b8f
+  documents/iShares_III_annual_report.pdf:
+    source: iShares III plc (issuer of IGLO), audited annual report, year ended 30
+      June 2025
+    url: https://www.blackrock.com/gls-download/literature/annual-report/ishares-iii-plc-annual-report-en-30-jun-25.pdf
+    landing_page: https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf
+    series: 'Fund document (PDF): audited annual report (interest income and withholding
+      tax by fund)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 2024
+    start: 30 June 2025
+    end: 30 June 2025
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: 5860b6d64aae118f1b42a3f2cb865ecc0b391ec9fdfb068ae8270365f491e71c
+  documents/iShares_III_prospectus.pdf:
+    source: iShares III plc, prospectus
+    url: https://www.ishares.com/gls-download/literature/prospectus/ishares-iii-plc-prospectus-en.pdf
+    landing_page: https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf
+    series: 'Fund document (PDF): prospectus (Irish taxation of non-resident shareholders)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 652
+    start: unknown
+    end: unknown
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: 6cac378d9645dd880ae49009ec03341a91962c49db1c040a38d7e20b1f015102
+  documents/iShares_V_annual_report.pdf:
+    source: iShares V plc (issuer of ISAC), audited annual report, year ended 30 November
+      2025
+    url: https://www.blackrock.com/gls-download/literature/annual-report/ishares-v-plc-annual-report-en-30-nov-25.pdf
+    landing_page: https://www.ishares.com/uk/individual/en/products/251850/ishares-msci-acwi-ucits-etf
+    series: 'Fund document (PDF): audited annual report (dividend income and withholding
+      tax by fund)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 1269
+    start: 30 November 2025
+    end: 30 November 2025
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: 7d4a8706fd7f3813593feeeac6eeb2e5beec1d73c05b7883f4c4d887c8bda02e
+  documents/iShares_V_prospectus.pdf:
+    source: iShares V plc, prospectus
+    url: https://www.ishares.com/gls-download/literature/prospectus/ishares-v-plc-prospectus-en.pdf
+    landing_page: https://www.ishares.com/uk/individual/en/products/251850/ishares-msci-acwi-ucits-etf
+    series: 'Fund document (PDF): prospectus (Irish taxation of non-resident shareholders)'
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: Issuer document; downloaded for citation only. Not redistributable.
+    redistributable: false
+    rows: 664
+    start: unknown
+    end: unknown
+    units: PDF; figures extracted by analysis.documents and checked against reference/.
+    sha256: b9876949eba1b512a85b0616bc907f32bc5c4e59f3c64565dda7a915674422af
   fred/AAA.csv:
     source: 'FRED: Moody''s seasoned Aaa corporate bond yield'
     url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=AAA

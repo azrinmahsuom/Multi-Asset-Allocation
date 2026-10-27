@@ -3,9 +3,10 @@
 Rules (fixed before results were computed):
 - Index layer (February 1998 onwards, from the start of SGS yields):
   - Equities: French developed-markets total return converted to SGD (unhedged), less a
-    dividend withholding-tax drag (trailing 12-month dividend yield x 15%, the US-Ireland
-    treaty rate an Irish-domiciled fund pays; ACWI's yield from 2009, Shiller's US yield
-    before) and the representative fund's TER (reference/etf_costs.csv, ISAC.L).
+    dividend withholding-tax drag (trailing 12-month dividend yield x ISAC's effective
+    fund-level withholding rate from its latest audited annual report,
+    reference/fund_withholding.csv; ACWI's yield from 2009, Shiller's US yield before) and
+    the representative fund's TER (reference/etf_costs.csv, ISAC.L).
   - SGS: matched-duration SGS returns (design.bond_options) less A35.SI's TER.
   - Cash: the SGD one-month rate (MAS-based).
   - Global government bonds hedged to SGD (benchmarks only): US 10-year Treasury hedged to
@@ -41,7 +42,15 @@ from analysis.design import allocation, bond_options, holdout
 
 RULE = {"type": "calendar_or_threshold", "months": 12, "band": 0.10}
 MINIMUM_ALLOCATION = 25_000.0
-WHT_RATE = 0.15
+
+
+def effective_wht(ticker: str) -> float:
+    """Fund-level withholding tax / income from the fund's audited annual report (values
+    checked against the document by documents.verify_reference)."""
+    ref = pd.read_csv(REFERENCE / "fund_withholding.csv").set_index("ticker")
+    return float(ref.loc[ticker, "tax"] / ref.loc[ticker, "income"])
+
+
 # Sleeve -> (instrument whose spread is used, market, broker schedule). IGLO.L is the cost proxy
 # for both benchmark global-bond sleeves.
 # The LSE broker is a parameter (LSE_BROKERS); "LSE" below is replaced by it.
@@ -93,7 +102,7 @@ def index_layer() -> pd.DataFrame:
     c = bond_options._common()
     dev = data.monthly("developed_monthly_french")["developed_eq_tr_nominal_usd"]
     gross = metrics.to_base_currency(dev, c["fx"])
-    drag = dividend_yield().reindex(gross.index) * WHT_RATE / 12
+    drag = dividend_yield().reindex(gross.index) * effective_wht("ISAC.L") / 12
     equity = gross - drag - _ter("ISAC.L") / 12
     df = pd.DataFrame(
         {

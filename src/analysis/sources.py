@@ -277,6 +277,8 @@ def _describe_pdf(path: Path) -> tuple[int, str, str]:
 
 AMOVA_A35 = "https://sg.amova-am.com/general/funds/detail/abf-singapore-bond-index-fund"
 ISHARES_UK = "https://www.ishares.com/uk/individual/en/literature/fact-sheet/"
+ISHARES_LIT = "https://www.ishares.com/gls-download/literature/"
+BLACKROCK_LIT = "https://www.blackrock.com/gls-download/literature/"
 FUND_DOCUMENTS = [
     (
         "ISAC_factsheet.pdf",
@@ -306,10 +308,55 @@ FUND_DOCUMENTS = [
         "audited annual report (total expense ratio)",
         _link_on_page(AMOVA_A35, r"annual-report/ABF2\.pdf"),
     ),
+    (
+        "A35_prospectus.pdf",
+        "ABF Singapore Bond Index Fund, prospectus",
+        AMOVA_A35,
+        "prospectus (taxation of distributions)",
+        _link_on_page(AMOVA_A35, r"prospectus/PROSPECTUS_ABF2\.pdf"),
+    ),
+    (
+        "iShares_V_annual_report.pdf",
+        "iShares V plc (issuer of ISAC), audited annual report, year ended 30 November 2025",
+        "https://www.ishares.com/uk/individual/en/products/251850/ishares-msci-acwi-ucits-etf",
+        "audited annual report (dividend income and withholding tax by fund)",
+        _fixed(BLACKROCK_LIT + "annual-report/ishares-v-plc-annual-report-en-30-nov-25.pdf"),
+    ),
+    (
+        "iShares_III_annual_report.pdf",
+        "iShares III plc (issuer of IGLO), audited annual report, year ended 30 June 2025",
+        "https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf",
+        "audited annual report (interest income and withholding tax by fund)",
+        _fixed(BLACKROCK_LIT + "annual-report/ishares-iii-plc-annual-report-en-30-jun-25.pdf"),
+    ),
+    (
+        "iShares_V_prospectus.pdf",
+        "iShares V plc, prospectus",
+        "https://www.ishares.com/uk/individual/en/products/251850/ishares-msci-acwi-ucits-etf",
+        "prospectus (Irish taxation of non-resident shareholders)",
+        _fixed(ISHARES_LIT + "prospectus/ishares-v-plc-prospectus-en.pdf"),
+    ),
+    (
+        "iShares_III_prospectus.pdf",
+        "iShares III plc, prospectus",
+        "https://www.ishares.com/uk/individual/en/products/251753/ishares-global-government-bond-ucits-etf",
+        "prospectus (Irish taxation of non-resident shareholders)",
+        _fixed(ISHARES_LIT + "prospectus/ishares-iii-plc-prospectus-en.pdf"),
+    ),
 ]
 
 
 IRS_PDF = "https://www.irs.gov/pub/irs-pdf/"
+IRAS_OVERSEAS = (
+    "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/"
+    "what-is-taxable-what-is-not/income-received-from-overseas"
+)
+
+
+def _describe_html(path: Path) -> tuple[int, str, str]:
+    return len(path.read_bytes()), "n/a", "n/a"
+
+
 TAX_DOCUMENTS = [
     (
         "US_Ireland_treaty.pdf",
@@ -633,6 +680,20 @@ REGISTRY: list[RawFile] = (
             describe=_describe_pdf,
         )
         for filename, name, landing, what, resolver in TAX_DOCUMENTS
+    ]
+    + [
+        RawFile(
+            source="documents",
+            filename="IRAS_income_from_overseas.html",
+            name="IRAS, Income received from overseas (web page)",
+            landing_page=IRAS_OVERSEAS,
+            series="Tax document (HTML): Singapore tax on overseas income of individuals",
+            licence="Government publication; downloaded for citation only.",
+            redistributable=False,
+            units="HTML; facts extracted by analysis.documents and checked against reference/.",
+            resolve_url=_fixed(IRAS_OVERSEAS),
+            describe=_describe_html,
+        )
     ]
     + [
         RawFile(

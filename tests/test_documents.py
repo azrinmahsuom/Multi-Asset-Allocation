@@ -27,3 +27,15 @@ def test_tax_parsers():
     facts = documents.estate_facts(doc)
     assert facts["threshold"] == 60_000 and facts["credit"] == 13_000
     assert facts["us_stock_is_us_situs"] and facts["foreign_stock_outside_us"]
+
+
+def test_statement_value_parses_columns_notes_and_nil():
+    page = (
+        "Bond UCITS ETF iShares MSCI ACWI UCITS ETF 2025 2024 USD’000 "
+        "Non-reclaimable overseas income withholding tax (68) (9) (42,853) (30,668) Total"
+    )
+    label = "Non-reclaimable overseas income withholding tax"
+    assert documents.statement_value(page, label, 2, after="MSCI ACWI") == 42_853
+    statement = "Operating income 5 3,222 90,119 71,268 T axation 10 (241) - -"
+    assert documents.statement_value(statement, "Operating income", 1, skip=1) == 90_119
+    assert documents.statement_value(statement, "T axation", 1, skip=1) == 0

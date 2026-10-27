@@ -571,3 +571,26 @@ Defined and committed before any code computed it.
 - The wins are scattered across mixes and small, so they're consistent with noise.
 - The rule is not adopted.
 - To be re-run when the IBKR LSE schedule is added.
+
+### 2026-10-27: Withholding-tax drag from the funds' audited annual reports; distribution rows from prospectuses
+**Context:** The owner asked to replace the blanket 15% with the effective fund-level rate from the audited annual reports, to cite prospectus taxation sections for the distribution rows, to hash the IRAS page, and to add IGLO.
+
+**Rule:**
+- **Effective fund-level withholding rate** = non-reclaimable tax / the income it falls on, from each fund's latest audited annual report, at the cited page and column (`reference/fund_withholding.csv`).
+- `documents.fund_withholding` re-reads both figures from the document, and `verify_reference` fails if either differs from the reference row.
+- The index-layer equity drag = trailing dividend yield × ISAC's rate. The same rate is applied to the whole period, including years before the fund existed.
+
+**Evidence:**
+- **ISAC** (iShares V plc, year to 30 November 2025): WHT USD 42,853k (note 10, page 212) / dividend income USD 357,634k (note 5, page 172) = 11.98%. FY2024 from the same tables: 30,668 / 256,848 = 11.94%. The accounting policy says dividend income is shown gross of non-recoverable WHT.
+- **IGLO** (iShares III plc, year to 30 June 2025): taxation nil on operating income of USD 90,119k (income statement, page 79).
+- **A35** (year to 30 June 2026): income tax nil (statement of total return, page 11; note 3, Designated Unit Trust).
+- **Distributions:**
+  - The iShares V and III prospectuses say holders in a Recognised Clearing System who are neither Irish Resident nor Irish Ordinary Resident don't self-account for Irish tax, and all shares are intended to be held in such a system.
+  - The A35 prospectus says individuals, resident in Singapore or not, are exempt from Singapore income tax on distributions from authorised unit trusts.
+- **IRAS:** the "Income received from overseas" page is now a hashed download, and its "not taxable" sentence is checked in code.
+
+**Effect:**
+- The index-layer drag falls from about 0.27% to 0.21% a year.
+- The superseded "non-US holdings" to_verify row was removed. The US–Ireland 15% treaty row stays as context, not as the modelled rate.
+
+**What would change my mind:** A materially different rate in the next audited report. The rule picks it up when the document is refreshed.

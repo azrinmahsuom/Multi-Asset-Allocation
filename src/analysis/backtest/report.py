@@ -309,8 +309,10 @@ def run() -> dict:
             "sample.",
             "",
             f"Withholding-tax drag on equities in the index layer averaged {wht:.2%} a year "
-            "(trailing dividend yield x 15%). The ETF layer's fund prices already include TER "
-            "and fund-level withholding tax.",
+            f"(trailing dividend yield x {engine.effective_wht('ISAC.L'):.1%}, ISAC's "
+            "non-reclaimable withholding tax as a share of its dividend income in its latest "
+            "audited annual report). The ETF layer's fund prices already include TER and "
+            "fund-level withholding tax.",
             "",
             *idx_lines,
             f"![Growth](../{growth.relative_to(ROOT).as_posix()})",
@@ -373,8 +375,8 @@ def run() -> dict:
             "- About 28 years of SGD history; the ETF layer starts in November 2011 and has no "
             "2008 crisis.",
             "- Index-layer equities are developed markets only (no emerging markets before the "
-            "ETF layer); the withholding-tax drag uses the 15% treaty rate on the whole "
-            "dividend yield, an approximation.",
+            "ETF layer); the withholding-tax drag applies ISAC's latest-year effective rate "
+            "to the whole period, including years before the fund existed.",
             "- Spreads are a single dated snapshot; spreads widen in stressed markets, which "
             "the 5/15/30 bps sensitivity covers only partly.",
             "- Benchmark global bonds use US Treasuries hedged to SGD before July 2019, with no "
