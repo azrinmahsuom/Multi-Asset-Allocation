@@ -19,11 +19,13 @@ Rules (fixed before the v2 results were computed):
   portfolio). If none pass, the profile is reported as infeasible; no tie-break is applied.
 """
 
+import functools
+
 import numpy as np
 import pandas as pd
 
 from analysis import bootstrap, data, metrics
-from analysis.config import BOOTSTRAP_REPS
+from analysis.config import BOOTSTRAP_REPS, REFERENCE
 from analysis.design import allocation, profiles
 
 BLOCK_YEARS = round(150 ** (1 / 5))
@@ -90,14 +92,51 @@ def h1_non_us(w: np.ndarray, p, real: pd.DataFrame) -> float:
     return float((h1_windows(w, p, real) < 0).mean())
 
 
-def _us_pre1981_real(w: np.ndarray) -> pd.Series:
-    sh = data.monthly("us_monthly_shiller").loc[: f"{US_END}-12"]
-    port = w[0] * sh["us_eq_tr_nominal_usd"] + (w[1] + w[2]) * sh["us_gov10_tr_nominal_usd"]
+A35_DURATION_REF = REFERENCE / "bond_durations.csv"
+LONG_BOND_STRESS = ("1940-01", "1981-12")
+
+
+def a35_duration() -> float:
+    ref = pd.read_csv(A35_DURATION_REF)
+    return float(
+        ref.loc[ref["share_class"].str.startswith("A35"), "effective_duration_years"].iloc[0]
+    )
+
+
+@functools.cache
+def us_bond_proxy() -> pd.Series:
+    """Modelled US government bond returns duration-matched to A35 (post-holdout correction,
+    2026-10-27): a par bond rolled monthly at A35's duration, priced off Shiller's long-rate
+    yield with a flat curve (metrics.constant_duration_returns)."""
+    sh = data.monthly("us_monthly_shiller")
+    return metrics.constant_duration_returns(sh["us_gov10_yield"].dropna(), a35_duration())
+
+
+def _us_real(w: np.ndarray, bonds: str = "proxy", start=None, end=f"{US_END}-12") -> pd.Series:
+    """US real monthly returns of an equity/bond mix. bonds = 'proxy' (duration-matched to
+    A35, modelled) or 'long' (Shiller's long government bond total return)."""
+    sh = data.monthly("us_monthly_shiller").loc[start:end]
+    bond = us_bond_proxy().reindex(sh.index) if bonds == "proxy" else sh["us_gov10_tr_nominal_usd"]
+    port = w[0] * sh["us_eq_tr_nominal_usd"] + (w[1] + w[2]) * bond
     return metrics.real_returns(port, sh["us_cpi_inflation"]).dropna()
 
 
-def h2_windows(w: np.ndarray, p) -> np.ndarray:
-    ann = metrics.rolling_annualised(_us_pre1981_real(w), p.window_years, 12)
+def _us_pre1981_real(w: np.ndarray, bonds: str = "long") -> pd.Series:
+    """H2 path. The v2 record keeps Shiller's long bond; the risk menu uses the proxy."""
+    return _us_real(w, bonds)
+
+
+def us_drawdown_episode(w: np.ndarray) -> tuple[str, str, float]:
+    """Peak month, trough month and size of the largest real drawdown on the menu's US path."""
+    r = _us_pre1981_real(w, "proxy")
+    wealth = (1 + r).cumprod()
+    dd = wealth / wealth.cummax() - 1
+    trough = dd.idxmin()
+    return str(wealth.loc[:trough].idxmax()), str(trough), float(dd.min())
+
+
+def h2_windows(w: np.ndarray, p, bonds: str = "long") -> np.ndarray:
+    ann = metrics.rolling_annualised(_us_pre1981_real(w, bonds), p.window_years, 12)
     return (1 + ann.to_numpy()) ** p.window_years - 1
 
 
@@ -227,12 +266,16 @@ CVAR_ALPHA = 0.05
 
 
 def risk_frontier(step: float = 0.01) -> pd.DataFrame:
-    """Per horizon and equity/SGS mix (post-holdout rule, 2026-10-27, fixed before computing):
+    """Per horizon and equity/SGS mix (post-holdout rule, 2026-10-27; US bond proxy corrected
+    the same day, also post-holdout):
 
     - max_drawdown: the worse of the real SGD monthly path (1998 onwards) and the US real
-      monthly path before 1981 (Shiller). Annual JST data are not used for drawdowns because
-      annual observations hide falls within the year. Drawdowns do not depend on the horizon.
-    - p_loss_holdout: the highest real-loss share across H1, H2 and H3.
+      monthly path before 1981 with bonds = a modelled US government bond duration-matched to
+      A35 (us_bond_proxy). Annual JST data are not used for drawdowns because annual
+      observations hide falls within the year. Drawdowns do not depend on the horizon.
+    - stress_long_bond_1940_81: drawdown with Shiller's long government bond instead, January
+      1940 to December 1981. Reported, not binding.
+    - p_loss_holdout: the highest real-loss share across H1, H2 (proxy bonds) and H3.
     - worst_window_holdout: the worst cumulative real return over any horizon-length window in
       the actual histories (H1 and H2; bootstrap paths are excluded).
     - cvar5_holdout: the lowest of the three tests' CVaR at 5% of horizon real returns.
@@ -248,10 +291,12 @@ def risk_frontier(step: float = 0.01) -> pd.DataFrame:
             pd.Series(sgd[allocation.ASSETS].to_numpy() @ w, index=sgd.index), sgd["inflation"]
         )
         dd_sgd = metrics.max_drawdown(sgd_real)
-        dd_us = metrics.max_drawdown(_us_pre1981_real(w))
+        dd_us = metrics.max_drawdown(_us_pre1981_real(w, "proxy"))
+        dd_long = metrics.max_drawdown(_us_real(w, "long", *LONG_BOND_STRESS))
         g = pd.Series(glob[allocation.ASSETS].to_numpy() @ w)
         for p in profiles.PROFILES:
-            h1, h2, h3 = h1_windows(w, p, real), h2_windows(w, p), h3_paths(w, p, glob)
+            h1, h3 = h1_windows(w, p, real), h3_paths(w, p, glob)
+            h2 = h2_windows(w, p, "proxy")
             rows.append(
                 {
                     "profile": p.name,
@@ -260,6 +305,7 @@ def risk_frontier(step: float = 0.01) -> pd.DataFrame:
                     "max_drawdown": min(dd_sgd, dd_us),
                     "max_drawdown_sgd": dd_sgd,
                     "max_drawdown_us_pre1981": dd_us,
+                    "stress_long_bond_1940_81": dd_long,
                     "p_loss_holdout": max(float((x < 0).mean()) for x in (h1, h2, h3)),
                     "worst_window_holdout": float(min(h1.min(), h2.min())),
                     "cvar5_holdout": min(metrics.cvar(x, CVAR_ALPHA) for x in (h1, h2, h3)),

@@ -278,6 +278,7 @@ MENU_COLUMNS = [
     "max_drawdown",
     "max_drawdown_sgd",
     "max_drawdown_us_pre1981",
+    "stress_long_bond_1940_81",
     "p_loss_holdout",
     "worst_window_holdout",
     "cvar5_holdout",
@@ -339,13 +340,18 @@ def _core_result_section() -> list[str]:
         "Definitions (fixed before the results were computed):",
         "",
         "- Maximum drawdown: the worse of the real SGD monthly path (1998 onwards) and the US "
-        "real monthly path from 1871 to 1980 (Shiller). Annual JST data are not used for "
+        "real monthly path from 1871 to 1980 (Shiller equities; bonds are a modelled US "
+        f"government bond duration-matched to A35, {holdout.a35_duration():.2f} years, priced "
+        "from Shiller's long-rate yield with a flat curve, or the 30-year bond where yields are "
+        "too high to reach that duration). Annual JST data are not used for "
         "drawdowns, because annual observations hide falls within a year. Drawdowns do not "
         "depend on the horizon, so the same mixes appear at every horizon; the horizon "
         "changes the loss measures.",
+        "- Stress test, not binding: the drawdown with Shiller's long government bond in place "
+        "of the proxy, January 1940 to December 1981 (stress_long_bond_1940_81).",
         "- P(real loss): the highest real-loss share across the three holdout tests (H1 non-US "
-        "JST windows pooled across countries, H2 US before 1981, H3 global JST block "
-        "bootstrap).",
+        "JST windows pooled across countries, H2 US before 1981 with the proxy bond, H3 global "
+        "JST block bootstrap).",
         "- Worst horizon real return: the worst cumulative real return over any horizon-length "
         "window in the actual histories (H1 and H2).",
         "- CVaR 5%: the average of the worst 5% of horizon real returns, the lowest of the "
@@ -372,15 +378,20 @@ def _core_result_section() -> list[str]:
         ]
     dd_us_floor = f["max_drawdown_us_pre1981"].max()
     dd_us_at = f.loc[f["max_drawdown_us_pre1981"].idxmax(), "equity_share"]
+    episodes = []
+    for e in (0.0, 0.3, float(dd_us_at), 1.0):
+        pk, tr, dd = holdout.us_drawdown_episode(np.array([e, 1 - e, 0.0]))
+        episodes.append(f"{e:.0%} equity: {dd:.0%}, {pk} to {tr}")
     lines += [
         "### Reading",
         "",
         f"No mix keeps the US 1871–1980 real drawdown better than {dd_us_floor:.1%} (the best "
-        f"is at {dd_us_at:.0%} equities): long US government bonds lost about half their real "
-        "value between the 1940s and 1981, so bond-heavy mixes fall as far as equity-heavy "
-        "ones. Under the rule as fixed, tolerances tighter than that floor have no mix. The "
-        "short horizon remains outside the strategy on the loss measures (its lowest P(real "
-        "loss) over 5 years is above 20% for every mix).",
+        f"is at {dd_us_at:.0%} equities). The binding episodes: " + "; ".join(episodes) + ". "
+        "Balanced mixes are bound by the First World War inflation and equity-heavy mixes by "
+        "1929–32, not by the 1940–81 bond losses, so matching the bond proxy to A35's "
+        "duration does not change the menu. Tolerances tighter than that floor have no mix. "
+        "The short horizon remains outside the strategy on the loss measures (its lowest "
+        "P(real loss) over 5 years is above 20% for every mix).",
         "",
         *_worst_window_note(f),
         "Sensitivity, not a selection: the largest equity share meeting each tolerance if "

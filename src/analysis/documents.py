@@ -190,6 +190,13 @@ def prospectus_facts() -> dict[str, bool]:
     }
 
 
+def factsheet_fund_duration(doc: str) -> float:
+    """Fund's 'Weighted Average Duration (years)' on an Amova factsheet (third fund figure,
+    after tracking error and yield)."""
+    m = re.search(r"Weighted Average Duration\d? \(years\)[^F]*Fund [0-9.]+ [0-9.]+ ([0-9.]+)", doc)
+    return float(m.group(1))
+
+
 def extracted() -> dict[str, float]:
     isac, iglo = text(DOCS / "ISAC_factsheet.pdf"), text(DOCS / "IGLO_factsheet.pdf")
     a35 = text(DOCS / "A35_annual_report.pdf")
@@ -198,6 +205,7 @@ def extracted() -> dict[str, float]:
         "A35.SI ter": annual_report_ter(a35),
         "IGLO duration": ishares_duration(iglo),
         "IGLO ter": ishares_ter(iglo),
+        "A35 duration": factsheet_fund_duration(text(DOCS / "A35_factsheet.pdf")),
     }
 
 
@@ -210,6 +218,11 @@ def verify_reference() -> dict[str, float]:
         "ISAC.L ter": float(costs.loc["ISAC.L", "ter"]),
         "A35.SI ter": float(costs.loc["A35.SI", "ter"]),
         "IGLO duration": float(durations["effective_duration_years"].iloc[0]),
+        "A35 duration": float(
+            durations.loc[
+                durations["share_class"].str.startswith("A35"), "effective_duration_years"
+            ].iloc[0]
+        ),
     }
     bad = {k: (v, got[k]) for k, v in checks.items() if abs(v - got[k]) > 1e-9}
     wht = pd.read_csv(REFERENCE / "withholding_tax.csv")

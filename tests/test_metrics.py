@@ -148,3 +148,18 @@ def test_cvar_mean_of_worst_tail():
     assert metrics.cvar(x, 0.10) == pytest.approx(0.015)
     # 5% of 30 rounds up to 2 outcomes.
     assert metrics.cvar(np.arange(30.0), 0.05) == pytest.approx(0.5)
+
+
+def test_constant_duration_returns_flat_yields_earn_coupon():
+    idx = pd.period_range("2000-01", periods=3, freq="M")
+    out = metrics.constant_duration_returns(pd.Series([0.06, 0.06, 0.06], index=idx), 5.0)
+    assert list(out.index) == list(idx[1:])
+    assert out.to_numpy() == pytest.approx([0.005, 0.005])  # 6% / 12
+
+
+def test_constant_duration_returns_caps_at_30_years():
+    idx = pd.period_range("2000-01", periods=2, freq="M")
+    # At 20%, a 30-year par bond's duration is about 5, below the 8-year target: use 30 years.
+    out = metrics.constant_duration_returns(pd.Series([0.20, 0.20], index=idx), 8.0)
+    assert metrics.par_bond_duration(0.20, 30.0) < 8.0
+    assert out.iloc[0] == pytest.approx(0.20 / 12)

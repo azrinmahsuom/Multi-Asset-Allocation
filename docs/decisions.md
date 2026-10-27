@@ -594,3 +594,29 @@ Defined and committed before any code computed it.
 - The superseded "non-US holdings" to_verify row was removed. The US–Ireland 15% treaty row stays as context, not as the modelled rate.
 
 **What would change my mind:** A materially different rate in the next audited report. The rule picks it up when the document is refreshed.
+
+### 2026-10-27: Correction of a proxy mismatch in the risk menu's US path (post-holdout)
+**Context:**
+- The menu's US 1871–1980 path used Shiller's long government bond for the bond sleeve.
+- The strategy's bond sleeve is A35, with a weighted average duration of 8.18 years. That's verified from the A35 factsheet as of 30 September 2026, now in `reference/bond_durations.csv` and checked in code.
+- The owner asked for a duration-matched proxy. This corrects a proxy mismatch, and the correction was made after the holdout results.
+
+**Rule:**
+- **US bond proxy (`holdout.us_bond_proxy`, `metrics.constant_duration_returns`):** a par bond rolled monthly at A35's duration, priced from Shiller's long-rate yield with a flat curve. Where yields are too high for any maturity up to 30 years to reach that duration (yields above about 12%), the 30-year bond is used. The series is labelled as modelled.
+- **Where the proxy is used:** in the menu's binding drawdown and in its H2 measures (P(real loss), worst window, CVaR).
+- **Stress column:** Shiller's long bond, January 1940 to December 1981, is reported on each menu row as `stress_long_bond_1940_81` and is not binding.
+- **Unchanged record:** the v2 holdout record keeps the long bond, its original basis.
+
+**Evidence:** Matching duration is the standard way to compare bond exposures. A35's duration comes from its factsheet.
+
+**Result:**
+- The menu is unchanged: only the −50% tolerance has a mix (59% equity).
+- The binding US drawdowns aren't the 1940–81 bond losses:
+  - balanced mixes are bound by December 1915 to June 1920 (the First World War inflation), at about −44%;
+  - equity-heavy mixes are bound by September 1929 to June 1932.
+- A35's duration (8.18 years) is longer than an intermediate bond, so the proxy falls further than the long bond for bond-only mixes (−57% vs −53%).
+
+### 2026-10-27: Rebalancing test assumptions recorded as the owner's judgement calls
+The owner accepted the band-rule test as run. The following are the owner's judgement calls, not choices derived from data:
+- the decision margins (0.05 percentage points a year of net real return; 1 percentage point of maximum drawdown);
+- the contribution assumptions (0%, 5% and 10% of the starting value a year, paid each December).

@@ -143,6 +143,24 @@ def maturity_for_duration(target: float, yield_curve: Callable[[float], float]) 
     return float(brentq(lambda m: par_bond_duration(yield_curve(m), m) - target, 0.5, 30.0))
 
 
+def constant_duration_returns(yields: pd.Series, duration: float) -> pd.Series:
+    """Monthly returns of a par bond rolled each month at a constant duration, built from one
+    yield series with a flat curve (the bond's yield is the series' yield at every maturity).
+    Where no maturity up to 30 years reaches the duration (high yields), the 30-year bond is
+    used. Each month is labelled by its end."""
+    out = {}
+    for prev, now in zip(yields.index[:-1], yields.index[1:], strict=True):
+        y0, y1 = float(yields.loc[prev]), float(yields.loc[now])
+        if np.isnan(y0) or np.isnan(y1):
+            continue
+        if par_bond_duration(y0, 30.0) < duration:
+            m = 30.0
+        else:
+            m = maturity_for_duration(duration, lambda _m, y=y0: y)
+        out[now] = float(par_bond_return(pd.Series([y0]), pd.Series([y1]), m).iloc[0])
+    return pd.Series(out)
+
+
 def real_returns(nominal: pd.Series, inflation: pd.Series) -> pd.Series:
     """Real returns from nominal returns and same-period inflation: (1 + r) / (1 + pi) - 1."""
     return (1 + nominal) / (1 + inflation) - 1
