@@ -11,7 +11,7 @@ All US results are monthly, nominal USD unless a column says real. Rules:
 - Verdict: "diversify" in the strong (hedge) sense means negative correlation. It is judged on
   non-overlapping 36-month blocks, which are independent samples, with verdict_from_share.
   Overlapping rolling windows are shown for the time profile only.
-- Confidence intervals: moving-block bootstrap (block = n^(1/3) months), 95% percentile.
+- Confidence intervals: moving-block bootstrap (block = n^(1/5) months), 95% percentile.
 - Portfolio impact: 60/40 equity/bond, rebalanced monthly, against 100% equity.
 - Safe haven (Baur and Lucey 2010 form): regress bond returns on equity returns plus
   interactions with dummies for equity months in the bottom 10%, 5% and 1% (full-sample
@@ -60,11 +60,13 @@ EPISODES = {
 # --- data -----------------------------------------------------------------------------
 
 
-def exante_regimes(cpi: pd.Series) -> pd.DataFrame:
+def exante_regimes(
+    cpi: pd.Series, lag: int = CPI_LAG_MONTHS, burn_in: int = BURN_IN_MONTHS
+) -> pd.DataFrame:
     """Inflation known at each month and its regime, using only information available then."""
-    known = cpi.pct_change(12).shift(CPI_LAG_MONTHS)
-    low_cut = known.expanding(min_periods=BURN_IN_MONTHS).quantile(1 / 3)
-    high_cut = known.expanding(min_periods=BURN_IN_MONTHS).quantile(2 / 3)
+    known = cpi.pct_change(12).shift(lag)
+    low_cut = known.expanding(min_periods=burn_in).quantile(1 / 3)
+    high_cut = known.expanding(min_periods=burn_in).quantile(2 / 3)
     regime = pd.Series(
         np.select([known <= low_cut, known <= high_cut], ["low", "middle"], "high"),
         index=known.index,
@@ -159,11 +161,11 @@ def portfolio_impact(equity: pd.Series, bonds: pd.Series) -> dict:
     }
 
 
-def non_overlapping(equity: pd.Series, bonds: pd.Series) -> pd.DataFrame:
-    """Correlation in consecutive, non-overlapping WINDOW-month blocks from the first month."""
+def non_overlapping(equity: pd.Series, bonds: pd.Series, window: int = WINDOW) -> pd.DataFrame:
+    """Correlation in consecutive, non-overlapping `window`-month blocks from the first month."""
     rows = []
-    for b in range(len(equity) // WINDOW):
-        part = slice(b * WINDOW, (b + 1) * WINDOW)
+    for b in range(len(equity) // window):
+        part = slice(b * window, (b + 1) * window)
         e, d = equity.iloc[part], bonds.iloc[part]
         rows.append({"start": str(e.index[0]), "end": str(e.index[-1]), "correlation": e.corr(d)})
     return pd.DataFrame(rows)
@@ -491,12 +493,15 @@ def run() -> ClaimResult:
         caveats=[
             "CPIAUCSL is today's revised, seasonally adjusted series, not the figures published "
             "at the time; the two-month lag covers publication timing but not revisions.",
-            "Safe-haven quantile cut-offs use the full sample (as in Baur and Lucey), so that "
-            "test is descriptive. Baur and Lucey (2010, Financial Review): cited, not "
-            "independently verified.",
-            "Bootstrap block length n^(1/3) is a rule of thumb (Hall, Horowitz and Jing, 1995, "
-            "Biometrika; cited, not independently verified). Regime subsets are not contiguous, "
-            "so their blocks can span regime changes.",
+            "Safe-haven quantile cut-offs use the full sample, so that test is descriptive. "
+            "Hedge and safe-haven definitions follow Baur and Lucey (2010, Financial Review "
+            "45(2)); the regression form with extreme-quantile interactions is as described in "
+            "the literature citing them, not checked against the paper's full text.",
+            "Bootstrap block length n^(1/5), the rate Hall, Horowitz and Jing (1995, Biometrika "
+            "82(3)) give for two-sided intervals. Regime subsets are not contiguous, so their "
+            "blocks can span regime changes. The Newey-West lag rule floor(4(n/100)^(2/9)) is "
+            "attributed to Newey and West (1994); the formula was not checked against the "
+            "paper's text.",
             "SGD hedged returns assume covered interest parity with one-month forwards at MAS SGD "
             "and US 1-month T-bill rates; real hedges also pay a cross-currency basis and dealing "
             "spreads. The long SGD sample uses US Treasuries as a stand-in for global bonds; the "

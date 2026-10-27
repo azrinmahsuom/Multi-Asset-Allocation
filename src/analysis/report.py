@@ -5,7 +5,7 @@ from importlib import import_module
 import pandas as pd
 
 from analysis.config import JST_CREDIT, ROOT
-from analysis.evidence import ClaimResult
+from analysis.evidence import ClaimResult, sensitivity
 
 CLAIM_MODULES = [
     "analysis.evidence.claim01_equity_premium",
@@ -74,6 +74,27 @@ def _section(result: ClaimResult) -> str:
     return "\n".join(lines)
 
 
+def _sensitivity_section() -> str:
+    table = sensitivity.run()
+    n_changed = int(table["changes_verdict"].sum())
+    shown = table.assign(default=table["default"].map({True: "yes", False: ""}))
+    shown = shown.assign(changes_verdict=table["changes_verdict"].map({True: "YES", False: "no"}))
+    return "\n".join(
+        [
+            "## Sensitivity of verdicts to window choices",
+            "",
+            "Window and horizon lengths with no cited source are rerun at alternatives either "
+            f"side of the default. {n_changed} of {len(table)} alternatives change a verdict.",
+            "",
+            _table_markdown(shown.set_index("claim")),
+            "",
+            "The claim 5 burn-in alternatives give identical results because US CPI data start "
+            "in 1947, so every burn-in ends before the February 1962 start of the return sample.",
+            "",
+        ]
+    )
+
+
 def run() -> list[ClaimResult]:
     results = [import_module(name).run() for name in CLAIM_MODULES]
     summary = _table_markdown(
@@ -94,6 +115,7 @@ def run() -> list[ClaimResult]:
             summary,
             "",
             *[_section(r) for r in results],
+            _sensitivity_section(),
         ]
     )
     OUTPUT.write_text(text)

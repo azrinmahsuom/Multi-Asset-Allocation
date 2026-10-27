@@ -54,11 +54,11 @@ def maturity_table(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).T
 
 
-def difference_test(long: pd.Series, short: pd.Series) -> dict:
+def difference_test(long: pd.Series, short: pd.Series, block_years: int = BLOCK_YEARS) -> dict:
     d = (long - short).dropna()
     test = stats.hac_mean_test(d)
-    blocks_long = stats.block_annualised(long.loc[d.index], BLOCK_YEARS, 12)
-    blocks_short = stats.block_annualised(short.loc[d.index], BLOCK_YEARS, 12)
+    blocks_long = stats.block_annualised(long.loc[d.index], block_years, 12)
+    blocks_short = stats.block_annualised(short.loc[d.index], block_years, 12)
     return {
         "start": str(d.index[0]),
         "mean_diff_annualised": test["mean"] * 12,

@@ -1,0 +1,2 @@
+series,month,value,used_for,source,checked_on,status
+CPIAUCNS,2025-10,325.604,TIPS inflation accrual (claim 8),"US Treasury press release, 26 Nov 2025: index number for October 2025 under the TIPS index contingency provisions (31 CFR 356, Appendix B); not to be replaced if BLS later reports. https://home.treasury.gov/news/press-releases/sb0324",2026-10-27,verified

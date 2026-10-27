@@ -130,7 +130,9 @@ def run() -> ClaimResult:
             "Survivorship: the JST countries are developed markets that kept functioning. "
             "Markets that were wiped out (e.g. Russia after 1917, China after 1949) are absent, "
             "so cross-country equity returns are biased upward. Jorion and Goetzmann (1999, "
-            "Journal of Finance 54(3)) document this; cited, not independently verified.",
+            "Journal of Finance 54(3), 'Global Stock Markets in the Twentieth Century') "
+            "document this with 39 markets: US real returns were well above the median "
+            "market's over 1921–1996.",
             "Years missing inside a country's sample are skipped, not filled: "
             + "; ".join(f"{c} ({v})" for c, v in gaps.items())
             + ". If losses were concentrated in those years, the returns shown are too high.",

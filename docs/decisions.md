@@ -214,3 +214,35 @@ Entry template:
 **Evidence:** Owner's investor constraint (not a market statistic).
 **What would change my mind:** A different minimum set by the owner.
 **Effect on results:** Phase 2–4 cost figures are computed at USD 25,000.
+
+### 2026-10-27 — Citations checked
+**Context:** Several entries cited sources as "not independently verified", and two rules had no cited evidence.
+**Rule:** Each citation was checked against its publisher listing, an abstract, or the primary page. The results:
+
+| Source | Used for | Result |
+|---|---|---|
+| Working (1960), Econometrica 28(4), 916–918 | Averaged prices create spurious autocorrelation (Shiller rule) | Confirmed (Econometric Society listing; the companion Cowles 1960 abstract describes the effect) |
+| Jorion and Goetzmann (1999), Journal of Finance 54(3), 953–980 | Survivorship in equity returns (claim 1) | Confirmed (RePEc abstract) |
+| Lo and MacKinlay (1988), Review of Financial Studies 1(1), 41–66 | Variance-ratio test (claim 3) | Confirmed (author's page) |
+| Poterba and Summers (1988), Journal of Financial Economics 22(1), 27–59 | Background for claim 3 | Confirmed. The wording is corrected: their point estimates suggested mean reversion, but the random walk could not be rejected |
+| Hall, Horowitz and Jing (1995), Biometrika 82(3), 561–574 | Bootstrap block length | Confirmed. **Correction:** the optimal rate is n^(1/3) for variance, but n^(1/5) for two-sided intervals. `bootstrap.block_length` now uses n^(1/5) |
+| Baur and Lucey (2010), Financial Review 45(2) | Hedge and safe-haven definitions (claim 5) | The paper and its definitions are confirmed; the exact regression form is taken from the papers citing it (not checked against the full text) |
+| Newey and West (1994), Review of Economic Studies 61(4), 631–653 | HAC lag rule | The paper is confirmed; the formula floor(4(n/100)^(2/9)) is not confirmed from its text. Evidence: pending |
+| Siegel, *Stocks for the Long Run* | Minimum-risk tables (claim 4) | Not confirmed. The citation is removed |
+| NIST e-Handbook 1.3.5.17 (Iglewicz and Hoaglin 1993) | Cross-check outlier rule | Confirmed (primary page) |
+| BLS CPI release schedule | Two-month CPI lag (claim 5) | Confirmed: month t's CPI is released around the 10th–15th of month t+1, so at the start of month t the latest published CPI is t−2 |
+| TreasuryDirect reference-CPI tables | TIPS lag (claim 8) | Confirmed: the reference CPI on the 1st of a month is the CPI-U of three months earlier, interpolated daily |
+| US Treasury press release, 26 Nov 2025 | October 2025 CPI | Confirmed: index number 325.604 under the TIPS index contingency, not to be replaced. Claim 8 now uses it (`reference/cpi_contingency.csv`) instead of interpolation |
+| ABS/SC-STS and MAS on SORA | SORA as the SGD cash benchmark | Confirmed: SORA replaced SOR (June 2023) and SIBOR (2024) |
+
+**Evidence:** The URLs are in the session research notes. Primary pages: https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm, https://www.bls.gov/schedule/news_release/cpi.htm, https://home.treasury.gov/news/press-releases/sb0324, https://web.mit.edu/Alo/www/Papers/lo-mackinlay-88.html, https://ideas.repec.org/a/bla/jfinan/v54y1999i3p953-980.html.
+**What would change my mind:** Reading the Baur–Lucey and Newey–West full texts, which may refine those two entries.
+**Effect on results:** Claim 5's confidence intervals change slightly (shorter bootstrap blocks). Claim 8 uses the official October 2025 CPI value. The rest is wording only.
+
+### 2026-10-27 — Unsourced window choices tested by sensitivity instead of citation
+**Context:** Several window and horizon lengths had no cited source: the claim 3 test horizon, the claim 4 long horizon, the claim 5 correlation window, CPI lag and burn-in, and the claim 6 comparison blocks.
+**Options considered:** Searching for a source for each number (rejected: these are conventions without a canonical value); testing whether the verdict depends on them (kept).
+**Rule:** `evidence/sensitivity.py` reruns each claim's verdict statistic at alternatives either side of the default, and the evidence review reports any verdict that changes. A choice is treated as supported if no alternative changes the verdict; otherwise the claim is flagged as sensitive to it.
+**Evidence:** Run 2026-10-27: 0 of 20 alternatives changed a verdict (table in docs/evidence_review.md).
+**What would change my mind:** An alternative that flips a verdict; that claim would then report both results.
+**Effect on results:** None on the verdicts; these choices no longer need a citation.

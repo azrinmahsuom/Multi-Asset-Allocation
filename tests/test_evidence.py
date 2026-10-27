@@ -68,4 +68,6 @@ def test_correlation_ci_brackets_a_strong_correlation():
 def test_block_length_rule():
     from analysis import bootstrap
 
-    assert bootstrap.block_length(64) == 4 and bootstrap.block_length(1) == 1
+    # 32^(1/5) = 2 exactly; 243^(1/5) = 3.
+    assert bootstrap.block_length(32) == 2 and bootstrap.block_length(243) == 3
+    assert bootstrap.block_length(1) == 1

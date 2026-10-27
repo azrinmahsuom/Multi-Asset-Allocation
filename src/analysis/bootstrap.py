@@ -45,8 +45,13 @@ def iid_variance_ratios(
 
 
 def block_length(n: int) -> int:
-    """Rule-of-thumb block length for a moving-block bootstrap: n^(1/3), at least 1."""
-    return max(1, round(n ** (1 / 3)))
+    """Block length for two-sided bootstrap confidence intervals: n^(1/5), at least 1.
+
+    Hall, Horowitz and Jing (1995, Biometrika 82(3)) give optimal block-length rates of
+    n^(1/3) for variance or bias, n^(1/4) for one-sided and n^(1/5) for two-sided
+    distribution functions; percentile intervals here are two-sided.
+    """
+    return max(1, round(n ** (1 / 5)))
 
 
 def moving_block_indices(n: int, block: int, generator: np.random.Generator) -> np.ndarray:
@@ -66,7 +71,7 @@ def correlation_ci(
 ) -> tuple[float, float]:
     """Percentile confidence interval for corr(x, y) from a moving-block bootstrap.
 
-    Pairs are resampled together. block defaults to block_length(n).
+    Pairs are resampled together. block defaults to block_length(n), the two-sided rate.
     """
     x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
     n = len(x)

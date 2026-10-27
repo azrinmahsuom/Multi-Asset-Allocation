@@ -184,9 +184,11 @@ def run() -> ClaimResult:
             "The i.i.d. bootstrap removes all time dependence, including volatility clustering, "
             "which can affect the variance ratio's distribution. A block bootstrap would be a "
             "robustness check.",
-            "Background: Poterba and Summers (1988, Journal of Financial Economics) reported "
-            "mean reversion; Lo and MacKinlay (1988, Review of Financial Studies) developed the "
-            "variance-ratio test. Cited, not independently verified.",
+            "Background: Poterba and Summers (1988, Journal of Financial Economics 22(1)) "
+            "found point estimates consistent with mean reversion in the US and 17 other "
+            "countries, but could not reject the random walk at conventional levels, which is "
+            "the same pattern found here. Lo and MacKinlay (1988, Review of Financial Studies "
+            "1(1)) developed the variance-ratio test.",
         ],
         tables={"us": us, "countries": countries},
         figures=[figure],

@@ -23,14 +23,25 @@ import pandas as pd
 import statsmodels.api as sm
 
 from analysis import charts, data, metrics
+from analysis.config import REFERENCE
 from analysis.evidence import ClaimResult, verdict_from_share
 
 MATURITY = 10
 
 
+def tips_cpi() -> pd.Series:
+    """CPI-U NSA as used for TIPS: FRED values, with Treasury's announced index numbers for
+    months BLS did not publish (reference/cpi_contingency.csv) replacing any interpolation."""
+    cpi = data.monthly("fred_monthly")["CPIAUCNS"].copy()
+    contingency = pd.read_csv(REFERENCE / "cpi_contingency.csv")
+    for row in contingency[contingency["series"] == "CPIAUCNS"].itertuples():
+        cpi.loc[pd.Period(row.month, freq="M")] = row.value
+    return cpi
+
+
 def tips_monthly() -> pd.DataFrame:
     t = data.monthly("us_treasury_monthly")
-    cpi = data.monthly("fred_monthly")["CPIAUCNS"]
+    cpi = tips_cpi()
     real_yield = t["dfii10_yield"]
     df = pd.DataFrame(index=t.index)
     df["real_return"] = metrics.par_bond_return(real_yield.shift(1), real_yield, MATURITY)
@@ -183,8 +194,9 @@ def run() -> ClaimResult:
             "Taxes on the inflation accrual are ignored.",
             "Variance shares can exceed 100% in total, because the accrual and the real-yield "
             "effect partly offset each other.",
-            "October 2025 US CPI was not published; that month is filled by geometric "
-            "interpolation between September and November (rule in docs/decisions.md).",
+            "October 2025 US CPI was not published. For TIPS, Treasury's announced index "
+            "number for that month (325.604, 26 November 2025) is used, as the bonds "
+            "themselves do (reference/cpi_contingency.csv).",
         ],
         tables={
             "annual": annual,

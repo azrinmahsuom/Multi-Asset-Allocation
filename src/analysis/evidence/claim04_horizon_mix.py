@@ -177,9 +177,9 @@ def run() -> ClaimResult:
             "while maximum Sharpe trades return against risk. A rising minimum-variance weight "
             "says equities became relatively less risky over long windows in real terms, not "
             "that they are riskless.",
-            "Tables in popular books (e.g. Siegel, Stocks for the Long Run) report the "
-            "minimum-standard-deviation mix by holding period; cited, not independently "
-            "verified.",
+            "The claim is usually stated with minimum-risk tables by holding period; we could "
+            "not confirm which definition any specific published table uses, so none is cited. "
+            "Both definitions are reported here.",
         ],
         caveats=[
             "Long horizons rest on few independent periods: 20-year windows in about 120–150 "

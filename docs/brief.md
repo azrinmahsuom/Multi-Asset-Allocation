@@ -113,9 +113,7 @@ Not applicable: no hypothesis (see §5).
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
 - SingStat series (SG CPI) and SGS yields: not yet fetched.
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
-- Claim 5's 36-month correlation window and claim 4's horizon set (1/5/10/20/30 years) have no cited source yet. Evidence: pending; sensitivity checks planned.
-- Claim 5's 120-month burn-in and two-month CPI publication lag have no cited source yet. Evidence: pending.
-- Claim 6's 10-year comparison blocks and the TIPS reference-CPI lag in claim 8 need cited sources. Evidence: pending.
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
+- Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.
 - Data verification is local only (`make verify`); CI can't reproduce hashes of daily-updating sources.
 - Length of the SGD hedging-cost history (SG short rates, USD/SGD from 1981 on FRED) for claim 12.
