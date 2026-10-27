@@ -90,3 +90,13 @@ def test_table_markdown_formats_ratios_as_decimals():
     df = pd.DataFrame({"annual_return": [0.051], "sharpe": [0.615], "difference_t": [1.2]})
     text = _table_markdown(df)
     assert "5.1%" in text and "0.61" in text and "1.20" in text and "61.5%" not in text
+
+
+def test_loss_share_counts_negative_windows():
+    import pandas as pd
+
+    from analysis.design.allocation import loss_share
+
+    # Annual data, 2-year windows: (1.1*0.8)-1 < 0, (0.8*1.3)-1 > 0, (1.3*0.9)-1 > 0.
+    r = pd.Series([0.1, -0.2, 0.3, -0.1])
+    assert loss_share(r, 2, 1) == pytest.approx(1 / 3)

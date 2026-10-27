@@ -15,13 +15,35 @@ SOURCE = (
     "tax and trading costs. Calculations: this project."
 )
 SOURCES = {"french", "mas", "fred", "singstat", "yahoo", "shiller"}
-ADOPTED = "Adopted allocation"
-PLOTTED = [ADOPTED, "100% global equity", "Global 60/40", "Global market cap"]
+BENCHMARKS = ["100% global equity", "Global 60/40", "Global market cap"]
+
+
+def _plotted(sims: dict) -> list[str]:
+    """Strategies not identical to a benchmark, then the benchmarks (at most 5 lines)."""
+    weights = {**engine.strategy_weights(), **engine.benchmark_weights()}
+    names = []
+    for name in sims:
+        if name in BENCHMARKS:
+            continue
+        if any(weights[name].equals(weights[b]) for b in BENCHMARKS):
+            continue
+        if any(weights[name].equals(weights[n]) for n in names):
+            continue
+        names.append(name)
+    return (names + BENCHMARKS)[:5]
+
+
+def _legend(name: str) -> str:
+    """Name a benchmark that is also a profile's selection."""
+    w = {**engine.strategy_weights(), **engine.benchmark_weights()}
+    same = [k for k in engine.strategy_weights() if "(v2)" in k and w[k].equals(w.get(name))]
+    return f"{name} (= {', '.join(same)})" if name in BENCHMARKS and same else name
 
 
 def _growth_figure(sims: dict, layer: pd.DataFrame) -> "charts.Path":
     fig, ax = charts.figure(height_in=5.0)
-    for i, name in enumerate(PLOTTED):
+    names = _plotted(sims)
+    for i, name in enumerate(names):
         real = metrics.real_returns(sims[name]["net"], layer.loc[sims[name].index, "inflation"])
         wealth = (1 + real).cumprod()
         ax.plot(
@@ -33,14 +55,15 @@ def _growth_figure(sims: dict, layer: pd.DataFrame) -> "charts.Path":
     ax.minorticks_off()
     ax.set_ylabel("Growth of SGD 1, real (log scale)")
     ax.legend(loc="upper left", fontsize=8.5)
-    real = {
-        n: metrics.annualised_return(metrics.real_returns(sims[n]["net"], layer["inflation"]), 12)
-        for n in (ADOPTED, "100% global equity")
-    }
+    eq = metrics.annualised_return(
+        metrics.real_returns(sims["100% global equity"]["net"], layer["inflation"]), 12
+    )
+    sixty = metrics.annualised_return(
+        metrics.real_returns(sims["Global 60/40"]["net"], layer["inflation"]), 12
+    )
     charts.titles(
         fig,
-        f"Adopted allocation: {real[ADOPTED]:.1%} real a year vs "
-        f"{real['100% global equity']:.1%} for global equities",
+        f"Global equities {eq:.1%} real a year vs {sixty:.1%} for a global 60/40",
         f"Index layer, monthly, real SGD, {layer.index[0]} to {layer.index[-1]}",
     )
     return charts.save(fig, "backtest_growth_index_layer", SOURCE, SOURCES)
@@ -48,20 +71,28 @@ def _growth_figure(sims: dict, layer: pd.DataFrame) -> "charts.Path":
 
 def _drawdown_figure(sims: dict, layer: pd.DataFrame) -> "charts.Path":
     fig, ax = charts.figure(height_in=4.5)
-    for i, name in enumerate(PLOTTED):
+    names = _plotted(sims)
+    for i, name in enumerate(names):
         wealth = (1 + sims[name]["net"]).cumprod()
         dd = (wealth / wealth.cummax() - 1) * 100
-        ax.plot(dd.index.to_timestamp(), dd, color=charts.SERIES[i], linewidth=1.5, label=name)
+        ax.plot(
+            dd.index.to_timestamp(), dd, color=charts.SERIES[i], linewidth=1.5, label=_legend(name)
+        )
     ax.set_ylabel("Drawdown from previous peak, % (nominal SGD)")
     ax.legend(loc="lower right", fontsize=8.5)
-    worst = {n: metrics.max_drawdown(sims[n]["net"]) for n in PLOTTED}
+    worst = metrics.max_drawdown(sims["100% global equity"]["net"])
+    sixty = metrics.max_drawdown(sims["Global 60/40"]["net"])
     charts.titles(
         fig,
-        f"Worst fall: {worst[ADOPTED]:.0%} for the adopted allocation vs "
-        f"{worst['100% global equity']:.0%} for global equities",
+        f"Worst fall: global equities {worst:.0%}, global 60/40 {sixty:.0%}",
         f"Index layer, monthly, SGD, {layer.index[0]} to {layer.index[-1]}",
     )
     return charts.save(fig, "backtest_drawdowns_index_layer", SOURCE, SOURCES)
+
+
+def _feasible_profiles() -> list:
+    names = engine.strategy_weights()
+    return [p for p in profiles.PROFILES if f"{p.name} profile (v2)" in names]
 
 
 def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list[str], dict]:
@@ -69,8 +100,8 @@ def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list
     table = pd.DataFrame({k: engine.summarise(s, layer) for k, s in sims.items()}).T
     checks = pd.DataFrame(
         {
-            f"{p.name} limits": engine.profile_check(sims[ADOPTED], layer, p)
-            for p in profiles.PROFILES
+            f"{p.name} profile (v2)": engine.profile_check(sims[f"{p.name} profile (v2)"], layer, p)
+            for p in _feasible_profiles()
         }
     ).T
     lines = [
@@ -78,10 +109,9 @@ def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list
         "",
         _table_markdown(table),
         "",
-        "The adopted allocation against each original profile's limits on this layer's real "
-        "SGD path:",
+        "Feasible profiles against their own v2 limits on this layer's real SGD path:",
         "",
-        _table_markdown(checks),
+        _table_markdown(checks) if len(checks) else "No feasible profile.",
         "",
     ]
     return lines, sims
@@ -90,19 +120,36 @@ def _layer_section(title: str, layer: pd.DataFrame, weights: dict) -> tuple[list
 def run() -> dict:
     index_layer, etf_layer = engine.index_layer(), engine.etf_layer()
     weights = {**engine.strategy_weights(), **engine.benchmark_weights()}
-    adopted = weights[ADOPTED]
+    strategies = engine.strategy_weights()
+    infeasible = engine.infeasible_profiles()
     idx_lines, idx_sims = _layer_section("Index layer", index_layer, weights)
-    etf_lines, _ = _layer_section("ETF layer", etf_layer, weights)
+    etf_lines, etf_sims = _layer_section("ETF layer", etf_layer, weights)
     growth = _growth_figure(idx_sims, index_layer)
     drawdowns = _drawdown_figure(idx_sims, index_layer)
     sub = robustness.subperiods(idx_sims)
     rising = robustness.rising_rate_era(weights)
-    forward = robustness.forward_outcomes({ADOPTED: idx_sims[ADOPTED]}, index_layer)
-    grid = robustness.parameter_grid(index_layer, adopted)
+    forward = robustness.forward_outcomes({k: idx_sims[k] for k in strategies}, index_layer)
+    grids = [
+        robustness.parameter_grid(index_layer, strategies[f"{p.name} profile (v2)"], [p])
+        for p in _feasible_profiles()
+    ]
+    grid = pd.concat(grids) if grids else pd.DataFrame()
     attr = robustness.attribution(index_layer, weights)
-    contrib = attr["contributions"].loc[ADOPTED]
-    fails = grid[~grid["meets_limits"].astype(bool)]
+    turnover = pd.DataFrame(
+        {
+            k: {
+                "index_layer_turnover_per_year": engine.summarise(idx_sims[k], index_layer)[
+                    "turnover_per_year"
+                ],
+                "etf_layer_turnover_per_year": engine.summarise(etf_sims[k], etf_layer)[
+                    "turnover_per_year"
+                ],
+            }
+            for k in strategies
+        }
+    ).T
     wht = float(index_layer["wht_drag"].mean() * 12)
+    fails = grid[~grid["meets_limits"].astype(bool)] if len(grid) else grid
 
     text = "\n".join(
         [
@@ -116,12 +163,22 @@ def run() -> dict:
             "trading costs at the USD 25,000 minimum; rebalancing every December and when a "
             "weight drifts more than 10 points.",
             "",
-            f"**Adopted allocation:** {adopted['equity']:.1%} global equities (unhedged) and "
-            f"{adopted['bonds']:.1%} SGS: risk-parity weights, adopted after the holdout "
-            "evaluation in `docs/strategy_design.md`, where the three profiles selected the same "
-            "mix and were merged. The in-sample picks that preceded it are shown for reference.",
+            "**Status (v2 limits, holdout-based selection):** "
+            + (
+                "infeasible profiles: " + ", ".join(infeasible) + " (no candidate met the "
+                "limits both in-sample and on the holdout; see `docs/strategy_design.md`). "
+                if infeasible
+                else ""
+            )
+            + "Selected: "
+            + "; ".join(
+                f"{k}: " + ", ".join(f"{a} {v:.0%}" for a, v in w.items())
+                for k, w in strategies.items()
+                if "(v2)" in k
+            )
+            + ". In-sample picks are shown for reference only. This result is not final.",
             "",
-            "**In-sample caveat:** the allocation and its limits were chosen using SGD history "
+            "**In-sample caveat:** the in-sample picks and the limits' SGD tests use SGD history "
             "that overlaps this backtest, so these results are not out of sample. The holdout "
             "evaluation is the out-of-sample check.",
             "",
@@ -135,6 +192,13 @@ def run() -> dict:
             f"![Drawdowns](../{drawdowns.relative_to(ROOT).as_posix()})",
             "",
             *etf_lines,
+            "## Turnover per profile",
+            "",
+            "One-way turnover from rebalancing, per year (a single-asset allocation never "
+            "rebalances):",
+            "",
+            _table_markdown(turnover),
+            "",
             "## Subperiods (index layer)",
             "",
             _table_markdown(sub),
@@ -151,11 +215,11 @@ def run() -> dict:
             "",
             _table_markdown(forward),
             "",
-            "## Parameter grid (index layer, adopted allocation against each profile's limits)",
+            "## Parameter grid (index layer, each feasible profile against its own limits)",
             "",
-            _table_markdown(grid),
+            _table_markdown(grid) if len(grid) else "No feasible profile.",
             "",
-            "Variants that fail a profile's limits: "
+            "Variants that fail: "
             + ("; ".join(f"{p} – {v}" for p, v in fails.index) or "none")
             + ".",
             "",
@@ -163,13 +227,11 @@ def run() -> dict:
             "",
             f"Annualised sleeve returns over the index layer: equities "
             f"{attr['sleeve_returns']['equity']:.1%}, SGS {attr['sleeve_returns']['bonds']:.1%}, "
-            f"SGD cash {attr['sleeve_returns']['cash']:.1%} (nominal SGD). For the adopted "
-            f"allocation, equities contributed about {contrib['equity']:.1%} a year and SGS "
-            f"{contrib['bonds']:.1%}. The 10-year SGS yield fell from {attr['sgs10_start']:.2%} at "
-            f"the start to {attr['sgs10_min']:.2%} ({attr['sgs10_min_month']}) and ended at "
-            f"{attr['sgs10_end']:.2%}: much of the bond return came from falling yields, which "
-            "cannot repeat from today's starting level. Forward bond returns are better "
-            "anchored to the current yield.",
+            f"SGD cash {attr['sleeve_returns']['cash']:.1%} (nominal SGD). The 10-year SGS yield "
+            f"fell from {attr['sgs10_start']:.2%} at the start to {attr['sgs10_min']:.2%} "
+            f"({attr['sgs10_min_month']}) and ended at {attr['sgs10_end']:.2%}: much of the "
+            "bond return came from falling yields, which cannot repeat from today's starting "
+            "level.",
             "",
             "## Caveats",
             "",
@@ -177,15 +239,13 @@ def run() -> dict:
             "2008 crisis.",
             "- Index-layer equities are developed markets only (no emerging markets before the "
             "ETF layer); the withholding-tax drag uses the 15% treaty rate on the whole "
-            "dividend yield, an approximation; TERs are secondary-source figures (to_verify).",
-            "- Trading costs use US-listed ETF spreads and a US fee schedule as stand-ins for "
-            "LSE and SGX trading; costs are small at annual rebalancing, and stress tests at 2x "
-            "and 3x spreads change little. Stand-ins are to be replaced before README numbers "
-            "are final.",
+            "dividend yield, an approximation.",
+            "- Trading costs still use US-listed ETF spreads and a US fee schedule as stand-ins "
+            "for LSE and SGX trading; these are to be replaced before README numbers are final.",
             "- Benchmark global bonds use US Treasuries hedged to SGD before July 2019, with no "
             "fund fee.",
             "",
         ]
     )
     OUTPUT.write_text(text)
-    return {"grid": grid, "forward": forward, "subperiods": sub}
+    return {"grid": grid, "forward": forward, "subperiods": sub, "turnover": turnover}

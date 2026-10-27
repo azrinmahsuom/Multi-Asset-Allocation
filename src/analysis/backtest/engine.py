@@ -14,8 +14,8 @@ Rules (fixed before results were computed):
   A35.SI (SGD), total returns from prices and distributions, which already include TER and
   fund-level withholding tax; benchmark global bonds: SGLU.AS hedged to SGD from July 2019,
   the US 10-year stand-in before.
-- Strategies: the adopted allocation (design.allocation.final_allocation: risk parity over
-  equities and SGS, adopted after the holdout) and, for reference, the in-sample selections.
+- Strategies: each feasible profile's v2 holdout selection (design.holdout.final_allocations)
+  and, for reference, the in-sample picks.
 - Benchmarks: 100% global equity; global 60/40 (equities / global bonds hedged); global
   market-cap multi-asset (equity and bond weights from reference/market_cap_weights.csv,
   bonds hedged).
@@ -33,7 +33,7 @@ import pandas as pd
 
 from analysis import costs, data, metrics, portfolio, prices
 from analysis.config import DATA_RAW, REFERENCE
-from analysis.design import allocation, bond_options
+from analysis.design import allocation, bond_options, holdout
 
 RULE = {"type": "calendar_or_threshold", "months": 12, "band": 0.10}
 MINIMUM_ALLOCATION = 25_000.0
@@ -112,12 +112,19 @@ def benchmark_weights() -> dict[str, pd.Series]:
 
 
 def strategy_weights() -> dict[str, pd.Series]:
-    """The adopted allocation (risk parity, profiles merged after the holdout) and, for
-    reference, the in-sample selections that preceded it."""
-    out = {"Adopted allocation": allocation.final_allocation()}
+    """Each feasible profile's v2 holdout selection, and, for reference, the in-sample picks
+    of every profile (infeasible profiles have no adopted allocation)."""
+    out = {}
+    for profile, w in holdout.final_allocations().items():
+        if w is not None:
+            out[f"{profile} profile (v2)"] = w[w > 0]
     for profile, w in allocation.selected_weights().items():
         out[f"In-sample {profile.lower()} pick"] = w[w > 0]
     return out
+
+
+def infeasible_profiles() -> list[str]:
+    return [p for p, w in holdout.final_allocations().items() if w is None]
 
 
 def cost_fraction(spread_multiplier: float = 1.0) -> portfolio.CostFn:

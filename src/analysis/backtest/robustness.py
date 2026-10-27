@@ -96,11 +96,12 @@ def _unhedged_global_bonds(layer: pd.DataFrame) -> pd.Series:
     return metrics.to_base_currency(us10, c["fx"]).reindex(layer.index)
 
 
-def parameter_grid(layer: pd.DataFrame, base: pd.Series) -> pd.DataFrame:
-    """Variants of the adopted allocation, each checked against every profile's limits."""
+def parameter_grid(layer: pd.DataFrame, base: pd.Series, plist=None) -> pd.DataFrame:
+    """Variants of an allocation, each checked against the given profiles' limits."""
     layer = layer.assign(global_unhedged=_unhedged_global_bonds(layer)).dropna()
+    base = base.reindex(["equity", "bonds"]).fillna(0.0)
     rows = []
-    for p in profiles.PROFILES:
+    for p in plist or profiles.PROFILES:
         eq = float(base.get("equity", 0))
         variants = {"Base case": (base, engine.RULE, 1.0)}
         for shift in (-0.10, 0.10):

@@ -408,3 +408,28 @@ Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates:
 **Evidence:** The holdout table in `docs/strategy_design.md`; the weight-stability bootstrap. **Both choices were made after the holdout results**, and are disclosed as such.
 **What would change my mind:** Real investor needs that justify different limits per horizon; or risk-parity weights becoming unstable.
 **Effect on results:** The backtest reports the adopted allocation, with the in-sample picks for reference. In the index layer: 2.3% real a year, worst fall −14.2%, and it meets all three original profiles' limits.
+
+### 2026-10-27 — v1 result not final; v2 limits; three profiles restored
+**Context:** The owner rejected the v1 outcome, in which the profiles merged into one allocation, as final.
+**Options considered:** v2 limits as proposed (chosen), or the same limits made to loosen per year as well. The owner also approved the holdout pass rule and selection below.
+**Rule (v2, set after the v1 holdout; owner-approved 2026-10-27):**
+- Every measure uses real SGD returns over rolling windows of the profile's horizon.
+- Short (~5 years): worst 5-year return ≥ −15% cumulative; a real loss in at most 10% of 5-year windows; peak-to-trough fall ≥ −20%.
+- Medium (~10 years): worst 10-year return ≥ −20% cumulative; a real loss in at most 15% of 10-year windows; no drawdown cap.
+- Long (20+ years): worst 20-year return ≥ −25% cumulative; a real loss in at most 20% of 20-year windows; no drawdown cap.
+- The limits loosen with horizon in cumulative terms; the per-year floors tighten, which the owner accepted.
+- **Candidates:** the methods meeting the v2 limits on SGD history, plus the maximum-equity mix (rest in SGS, which the three-way comparison selected).
+- **Holdout:** a candidate passes if its share of horizon windows with a real loss is within the tolerance in all three tests:
+  - H1: non-US JST windows, pooled;
+  - H2: US before 1981, Shiller monthly;
+  - H3: the global JST block bootstrap (3-year blocks, seed 20261027).
+- **Worst-window floors and the drawdown cap** are tested in-sample only.
+- **Selection:** the highest expected real return among passing candidates. If none pass, the profile is reported as infeasible; no tie-break is applied.
+**Evidence:** Owner judgement for the limit levels. Results in `docs/strategy_design.md`, including a frontier table of every measure for equity/SGS mixes in 10-point steps.
+**What would change my mind:** Revised limits from the owner.
+**Effect on results:**
+- **Short is infeasible.** No mix meets the −20% drawdown cap or the 10% loss tolerance on SGD history.
+- **Medium is infeasible.** It passes in-sample at 10–80% equities, but the non-US holdout loss share is at least 16.4%, above the 15% tolerance.
+- **Long is 100% global equity:** the highest expected return among passing candidates. With no drawdown cap, all-equity passes every test.
+- The v1 infeasibility is written up as a finding in `docs/strategy_design.md`.
+- The backtest reports the v2 selections, with the in-sample picks for reference.

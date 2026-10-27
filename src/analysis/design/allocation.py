@@ -145,13 +145,22 @@ def _worst_window(series: pd.Series, years: int, periods: int, annualised: bool)
     return float(stat.min())
 
 
+def loss_share(real: pd.Series, years: int, periods: int) -> float:
+    """Share of rolling windows of `years` with a negative cumulative real return."""
+    ann = metrics.rolling_annualised(real, years, periods)
+    return float((ann < 0).mean()) if len(ann) else np.nan
+
+
 def _profile_test(real: pd.Series, periods: int, p: profiles.Profile) -> dict:
     worst = _worst_window(real, p.window_years, periods, p.floor_is_annualised)
     dd = metrics.max_drawdown(real)
+    share = loss_share(real, p.window_years, periods)
     ok = worst >= p.worst_window_floor
     if p.max_drawdown_cap is not None:
         ok = ok and dd >= p.max_drawdown_cap
-    return {"worst_window": worst, "max_drawdown": dd, "ok": bool(ok)}
+    if p.loss_probability_max is not None:
+        ok = ok and share <= p.loss_probability_max
+    return {"worst_window": worst, "max_drawdown": dd, "loss_share": share, "ok": bool(ok)}
 
 
 def evaluate(w: np.ndarray, glob: pd.DataFrame, sgd: pd.DataFrame, p: profiles.Profile) -> dict:
@@ -169,6 +178,7 @@ def evaluate(w: np.ndarray, glob: pd.DataFrame, sgd: pd.DataFrame, p: profiles.P
         "max_drawdown_global": g_test["max_drawdown"],
         "worst_window_sgd": s_test["worst_window"],
         "max_drawdown_sgd": s_test["max_drawdown"],
+        "loss_share_sgd": s_test["loss_share"],
         "sgd_real_return": metrics.annualised_return(sgd_real, 12),
         "sgd_volatility": metrics.annualised_volatility(sgd_real, 12),
         "global_stress_passes": g_test["ok"],
@@ -330,6 +340,7 @@ def selected_weights() -> dict[str, pd.Series]:
         .astype(float)
         .rename(lambda k: k[2:])
         for profile, method in c["selected"].items()
+        if method != "none feasible"
     }
 
 
@@ -338,15 +349,3 @@ def run() -> dict:
     c["bootstrap_ranges"] = bootstrap_weights(c.pop("excess"))
     c["figure"] = _figure(c["table"], c["selected"])
     return c
-
-
-FINAL_METHOD = "Risk parity"  # owner decision 2026-10-27 after the holdout (docs/decisions.md)
-
-
-def final_allocation() -> pd.Series:
-    """The single allocation adopted after the holdout: risk-parity weights over equities and
-    SGS, no cash (the three profiles coincided on the holdout and were merged)."""
-    excess = monthly()
-    x = excess[RISKY].sub(excess["cash"], axis=0).to_numpy()
-    w = estimated_weights(x)[FINAL_METHOD]
-    return pd.Series(dict(zip(RISKY, w, strict=True)))
