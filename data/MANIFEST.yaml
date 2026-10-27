@@ -334,6 +334,22 @@ files:
       by MAS from 1 Jan 2014). SORA and 3-month compounded SORA (backward-looking)
       from 2005; SORA Index is a compounded overnight index level.
     sha256: f596a8d284a187a6c1710bb5486b569bb68c37c28a646479ae18460cc1cf7c7e
+  mas/sgs_benchmark_yields.csv:
+    source: Monetary Authority of Singapore, SGS benchmark prices and yields
+    url: https://eservices.mas.gov.sg/statistics/fdanet/BenchmarkPricesAndYields.aspx
+    landing_page: https://eservices.mas.gov.sg/statistics/fdanet/BenchmarkPricesAndYields.aspx
+    series: SGS benchmark yields, 2/5/7/10/15/20/30-year (daily, average closing bid)
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'MAS Terms of Use of Datasets (mas.gov.sg/terms-of-use): royalty-free
+      licence to use and distribute, with a notice acknowledging MAS as the source.'
+    redistributable: true
+    rows: 7234
+    start: '1998-01-02'
+    end: '2026-10-27'
+    units: Daily, % p.a., SGD. Average of SGS primary dealers' closing bid yields;
+      the 7-year benchmark was discontinued on 1 February 2011.
+    sha256: e5d1f5eccce7937036f7c94c5756798245d6fec5594c3f176b96316b7c78fc2b
   nareit/MonthlyHistoricalReturns.xls:
     source: Nareit, FTSE Nareit U.S. Real Estate Index Series monthly history
     url: https://www.reit.com/sites/default/files/returns/MonthlyHistoricalReturns.xls
@@ -499,6 +515,24 @@ files:
       cash per share on the ex-date. Total return is rebuilt from close + dividend,
       reinvested at the ex-date close.'
     sha256: 20c05454649a65c4caae2c5fbb02c90bf40e1fc7088d989d43244c99baaf4ea1
+  yahoo/IGLO.L.csv:
+    source: 'yahoo: IGLO.L (UCITS global government bonds, unhedged, distributing,
+      from 2009)'
+    url: 'yfinance: Ticker(''IGLO.L'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/IGLO.L/history
+    series: IGLO.L
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 4457
+    start: '2009-03-06'
+    end: '2026-10-27'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: b6cb0f49af73017c97080143ed94090c323a06fbdf5ed68aec4453d7127c377f
   yahoo/LQD.csv:
     source: 'yahoo: LQD (US investment-grade corporate bonds, from 2002)'
     url: 'yfinance: Ticker(''LQD'').history(period=''max'')'
@@ -548,6 +582,24 @@ files:
       cash per share on the ex-date. Total return is rebuilt from close + dividend,
       reinvested at the ex-date close.'
     sha256: fd43c3c2309d2bd1a597d7419ab2347f69892f39137db5a0cab7652f67595bcb
+  yahoo/SGLU.AS.csv:
+    source: 'yahoo: SGLU.AS (UCITS global government bonds, USD-hedged, accumulating,
+      from 2019)'
+    url: 'yfinance: Ticker(''SGLU.AS'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/SGLU.AS/history
+    series: SGLU.AS
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 1883
+    start: '2019-06-21'
+    end: '2026-10-27'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 43013b8a2a4e4934747d9b030c112df19029d1776705a0be7dc0b66e4db19d4b
   yahoo/SRT.SI.csv:
     source: 'yahoo: SRT.SI (Singapore REITs, from 2021)'
     url: 'yfinance: Ticker(''SRT.SI'').history(period=''max'')'

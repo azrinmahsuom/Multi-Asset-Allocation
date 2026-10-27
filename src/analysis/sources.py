@@ -72,6 +72,53 @@ MAS_COLUMNS = {
 }
 
 
+MAS_SGS_PAGE = "https://eservices.mas.gov.sg/statistics/fdanet/BenchmarkPricesAndYields.aspx"
+SGS_TENORS = ["Two", "Five", "Seven", "Ten", "Fifteen", "Twenty", "Thirty"]
+
+
+def _download_mas_sgs(url: str) -> bytes:
+    """Submit the MAS SGS benchmark prices and yields form: daily yields, 1988 to this year."""
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    page = session.get(url, timeout=TIMEOUT)
+    page.raise_for_status()
+    form = dict(
+        re.findall(r'<input type="hidden" name="([^"]+)" id="[^"]*" value="([^"]*)"', page.text)
+    )
+    prefix = "ctl00$ContentPlaceHolder1$"
+    for tenor in SGS_TENORS:
+        if f"{prefix}{tenor}YearBondYieldCheckBox" not in page.text:
+            raise RuntimeError(f"MAS SGS form has no {tenor}-year yield box; it may have changed.")
+    form.update(
+        {
+            prefix + "StartYearDropDownList": "1988",
+            prefix + "StartMonthDropDownList": "1",
+            prefix + "EndYearDropDownList": str(pd.Timestamp.today().year),
+            prefix + "EndMonthDropDownList": "12",
+            prefix + "FrequencyDropDownList": "D",
+            prefix + "DownloadButton": "Download",
+        }
+    )
+    form.update({f"{prefix}{t}YearBondYieldCheckBox": "on" for t in SGS_TENORS})
+    response = session.post(url, data=form, timeout=TIMEOUT * 2)
+    response.raise_for_status()
+    if "text/csv" not in response.headers.get("content-type", ""):
+        raise RuntimeError("MAS did not return a CSV. The form may have changed.")
+    return response.content
+
+
+def _describe_mas_sgs(path: Path) -> tuple[int, str, str]:
+    dates = []
+    year = month = None
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        parts = line.split(",")
+        if len(parts) < 4 or not parts[2].strip().isdigit():
+            continue
+        year, month = parts[0].strip() or year, parts[1].strip() or month
+        dates.append(pd.to_datetime(f"{year} {month} {parts[2].strip()}", format="%Y %b %d"))
+    return len(dates), min(dates).strftime("%Y-%m-%d"), max(dates).strftime("%Y-%m-%d")
+
+
 def _download_mas_rates(url: str) -> bytes:
     """Submit the MAS Domestic Interest Rates form (an ASP.NET page) and return the CSV.
 
@@ -270,6 +317,9 @@ GLOBAL_ETFS = {
     "ACWI": ("global equities (developed and emerging), from 2008", "USD"),
     "AGGG.L": ("UCITS global aggregate bonds, unhedged, distributing, from 2017", "USD"),
     "AGGU.L": ("UCITS global aggregate bonds, USD-hedged, accumulating, from 2017", "USD"),
+    # Same global government bond fund: unhedged (IGLO.L) and USD-hedged (SGLU.AS) classes.
+    "IGLO.L": ("UCITS global government bonds, unhedged, distributing, from 2009", "USD"),
+    "SGLU.AS": ("UCITS global government bonds, USD-hedged, accumulating, from 2019", "USD"),
 }
 
 # US bond ETFs: realised returns after default losses and costs, used to check returns built
@@ -396,6 +446,25 @@ REGISTRY: list[RawFile] = (
             resolve_url=_fixed(MAS_RATES_PAGE),
             describe=_describe_mas,
             download=_download_mas_rates,
+        ),
+        RawFile(
+            source="mas",
+            filename="sgs_benchmark_yields.csv",
+            name="Monetary Authority of Singapore, SGS benchmark prices and yields",
+            landing_page=MAS_SGS_PAGE,
+            series="SGS benchmark yields, 2/5/7/10/15/20/30-year (daily, average closing bid)",
+            licence=(
+                "MAS Terms of Use of Datasets (mas.gov.sg/terms-of-use): royalty-free licence to "
+                "use and distribute, with a notice acknowledging MAS as the source."
+            ),
+            redistributable=True,
+            units=(
+                "Daily, % p.a., SGD. Average of SGS primary dealers' closing bid yields; the "
+                "7-year benchmark was discontinued on 1 February 2011."
+            ),
+            resolve_url=_fixed(MAS_SGS_PAGE),
+            describe=_describe_mas_sgs,
+            download=_download_mas_sgs,
         ),
         RawFile(
             source="singstat",

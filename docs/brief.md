@@ -85,6 +85,7 @@ Each threshold or default cites its evidence, or says `Evidence: pending` (and i
 - No look-ahead: weights, rules and parameters are either chosen with data available at the time, or fixed ex ante on economic grounds. Anything tuned in-sample is reported as in-sample.
 - Survivorship: multi-country data excludes markets that were wiped out; this is disclosed wherever it matters.
 - Every claim, including textbook ones and the owner's own, is a hypothesis to test.
+- Horizon profiles and risk-capacity limits: see docs/strategy_design.md (set by the owner, 2026-10-27).
 - Minimum allocation to the strategy: USD 25,000 (owner's constraint, 2026-10-27). Trading costs, the number of ETFs per profile and rebalancing trade sizes are computed at this amount.
 - Naming rules: ETF issuer names and tickers are allowed as product identifiers only. Never name the owner's employer or its strategy names. Never reproduce the structure, specific weights, screening thresholds or ranking weights from any firm's internal or published materials. No custodian or broker recommendations. Language stays neutral, with no endorsement wording. Every ETF selection is dated ("as of YYYY-MM") and labelled illustrative, not investment advice.
 - Public academic and data sources only.
@@ -111,7 +112,8 @@ Not applicable: no hypothesis (see §5).
 ## 15. Open questions
 - Trading costs: the SGD→USD conversion markup is undisclosed (Evidence: pending); more primary broker fee schedules are needed for a median.
 - JST ends in 2020, so 2022 regime tests (claims 5 and 8) rely on US data only.
-- SGS (Singapore government bond) yields: not yet fetched. SingStat CPI is fetched; the Table Builder's own licence terms are still to be confirmed.
+- SingStat Table Builder's own licence terms are still to be confirmed.
+- The global government bond fund's effective duration (6.28 years) comes from a secondary extract of the issuer page; status to_verify.
 - Issuer annual returns for the cross-check (at least 3 years per ETF) are not yet entered in `reference/etf_annual_returns.csv`.
 - No free long-history credit return series after default losses was found; claim 7's long series is an upper bound.
 - Newey-West lag formula floor(4(n/100)^(2/9)) not yet checked against the paper's text. Evidence: pending.

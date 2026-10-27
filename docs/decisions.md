@@ -265,3 +265,29 @@ Entry template:
 - The |t| < 2 threshold is the conventional approximately-5% two-sided level.
 **What would change my mind:** Issuer cross-checks that flag REIT ETF data errors (pending); access to fund-flow data (claim 13).
 **Effect on results:** See docs/evidence_review.md.
+
+### 2026-10-27 — Horizon profiles and risk-capacity limits
+**Context:** Phase 2 framing. The owner set the limits in chat on 2026-10-27.
+**Options considered:** Questionnaire risk tolerance (rejected in the project spec in favour of risk capacity); limits tested on US history only (rejected: claims 1 and 2 show the US was the best case).
+**Rule:** Three profiles, each limit tested across all 16 JST countries (annual, real, local currency):
+- Short (~5 years): worst rolling 5-year real return ≥ −10% cumulative.
+- Medium (~10 years): worst rolling 10-year real return ≥ −20% cumulative.
+- Long (20+ years): worst rolling 20-year real return ≥ 0% a year; and maximum peak-to-trough fall no worse than −35%. The fall is measured on both the JST annual data and the monthly SGD backtest, and the worse of the two applies, because annual data understate falls.
+
+The spending reserve sits outside the strategy and its size is left to the investor. Selection: for each profile, the highest expected real return that meets its limits.
+**Evidence:** Owner judgement (risk capacity), as stated by the owner. The measurement rules (all 16 countries; the worse of annual and monthly falls) follow from claims 1–2 and from the annual-vs-monthly drawdown difference.
+**What would change my mind:** The owner revising a limit.
+**Effect on results:** These limits constrain the allocation in Phase 2.
+
+### 2026-10-27 — Bond sleeve: SGS (low confidence)
+**Context:** The owner asked for three bond options compared at matched duration on portfolio-level metrics in SGD: SGS, global government bonds hedged to SGD, and global government bonds unhedged.
+**Options considered:** The three options. Two alternatives the owner was offered after the results, and declined: calling it a tie and using global bonds, or splitting the sleeve between SGS and global bonds.
+**Rule:** The rule fixed before computing (`design/bond_options.py`) picks the option with the lowest average rank on portfolio volatility, maximum drawdown and mean return in the worst 10% of equity months, in the main layer (same global fund, July 2019 to August 2026). The rule's outcome is SGS, and the owner chose to follow it (2026-10-27). Phase 3 also backtests the global-unhedged sleeve, to show how much the choice matters.
+**Evidence:**
+- The bond-option tables in `docs/strategy_design.md`.
+- The winner's volatility advantage over the runner-up has a 95% interval that includes zero.
+- The 1998–2026 layer (US Treasuries as the global stand-in) ranks unhedged global bonds first and SGS last.
+- The main layer's winner is unchanged with the SGS sleeve matched at 5.0 or 7.5 years of duration.
+- The global fund's duration (6.28 years) is a secondary-source figure, status to_verify.
+**What would change my mind:** A longer like-for-like global bond history, or Phase 3 backtests showing the choice materially changes the profiles' risk limits.
+**Effect on results:** The allocation's bond sleeve is SGS at about 6–7 years duration. The confidence is low and is stated wherever the sleeve is reported.

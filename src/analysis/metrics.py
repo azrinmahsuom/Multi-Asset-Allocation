@@ -1,7 +1,10 @@
 """Core performance and risk metrics. Every function here should have a test."""
 
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd
+from scipy.optimize import brentq
 
 from analysis.config import TRADING_DAYS
 
@@ -112,6 +115,22 @@ def par_bond_return(
     annuity = np.where(tiny, periods, (1 - discount) / np.where(tiny, 1.0, half))
     price = coupon / 2 * annuity + discount
     return price + coupon * months / 12 - 1
+
+
+def par_bond_duration(yield_: float, maturity_years: float) -> float:
+    """Modified duration (years) of a par bond with semi-annual coupons.
+
+    For a par bond this equals (1 - (1 + y/2)^(-2m)) / y; its limit at a zero yield is m.
+    """
+    if abs(yield_) < 1e-12:
+        return float(maturity_years)
+    return float((1 - (1 + yield_ / 2) ** (-2 * maturity_years)) / yield_)
+
+
+def maturity_for_duration(target: float, yield_curve: Callable[[float], float]) -> float:
+    """Maturity (years, between 0.5 and 30) whose par-bond duration at the curve's yield for
+    that maturity equals the target duration."""
+    return float(brentq(lambda m: par_bond_duration(yield_curve(m), m) - target, 0.5, 30.0))
 
 
 def real_returns(nominal: pd.Series, inflation: pd.Series) -> pd.Series:

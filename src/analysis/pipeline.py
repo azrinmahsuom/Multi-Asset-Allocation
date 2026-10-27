@@ -2,13 +2,14 @@
 
 Run with: uv run python -m analysis.pipeline [stage]
 Stages: fetch, refresh (re-download and accept source updates), verify, clean, evidence,
-all (default).
+design, all (default).
 """
 
 import argparse
 
 from analysis import clean, manifest, report, sources
 from analysis.config import FIGURES
+from analysis.design import report as design_report
 
 
 def fetch(refresh: bool = False) -> None:
@@ -24,7 +25,7 @@ def verify() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    stages = ["fetch", "refresh", "verify", "clean", "evidence", "all"]
+    stages = ["fetch", "refresh", "verify", "clean", "evidence", "design", "all"]
     parser.add_argument("stage", nargs="?", default="all", choices=stages)
     stage = parser.parse_args().stage
 
@@ -39,6 +40,9 @@ def main() -> None:
     if stage in ("evidence", "all"):
         results = report.run()
         print(f"Wrote docs/evidence_review.md ({len(results)} claims).")
+    if stage in ("design", "all"):
+        design_report.run()
+        print("Wrote docs/strategy_design.md.")
 
 
 if __name__ == "__main__":

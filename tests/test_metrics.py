@@ -125,3 +125,17 @@ def test_par_bond_return_handles_zero_end_yield():
     # 0.5 plus 100 principal, undiscounted -> price 101.5; return = 1.015 + 0.005 - 1.
     out = metrics.par_bond_return(pd.Series([0.01]), pd.Series([0.0]), 2, months=6)
     assert out.iloc[0] == pytest.approx(1.015 + 0.005 - 1)
+
+
+def test_par_bond_duration_closed_form():
+    # 2-year par bond, 4% coupon: cash flows 2,2,2,102 at 2% per half-year.
+    times = [0.5, 1.0, 1.5, 2.0]
+    pv = [2 / 1.02, 2 / 1.02**2, 2 / 1.02**3, 102 / 1.02**4]
+    macaulay = sum(t * v for t, v in zip(times, pv, strict=True)) / sum(pv)
+    assert metrics.par_bond_duration(0.04, 2) == pytest.approx(macaulay / 1.02)
+    assert metrics.par_bond_duration(0.0, 7) == 7
+
+
+def test_maturity_for_duration_on_flat_curve():
+    m = metrics.maturity_for_duration(5.0, lambda _m: 0.03)
+    assert metrics.par_bond_duration(0.03, m) == pytest.approx(5.0)

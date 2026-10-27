@@ -221,6 +221,36 @@ def sg_cpi_monthly(path: Path = DATA_RAW / "singstat" / "M213751_cpi_monthly.jso
     return pd.DataFrame({"sg_cpi": index, "sg_inflation_month": index.pct_change()})
 
 
+SGS_FILE = DATA_RAW / "mas" / "sgs_benchmark_yields.csv"
+
+
+def sgs_month_end_yields(path: Path = SGS_FILE) -> pd.DataFrame:
+    """Month-end SGS benchmark yields (decimals) by tenor in years, last observation per month.
+
+    The final month is dropped if incomplete (same 3-day rule as other daily series).
+    """
+    rows, tenors, year, month = [], None, None, None
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        parts = [p.strip() for p in line.split(",")]
+        if tenors is None and len(parts) > 3 and "Bond Yield" in line:
+            tenors = [int(re.search(r"(\d+)-Year", p).group(1)) for p in parts[3:] if p]
+            continue
+        if tenors is None or len(parts) < 4 or not parts[2].isdigit():
+            continue
+        year, month = parts[0] or year, parts[1] or month
+        date = pd.to_datetime(f"{year} {month} {parts[2]}", format="%Y %b %d")
+        cells = parts[3 : 3 + len(tenors)]
+        values = [float(v) / 100 if v not in ("", "-") else np.nan for v in cells]
+        rows.append([date, *values])
+    daily = pd.DataFrame(rows, columns=["date", *tenors]).set_index("date").sort_index()
+    month_end = daily.groupby(daily.index.to_period("M")).last()
+    if not _month_complete(daily.index[-1]):
+        month_end = month_end.iloc[:-1]
+    month_end.index.name = "month"
+    month_end.columns = [f"sgs_{t}y" for t in tenors]
+    return month_end
+
+
 def mas_tables(path: Path = DATA_RAW / "mas" / "domestic_interest_rates.csv") -> list[pd.DataFrame]:
     """Every table in the MAS CSV as a daily DataFrame of floats ('-' becomes missing).
 
@@ -364,6 +394,7 @@ def run() -> dict[str, pd.DataFrame]:
         "us_treasury_monthly": _save(us_treasury_monthly(), "us_treasury_monthly"),
         "sgd_rf_monthly": _save(sgd_risk_free_monthly(), "sgd_rf_monthly"),
         "sg_cpi_monthly": _save(sg_cpi_monthly(), "sg_cpi_monthly"),
+        "sgs_month_end_yields": _save(sgs_month_end_yields(), "sgs_month_end_yields"),
         "etf_monthly": _save(etf_monthly(), "etf_monthly"),
         "us_reit_nareit": _save(nareit_monthly(), PRIVATE_PREFIX + "us_reit_nareit_monthly"),
     }
