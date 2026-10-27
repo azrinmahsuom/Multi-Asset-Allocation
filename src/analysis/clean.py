@@ -121,6 +121,7 @@ JST_COLUMNS = [
     "eq_capgain",
     "cpi",
     "xrusd",
+    "gdp",
 ]
 
 

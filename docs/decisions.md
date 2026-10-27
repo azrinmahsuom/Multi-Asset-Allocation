@@ -291,3 +291,52 @@ The spending reserve sits outside the strategy and its size is left to the inves
 - The global fund's duration (6.28 years) is a secondary-source figure, status to_verify.
 **What would change my mind:** A longer like-for-like global bond history, or Phase 3 backtests showing the choice materially changes the profiles' risk limits.
 **Effect on results:** The allocation's bond sleeve is SGS at about 6–7 years duration. The confidence is low and is stated wherever the sleeve is reported.
+
+### 2026-10-27 — Asset universe inclusion rule
+**Context:** Spec Phase 2: derive the asset universe from evidence, and explicitly evaluate gold and commodities.
+**Options considered:** Including classes by convention (rejected by the spec); a mechanical test against the core (kept).
+**Rule:** Core = global equities (unhedged in SGD) + SGS; cash is always available. A candidate is included if either:
+- its spanning alpha over the core's excess returns has HAC t > 2; or
+- in high-inflation months known at the time (Singapore CPI, trailing 12 months, lagged two months, expanding terciles, 120-month burn-in), it beats a core 60/40 with HAC t > 2.
+
+Fixed-income candidates are hedged to SGD; real assets are unhedged. Candidates: investment-grade credit (LQD), inflation-linked bonds (TIP), global REITs (RWO), gold (GLD) and commodities (DBC). Monthly, SGD, from June 2008.
+**Evidence:** Result in `docs/strategy_design.md`: gold included (spanning t = 2.7); the other four excluded. Gold robustness: Damodaran 1972–2025 (after fixed gold prices ended) gives an alpha in the same direction, not significant at annual frequency (t = 1.8). The 1972 cut-off rests on an economic event (the end of US gold convertibility in 1971), not on the results. Spanning tests: source citation pending.
+**What would change my mind:** Gold's alpha disappearing in the Phase 3 out-of-sample and robustness checks.
+**Effect on results:** The universe is global equities, SGS, cash and gold. Gold's weight is set by the allocation methods; confidence is medium.
+
+### 2026-10-27 — Correction: inclusion requires a source of expected return (gold excluded)
+**Context:** Gold passed the spanning test (t = 2.7) on 2008–2026 data. The owner questioned how a speculative asset was included. The project spec requires every candidate to state its role, *expected-return source* and evidence, but the original inclusion rule tested only statistics.
+**Options considered:** Require a return source (chosen by the owner); hold gold at its market-cap weight only; keep the rule's result.
+**Rule:** A candidate is included only if it has an economic source of expected return (a claim on cash flows such as coupons, dividends or rents, or an inflation-indexed accrual) **and** passes the spanning or inflation-role test. Gold and commodities have no such source and are excluded.
+**Evidence:** The project spec's requirement. Gold's monthly spanning result came from a sample with a long gold rally; its annual results from 1928 and from 1972 were not significant.
+**What would change my mind:** Not applicable; this restores a requirement of the spec.
+**Effect on results:** Universe = global equities, SGS and cash. **This change was made after the first results were seen**, and is disclosed as such. The allocation results were computed only after this change.
+
+### 2026-10-27 — Risk-capacity limits tested on SGD history; JST as stress scenarios
+**Context:** Tested on the worst single JST country (annual, real, local currency), no allocation could meet the owner's limits, not even 100% cash: e.g. Germany 1918–1922 cash −97.9% over 5 years. Even from 1950, the median country's worst 5 years was −17% for cash and −32% for 60/40 (with global equities).
+**Options considered:** SGD history as the binding test (chosen by the owner); the JST median country from 1950 with looser limits; both together (infeasible with the current limits).
+**Rule:** Limits are tested on real SGD monthly returns from February 1998: developed-market equities (French, unhedged in SGD), SGS at the global fund's duration, SGD cash and Singapore CPI. Rolling windows of the profile's length are used, and the long profile's drawdown cap is checked on the same monthly path. JST worst-country results (all years, and from 1950) are reported as stress scenarios. Expected real return for selection is unchanged: the median JST country's long-run real return.
+**Evidence:** The diagnostics above, run 2026-10-27. Limits are attainable on SGD history (e.g. 20/80 worst 5 years −8.6%; 60/40 maximum drawdown −35.9%).
+**What would change my mind:** An SGD inflation crisis, or a longer SGD bond history, that changes which mixes pass.
+**Effect on results:** The limits now reflect the investor's currency. The stress columns show the much worse outcomes in other currencies' history.
+
+### 2026-10-27 — Allocation selection (Phase 2 result)
+**Context:** Five methods compared under the profiles' limits (`design/allocation.py`).
+**Rule:** As in the module's docstring. Per profile, the highest expected real return among the methods' allocations that meet the limits.
+**Evidence:** `docs/strategy_design.md`: Short = glide path (about 19% equities / 81% SGS); Medium and Long = market cap (about 50/50). Selection is restricted to the five methods' outputs. Two known weaknesses: cash isn't riskless in real SGD terms, so scaling with cash doesn't always reduce risk; and the mean-variance weights are unstable across resamples.
+**What would change my mind:** Phase 3 backtests, including costs, withholding tax and out-of-sample checks, that break a profile's limits.
+**Effect on results:** These are the candidate allocations carried into Phase 3.
+
+### 2026-10-27 — Portfolio-level stress test replaces single countries; short limit −15%
+**Context:** The owner asked to test at portfolio level instead of on single countries. A GDP-weighted global portfolio of the JST countries was built: real USD, equities unhedged, government bonds hedged to USD with each country's bill rate, cash = US bills, and weights = the previous year's GDP in USD. Over 1871–2020, every allocation, cash included, failed the limits: global bonds lost 43% in real terms over the five years to 1920, and US bills lost 38.9% over the same window. From 1950, the medium and long limits were attainable. The short profile's −10% limit wasn't attainable on both tests even from 1950.
+**Options considered:**
+- For the global test, the owner was offered: start in 1950 (a choice made after seeing the data); keep the full history as a stress test only (chosen); or keep it binding (nothing qualifies).
+- For the short profile: loosen the limit to −15% (chosen); keep −10% and flag the shortfall; or loosen it to −12.5%.
+**Rule:**
+- The limits bind on real SGD history (monthly, from February 1998).
+- The global JST portfolio over 1871–2020 is reported as a stress scenario.
+- Expected real return for selection = the global portfolio's real annualised return.
+- The short profile's limit is now: worst 5-year real return no worse than −15% cumulative.
+**Evidence:** Owner decisions on 2026-10-27, and the diagnostics above (`design/allocation.global_portfolio_real`). The −15% level is the owner's judgement; on both tests from 1950, a 20/80 mix meets it.
+**What would change my mind:** A longer SGD history including an inflation crisis.
+**Effect on results:** Short = risk parity (about 25/75); Medium and Long = market cap (about 50/50). This supersedes the single-country stress columns in the earlier entry "Risk-capacity limits tested on SGD history".

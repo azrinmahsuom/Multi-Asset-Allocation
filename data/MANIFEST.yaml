@@ -481,6 +481,40 @@ files:
       cash per share on the ex-date. Total return is rebuilt from close + dividend,
       reinvested at the ex-date close.'
     sha256: 5bee717eda305779678e14d38289678db988b9c454f223d6442347c15f3620e5
+  yahoo/DBC.csv:
+    source: 'yahoo: DBC (diversified commodity futures, from 2006)'
+    url: 'yfinance: Ticker(''DBC'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/DBC/history
+    series: DBC
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 5213
+    start: '2006-02-06'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: d9bc12c2ed15593803b21dfae05fed0b19337e10adef7d72799309c1a2560d6f
+  yahoo/GLD.csv:
+    source: 'yahoo: GLD (gold bullion, from 2004)'
+    url: 'yfinance: Ticker(''GLD'').history(period=''max'')'
+    landing_page: https://finance.yahoo.com/quote/GLD/history
+    series: GLD
+    retrieved: '2026-10-27'
+    manual_download: false
+    licence: 'Yahoo Finance terms: personal use only. Not redistributable.'
+    redistributable: false
+    rows: 5518
+    start: '2004-11-18'
+    end: '2026-10-26'
+    units: 'Daily, USD. auto_adjust=False. close: split-adjusted, not dividend-adjusted.
+      adj_close: Yahoo''s dividend-adjusted close (kept only for cross-checks). dividend:
+      cash per share on the ex-date. Total return is rebuilt from close + dividend,
+      reinvested at the ex-date close.'
+    sha256: 26b048f9f42b97ab69fbd8809424ea66a82adccec223923a6478f4fd904ea234
   yahoo/IDWP.L.csv:
     source: 'yahoo: IDWP.L (UCITS developed-markets property yield, USD line, from
       2008)'

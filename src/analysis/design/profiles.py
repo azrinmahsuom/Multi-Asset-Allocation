@@ -1,7 +1,8 @@
-"""Horizon profiles and their risk-capacity limits, set by the owner on 2026-10-27.
+"""Horizon profiles and their risk-capacity limits, set by the owner on 2026-10-27 (short
+profile loosened from -10% to -15% the same day; see docs/decisions.md).
 
-Limits are tested on all 16 JST countries (annual, real, local currency); the long profile's
-drawdown cap is also checked on the monthly SGD backtest, and the worse of the two applies.
+Limits are tested on real SGD monthly returns from February 1998 (owner decision,
+2026-10-27); JST worst-country results are reported as stress scenarios.
 """
 
 from dataclasses import dataclass
@@ -19,7 +20,7 @@ class Profile:
 
 
 PROFILES = [
-    Profile("Short", "about 5 years", "a known spend at a set date", 5, -0.10, False),
+    Profile("Short", "about 5 years", "a known spend at a set date", 5, -0.15, False),
     Profile(
         "Medium", "about 10 years", "a flexible goal that could wait a few years", 10, -0.20, False
     ),
@@ -35,7 +36,7 @@ def describe(p: Profile) -> str:
         if p.floor_is_annualised
         else f"no worse than {p.worst_window_floor:.0%} cumulative"
     )
-    text = f"Worst real return over any {p.window_years}-year period, in any country: {floor}"
+    text = f"Worst real SGD return over any {p.window_years}-year period: {floor}"
     if p.max_drawdown_cap is not None:
         text += f"; peak-to-trough fall no worse than {p.max_drawdown_cap:.0%}"
     return text

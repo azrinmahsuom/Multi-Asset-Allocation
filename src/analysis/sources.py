@@ -330,7 +330,13 @@ BOND_ETFS = {
     "TIP": ("US Treasury inflation-protected securities, from 2003", "USD"),
 }
 
-ETFS = {**REIT_ETFS, **GLOBAL_ETFS, **BOND_ETFS}
+# Real-asset candidates for the asset-universe tests (identifiers only), as of 2026-10.
+REAL_ASSET_ETFS = {
+    "GLD": ("gold bullion, from 2004", "USD"),
+    "DBC": ("diversified commodity futures, from 2006", "USD"),
+}
+
+ETFS = {**REIT_ETFS, **GLOBAL_ETFS, **BOND_ETFS, **REAL_ASSET_ETFS}
 
 FRENCH_FTP = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
 FRENCH_UNITS = (

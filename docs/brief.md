@@ -85,7 +85,7 @@ Each threshold or default cites its evidence, or says `Evidence: pending` (and i
 - No look-ahead: weights, rules and parameters are either chosen with data available at the time, or fixed ex ante on economic grounds. Anything tuned in-sample is reported as in-sample.
 - Survivorship: multi-country data excludes markets that were wiped out; this is disclosed wherever it matters.
 - Every claim, including textbook ones and the owner's own, is a hypothesis to test.
-- Horizon profiles and risk-capacity limits: see docs/strategy_design.md (set by the owner, 2026-10-27).
+- Horizon profiles and risk-capacity limits: see docs/strategy_design.md (set by the owner, 2026-10-27; short profile loosened to -15% the same day). Limits bind on real SGD history from 1998; a GDP-weighted global JST portfolio (1871–2020) is reported as a stress scenario.
 - Minimum allocation to the strategy: USD 25,000 (owner's constraint, 2026-10-27). Trading costs, the number of ETFs per profile and rebalancing trade sizes are computed at this amount.
 - Naming rules: ETF issuer names and tickers are allowed as product identifiers only. Never name the owner's employer or its strategy names. Never reproduce the structure, specific weights, screening thresholds or ranking weights from any firm's internal or published materials. No custodian or broker recommendations. Language stays neutral, with no endorsement wording. Every ETF selection is dated ("as of YYYY-MM") and labelled illustrative, not investment advice.
 - Public academic and data sources only.
