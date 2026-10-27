@@ -731,7 +731,7 @@ REGISTRY: list[RawFile] = (
 
 
 def fetch(raw: RawFile, refresh: bool = False) -> str:
-    """Download one file and record it. Returns 'skipped', 'recorded' or 'changed'.
+    """Download one file and record it. Returns 'skipped', 'recorded', 'unchanged' or 'changed'.
 
     'changed' means a new download differs from the committed manifest hash: the new file is
     kept on disk and the manifest (the snapshot) is left alone; the pipeline reports it as
@@ -759,8 +759,10 @@ def fetch(raw: RawFile, refresh: bool = False) -> str:
         raw.path.write_bytes(content)
         retrieved = pd.Timestamp.today().strftime("%Y-%m-%d")
         previous = manifest.load().get(key)
-        if previous and not refresh and previous["sha256"] != manifest.sha256(raw.path):
-            return "changed"
+        if previous and not refresh:
+            # Keep the snapshot's entry: an identical file needs no new record.
+            same = previous["sha256"] == manifest.sha256(raw.path)
+            return "unchanged" if same else "changed"
 
     rows, start, end = raw.describe(raw.path)
     manifest.record(
