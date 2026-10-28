@@ -738,3 +738,24 @@ No further Phase 4 scope (owner instruction).
 | Backtest includes costs, withholding tax and FX, with a stated risk-free rate | Pass (SGD→USD conversion cost excluded, disclosed) |
 | Independent review completed and addressed | Pass |
 | No reference to any specific asset manager or its materials | Pass (issuers named only as product identifiers and document sources) |
+
+### 2026-10-28 — Correction: one-month timing of Shiller's bond returns (bug fix, not a methodology change)
+**Context:** Found while reusing this repo's Shiller loader in `Goals-Planner`.
+- Shiller's "Monthly Total Bond Returns" column, row *t*, is the return from month *t* to *t* + 1. It was reverse-engineered on 2026-10-28: it matches a 10-year par bond with semi-annual coupons, repriced at the next month's GS10 (correlation 0.99999, mean absolute gap 0.57 bp a month).
+- `clean.shiller_monthly` treated it as the return *into* month *t*, so Shiller long-bond returns were one month early relative to equities and CPI.
+
+**Rule:** `clean.shiller_monthly` shifts the column by one month, so row *t* is the return into month *t*.
+
+**What it affects:** only outputs that use Shiller's long bond (`us_monthly_shiller.us_gov10_tr_nominal_usd`). Rebuilt with `make all` from the cached snapshot, using the same Shiller file (SHA-256 `98a54927…`).
+- `stress_long_bond_1940_81` (not binding), on every menu and frontier row. The largest change is 1.5 pp; the 59% menu mix moves from −36.4% to −36.6%.
+- The v2 holdout record (superseded by the risk menu): H2 loss shares change by up to 1.2 pp. No candidate's pass/fail result changes, and the v2 selection is unchanged.
+- The H2 column of the holdout grid, which is display only: no value crosses its profile's tolerance.
+
+**What it doesn't affect:**
+- The risk menu, P(real loss), worst windows and CVaR, which use the modelled proxy bond built from yields.
+- The binding drawdowns.
+- The 13 evidence claims and the backtests, which use FRED-based Treasury returns.
+- `reports/headline_figures.json`, which is byte-identical after the rebuild.
+
+**Evidence:** `git diff` of the rebuild: only `docs/strategy_design.md` table cells change.
+**Effect on results:** the README's stress column changes from −36.4% to −36.6%. No conclusion changes.
