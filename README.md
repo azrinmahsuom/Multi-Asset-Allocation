@@ -66,9 +66,9 @@ How the 59% equity mix behaves on each horizon (held-out data: 15 non-US countri
 
 | Horizon | Chance of a real loss | Worst real outcome over the horizon | Average of the worst 5% | Context: nominal SGD drawdown | Stress: US long bonds 1940–81 |
 |---|---|---|---|---|---|
-| ~5 years | 22.1% | −92.7% | −57.8% | −30.1% | −36.4% |
-| ~10 years | 16.6% | −94.4% | −70.8% | −30.1% | −36.4% |
-| 20+ years | 15.9% | −92.1% | −74.7% | −30.1% | −36.4% |
+| ~5 years | 22.1% | −92.7% | −57.8% | −30.1% | −36.6% |
+| ~10 years | 16.6% | −94.4% | −70.8% | −30.1% | −36.6% |
+| 20+ years | 15.9% | −92.1% | −74.7% | −30.1% | −36.6% |
 
 The worst outcomes come from the non-US histories, which include wars and hyperinflations: Germany to 1922, Japan to 1945, France to 1950–51, and Portugal after 1974.
 

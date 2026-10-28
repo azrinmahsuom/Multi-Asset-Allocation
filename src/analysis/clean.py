@@ -38,7 +38,10 @@ def shiller_monthly(path: Path = DATA_RAW / "shiller" / "ie_data.xls") -> pd.Dat
     """US stocks (S&P Composite) and 10-year Treasuries, monthly, from 1871.
 
     Equity total return: (P_t + D_t / 12) / P_{t-1} - 1, with D the annualised dividend.
-    Bond total return: Shiller's "Monthly Total Bond Returns" column minus 1.
+    Bond total return: Shiller's "Monthly Total Bond Returns" column minus 1, shifted one month:
+    Shiller's row t holds the return from month t to t + 1 (a 10-year par bond repriced at the
+    next month's GS10), so row t here is the return into month t (correction, docs/decisions.md,
+    2026-10-28).
     Rule: stop at the last month with a reported dividend; later months use estimated
     inputs (the file notes estimated CPI and intra-month prices).
     """
@@ -51,7 +54,7 @@ def shiller_monthly(path: Path = DATA_RAW / "shiller" / "ie_data.xls") -> pd.Dat
     out = pd.DataFrame(index=raw.index)
     out["us_eq_tr_nominal_usd"] = (price + dividend / 12) / price.shift(1) - 1
     out["us_eq_price_nominal_usd"] = price / price.shift(1) - 1
-    out["us_gov10_tr_nominal_usd"] = raw.iloc[:, 17].astype(float) - 1
+    out["us_gov10_tr_nominal_usd"] = (raw.iloc[:, 17].astype(float) - 1).shift(1)
     out["us_cpi_inflation"] = raw["CPI"].astype(float).pct_change()
     out["us_gov10_yield"] = raw["Rate GS10"].astype(float) / 100
     return out.iloc[1:]
